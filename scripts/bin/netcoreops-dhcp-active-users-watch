@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+interval="${NETCOREOPS_DHCP_ACTIVE_USERS_INTERVAL:-300}"
+
+while true; do
+  date -Is
+  netcoreops-dhcp-active-users rtk "$@" || true
+  sleep "$interval"
+done

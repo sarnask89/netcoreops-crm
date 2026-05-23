@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+command="/usr/bin/netcoreops-gpon-rx-refresh rtk >> /tmp/netcoreops-gpon-rx-refresh.log 2>&1"
+entry="*/30 * * * * ${command}"
+tmp="$(mktemp)"
+
+crontab -l 2>/dev/null | grep -v "netcoreops-gpon-rx-refresh" > "$tmp" || true
+printf '%s\n' "$entry" >> "$tmp"
+crontab "$tmp"
+rm -f "$tmp"
+
+echo "$entry"

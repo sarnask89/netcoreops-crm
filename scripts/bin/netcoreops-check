@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /home/sarna/netcoreops
+
+mode="${1:-rtk}"
+
+case "$mode" in
+  rtk)
+    rtk pnpm run lint
+    rtk pnpm run typecheck
+    rtk pnpm run test
+    ;;
+  nortk)
+    pnpm run lint
+    pnpm run typecheck
+    pnpm run test
+    ;;
+  *)
+    echo "Usage: netcoreops-check [rtk|nortk]" >&2
+    exit 64
+    ;;
+esac

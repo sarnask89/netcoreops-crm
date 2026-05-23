@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /home/sarna/netcoreops
+export PATH="/home/sarna/.local/bin:/home/sarna/.hermes/node/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/c/Program Files/nodejs:${PATH:-}"
+
+mode="${1:-rtk}"
+if [[ $# -gt 0 ]]; then
+  shift
+fi
+
+case "$mode" in
+  rtk)
+    exec rtk pnpm exec tsx scripts/register-gpon-rx-automation.ts "$@"
+    ;;
+  nortk)
+    exec pnpm exec tsx scripts/register-gpon-rx-automation.ts "$@"
+    ;;
+  *)
+    echo "Usage: netcoreops-gpon-rx-register [rtk|nortk] [--equipment-id=<uuid>]" >&2
+    exit 2
+    ;;
+esac

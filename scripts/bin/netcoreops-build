@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /home/sarna/netcoreops
+
+mode="${1:-rtk}"
+
+case "$mode" in
+  rtk)
+    export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=2048}"
+    exec rtk pnpm run build
+    ;;
+  nortk)
+    export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=2048}"
+    exec pnpm run build
+    ;;
+  *)
+    echo "Usage: netcoreops-build [rtk|nortk]" >&2
+    exit 64
+    ;;
+esac
