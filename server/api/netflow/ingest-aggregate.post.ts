@@ -39,8 +39,17 @@ function toPositiveNumber(value: unknown) {
   return Number.isFinite(number) && number >= 0 ? number : null
 }
 
-async function loadInterfaceRoles(exporterAddress: string) {
-  const [equipmentRows, diagnosticRows] = await Promise.all([
+interface InterfaceRolesAndEquipment {
+  equipment: (typeof networkEquipment.$inferSelect) | undefined
+  interfaceRoles: Map<number, NetflowInterfaceRoleConfig>
+}
+
+async function loadInterfaceRolesAndEquipment(exporterAddress: string): Promise<InterfaceRolesAndEquipment> {
+  // Load all required data in parallel to reduce query count
+  const [equipment, equipmentRows, diagnosticRows] = await Promise.all([
+    db.query.networkEquipment.findFirst({
+      where: eq(networkEquipment.managementIp, exporterAddress)
+    }),
     db.query.networkEquipment.findMany(),
     db.query.diagnosticRuns.findMany({
       where: (table, { eq }) => eq(table.runType, 'netflow-config'),
@@ -48,7 +57,11 @@ async function loadInterfaceRoles(exporterAddress: string) {
       limit: 200
     })
   ])
-  return buildNetflowInterfaceRoleMaps(diagnosticRows, equipmentRows).get(exporterAddress) || new Map<number, NetflowInterfaceRoleConfig>()
+
+  return {
+    equipment,
+    interfaceRoles: buildNetflowInterfaceRoleMaps(diagnosticRows, equipmentRows).get(exporterAddress) || new Map<number, NetflowInterfaceRoleConfig>()
+  }
 }
 
 export default defineEventHandler(async (event) => {
@@ -71,7 +84,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Nieprawidłowy agregat NetFlow' })
   }
 
-  const interfaceRoles = await loadInterfaceRoles(exporterAddress)
+  // Load equipment and interface roles in parallel
+  const { equipment, interfaceRoles } = await loadInterfaceRolesAndEquipment(exporterAddress)
+
   const interfaceFlows = Array.isArray(body.interfaceFlows)
     ? body.interfaceFlows.map((flow) => {
         const ifIndex = toPositiveNumber(flow.ifIndex)
@@ -118,9 +133,6 @@ export default defineEventHandler(async (event) => {
   })
 
   if (interfaceFlows.length) {
-    const equipment = await db.query.networkEquipment.findFirst({
-      where: eq(networkEquipment.managementIp, exporterAddress)
-    })
     const sampleWindowSeconds = Math.max((toPositiveNumber(body.windowMs) || 10000) / 1000, 1)
     await db.insert(netflowInterfaceSamples).values(interfaceFlows.map(flow => ({
       equipmentId: equipment?.id || null,
