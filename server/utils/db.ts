@@ -10,7 +10,15 @@ if (!connectionString) {
 }
 
 export const pool = new Pool({
-  connectionString
+  connectionString,
+  // Increase pool size for handling concurrent requests
+  max: 20,
+  // Keep minimum connections warm
+  min: 5,
+  // Timeout waiting for a connection from the pool
+  connectionTimeoutMillis: 2000,
+  // Timeout for idle connections before closing
+  idleTimeoutMillis: 30000
 })
 
 export const db = drizzle(pool, {
