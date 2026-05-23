@@ -16,7 +16,13 @@ export default defineNuxtConfig({
     '/api/**': {
       cors: true
     },
-    // Cache static pages for 1 hour
+    // Cache API responses for dashboard summary (5 minutes)
+    '/api/dashboard/**': { cache: { maxAge: 60 * 5 } },
+    // Cache system options (1 hour)
+    '/api/system/**': { cache: { maxAge: 60 * 60 } },
+    // Cache CRM customer lists (2 minutes)
+    '/api/crm/**': { cache: { maxAge: 60 * 2 } },
+    // Cache static pages
     '/login': { cache: { maxAge: 60 * 60 } },
     '/settings/**': { cache: { maxAge: 60 * 60 } }
   },
@@ -24,7 +30,7 @@ export default defineNuxtConfig({
   sourcemap: false,
 
   devServer: {
-    host: '127.0.0.1',
+    host: '0.0.0.0',
     port: 3000
   },
 
@@ -38,13 +44,35 @@ export default defineNuxtConfig({
       crawlLinks: false,
       routes: ['/sitemap.xml']
     },
-    // Compress responses
+    // Compress responses with gzip/brotli
     compress: true,
-    // Cache API responses
+    // Cache storage for API responses
     storage: {
       redis: {
         driver: 'redis'
       }
+    }
+  },
+
+  // Vite build optimizations
+  vite: {
+    build: {
+      // Increase chunk size warning for large UI libraries
+      chunkSizeWarningLimit: 1000,
+      // Better code splitting
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'nuxt-ui': ['@nuxt/ui'],
+            'vueuse': ['@vueuse/core', '@vueuse/nuxt'],
+            'utilities': ['date-fns', 'zod']
+          }
+        }
+      }
+    },
+    // Optimize dependency pre-bundling
+    optimizeDeps: {
+      include: ['@nuxt/ui', '@vueuse/core', '@vueuse/nuxt', 'date-fns', 'zod']
     }
   },
 
@@ -59,15 +87,26 @@ export default defineNuxtConfig({
   // Image optimization
   image: {
     quality: 80,
-    format: ['webp', 'jpeg']
+    format: ['webp', 'jpeg'],
+    presets: {
+      avatar: {
+        modifiers: {
+          width: 64,
+          height: 64,
+          quality: 80
+        }
+      }
+    }
   },
 
   // Experimental features for better performance
   experimental: {
-    // Optimize CSS extraction
+    // Extract payload for better hydration
     payloadExtraction: true,
-    // Faster tree-shaking
-    treeshakeClientOnly: true
+    // Optimize tree-shaking for client-only components
+    treeshakeClientOnly: true,
+    // Inline render function to reduce bundle size
+    renderJsonPayloads: true
   },
 
   eslint: {
