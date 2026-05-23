@@ -12,6 +12,14 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  // Vue optimizations
+  vue: {
+    // Disable Vue devtools in production
+    config: {
+      devtools: false
+    }
+  },
+
   routeRules: {
     '/api/**': {
       cors: true
@@ -32,6 +40,16 @@ export default defineNuxtConfig({
   devServer: {
     host: '0.0.0.0',
     port: 3000
+  },
+
+  // Experimental features for better performance
+  experimental: {
+    // Extract payload for better hydration
+    payloadExtraction: true,
+    // Optimize tree-shaking for client-only components
+    treeshakeClientOnly: true,
+    // Inline render function to reduce bundle size
+    renderJsonPayloads: true
   },
 
   compatibilityDate: '2024-07-11',
@@ -76,11 +94,12 @@ export default defineNuxtConfig({
     }
   },
 
-  // Vue optimizations
-  vue: {
-    // Disable Vue devtools in production
+  eslint: {
     config: {
-      devtools: false
+      stylistic: {
+        commaDangle: 'never',
+        braceStyle: '1tbs'
+      }
     }
   },
 
@@ -95,25 +114,6 @@ export default defineNuxtConfig({
           height: 64,
           quality: 80
         }
-      }
-    }
-  },
-
-  // Experimental features for better performance
-  experimental: {
-    // Extract payload for better hydration
-    payloadExtraction: true,
-    // Optimize tree-shaking for client-only components
-    treeshakeClientOnly: true,
-    // Inline render function to reduce bundle size
-    renderJsonPayloads: true
-  },
-
-  eslint: {
-    config: {
-      stylistic: {
-        commaDangle: 'never',
-        braceStyle: '1tbs'
       }
     }
   }

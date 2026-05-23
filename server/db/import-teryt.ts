@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { readFile } from 'node:fs/promises'
 import { XMLParser } from 'fast-xml-parser'
-import { eq, sql } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import { db, pool } from '../utils/db'
 import {
   simcLocalities,
@@ -78,7 +78,7 @@ async function importSimc(path: string) {
 
   // Batch insert in chunks
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-    const batch = rows.slice(i, i + BATCH_SIZE).map(row => {
+    const batch = rows.slice(i, i + BATCH_SIZE).map((row) => {
       const area = areaMap.get(terytCode(row))
       return {
         simcCode: row.SYM || '',
@@ -115,7 +115,7 @@ async function importUlic(path: string) {
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
     const batch = rows.slice(i, i + BATCH_SIZE)
       .filter(row => row.SYM && row.SYM_UL && localityMap.has(row.SYM))
-      .map(row => {
+      .map((row) => {
         const locality = localityMap.get(row.SYM!)!
         const streetName = [row.NAZWA_2, row.NAZWA_1].filter(Boolean).join(' ')
 
