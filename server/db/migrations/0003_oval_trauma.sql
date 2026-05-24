@@ -1,1 +1,0 @@
-ALTER TABLE "automation_variable_definitions" ADD COLUMN "value_type" varchar(30) DEFAULT 'string' NOT NULL;
