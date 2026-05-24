@@ -1,1 +1,0 @@
-import{bi as a,az as t,bH as r,M as u,r as i}from"./hAQl6wp8.js";import{d as n}from"./owYetMFR.js";const c=()=>{const o=t(),s=r(),e=i(!1);return n({"g-h":()=>s.push("/"),"g-i":()=>s.push("/inbox"),"g-c":()=>s.push("/customers"),"g-s":()=>s.push("/settings"),n:()=>e.value=!e.value}),u(()=>o.fullPath,()=>{e.value=!1}),{isNotificationsSlideoverOpen:e}},p=a(c);export{p as u};
