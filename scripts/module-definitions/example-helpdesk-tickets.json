@@ -1,0 +1,43 @@
+{
+  "module": "helpdeskTickets",
+  "title": "Zgloszenia",
+  "tableName": "helpdesk_tickets",
+  "route": "helpdesk/tickets",
+  "timestamps": true,
+  "fields": [
+    {
+      "name": "subject",
+      "label": "Temat",
+      "type": "varchar",
+      "required": true,
+      "max": 180
+    },
+    {
+      "name": "status",
+      "label": "Status",
+      "type": "enum",
+      "values": ["OPEN", "IN_PROGRESS", "CLOSED"],
+      "default": "OPEN",
+      "required": true
+    },
+    {
+      "name": "priority",
+      "label": "Priorytet",
+      "type": "integer",
+      "default": 0
+    },
+    {
+      "name": "description",
+      "label": "Opis",
+      "type": "text",
+      "list": false
+    },
+    {
+      "name": "isActive",
+      "label": "Aktywne",
+      "type": "boolean",
+      "default": true,
+      "required": true
+    }
+  ]
+}
