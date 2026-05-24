@@ -1,9 +1,10 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
-import { basename, dirname, join } from 'node:path'
+import { basename, dirname, extname, join, normalize } from 'node:path'
+import { XMLParser } from 'fast-xml-parser'
 
-type FieldType = 'uuid' | 'text' | 'varchar' | 'integer' | 'number' | 'boolean' | 'timestamp' | 'date' | 'json' | 'enum'
+export type FieldType = 'uuid' | 'text' | 'varchar' | 'integer' | 'number' | 'boolean' | 'timestamp' | 'date' | 'json' | 'enum'
 
-interface ModuleField {
+export interface ModuleField {
   name: string
   label?: string
   type: FieldType
@@ -15,7 +16,7 @@ interface ModuleField {
   form?: boolean
 }
 
-interface ModuleDefinition {
+export interface ModuleDefinition {
   module: string
   title: string
   tableName: string
@@ -26,9 +27,23 @@ interface ModuleDefinition {
   fields: ModuleField[]
 }
 
-interface GeneratedFile {
+export interface GeneratedFile {
   path: string
   content: string
+  kind?: 'schema' | 'validation' | 'migration' | 'api' | 'page' | 'test' | 'other'
+}
+
+export interface ValidationReport {
+  success: boolean
+  phase: string
+  errors: string[]
+  warnings: string[]
+}
+
+export interface ModuleGenerationPlan {
+  modules: ModuleDefinition[]
+  files: GeneratedFile[]
+  validation: ValidationReport
 }
 
 interface GenerateOptions {
@@ -58,6 +73,34 @@ function assertString(value: unknown, label: string): string {
     throw new Error(`${label} musi byc niepustym stringiem`)
   }
   return value.trim()
+}
+
+function asArray<T>(value: T | T[] | undefined): T[] {
+  if (value === undefined) return []
+  return Array.isArray(value) ? value : [value]
+}
+
+function xmlBoolean(value: unknown): boolean | undefined {
+  if (value === undefined) return undefined
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'string') {
+    if (value.toLowerCase() === 'true') return true
+    if (value.toLowerCase() === 'false') return false
+  }
+  return Boolean(value)
+}
+
+function xmlNumber(value: unknown): number | undefined {
+  if (value === undefined || value === null || value === '') return undefined
+  const numberValue = Number(value)
+  return Number.isFinite(numberValue) ? numberValue : undefined
+}
+
+function xmlScalar(value: unknown): string | number | boolean | null | undefined {
+  if (value === undefined) return undefined
+  if (value === null) return null
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
+  return undefined
 }
 
 function assertIdentifier(value: string, label: string): string {
@@ -165,6 +208,68 @@ function validateDefinition(input: unknown): ModuleDefinition {
     timestamps: raw.timestamps !== false,
     fields
   }
+}
+
+function mapXmlDefinition(input: unknown): unknown {
+  if (!input || typeof input !== 'object') return input
+  const root = (input as Record<string, unknown>).moduleDefinition || input
+  if (!root || typeof root !== 'object') return root
+  const raw = root as Record<string, unknown>
+  const fieldsContainer = raw.fields && typeof raw.fields === 'object'
+    ? raw.fields as Record<string, unknown>
+    : {}
+  const fields = asArray(fieldsContainer.field).map((entry) => {
+    if (!entry || typeof entry !== 'object') return entry
+    const field = entry as Record<string, unknown>
+    const valuesContainer = field.values && typeof field.values === 'object'
+      ? field.values as Record<string, unknown>
+      : {}
+    const values = asArray(valuesContainer.value).map(value => String(value))
+    return {
+      name: field.name,
+      label: field.label,
+      type: field.type,
+      required: xmlBoolean(field.required),
+      max: xmlNumber(field.max),
+      values: values.length ? values : undefined,
+      default: xmlScalar(field.default),
+      list: xmlBoolean(field.list),
+      form: xmlBoolean(field.form)
+    }
+  })
+
+  return {
+    module: raw.module,
+    title: raw.title,
+    tableName: raw.tableName,
+    route: raw.route,
+    page: raw.page,
+    description: raw.description,
+    timestamps: xmlBoolean(raw.timestamps),
+    fields
+  }
+}
+
+export async function parseModuleDefinitionFile(definitionPath: string): Promise<ModuleDefinition> {
+  const content = await readFile(definitionPath, 'utf8')
+  const extension = extname(definitionPath).toLowerCase()
+
+  if (extension === '.xml') {
+    const parser = new XMLParser({
+      ignoreAttributes: false,
+      attributeNamePrefix: '',
+      trimValues: true,
+      parseAttributeValue: false,
+      parseTagValue: false
+    })
+    return validateDefinition(mapXmlDefinition(parser.parse(content)))
+  }
+
+  if (extension !== '.json') {
+    throw new Error(`Nieobslugiwany format definicji: ${extension || definitionPath}`)
+  }
+
+  return validateDefinition(JSON.parse(content) as unknown)
 }
 
 function drizzleColumn(field: ModuleField): string {
@@ -299,7 +404,7 @@ function formDefault(field: ModuleField): string {
 
 function componentForField(field: ModuleField): string {
   if (field.type === 'boolean') {
-    return `<UCheckbox v-model="state.${field.name}" />`
+    return `<USwitch v-model="state.${field.name}" />`
   }
   if (field.type === 'enum') {
     return `<USelect v-model="state.${field.name}" :items="${field.name}Items" class="w-full" />`
@@ -308,7 +413,7 @@ function componentForField(field: ModuleField): string {
     return `<UTextarea v-model="state.${field.name}" class="w-full" />`
   }
   if (field.type === 'integer' || field.type === 'number') {
-    return `<UInput v-model.number="state.${field.name}" type="number" class="w-full" />`
+    return `<UInputNumber v-model="state.${field.name}" class="w-full" />`
   }
   if (field.type === 'timestamp' || field.type === 'date') {
     return `<UInput v-model="state.${field.name}" type="datetime-local" class="w-full" />`
@@ -593,10 +698,10 @@ function rowContextItems(row: ${rowType}): ContextMenuItem[][] {
           <USlideover v-model:open="open" :title="editingId ? 'Edytuj' : 'Dodaj'">
             <UButton label="Dodaj" icon="i-lucide-plus" @click="openCreate" />
             <template #body>
-              <form class="space-y-4" @submit.prevent="onSubmit">
+              <UForm :state="state" class="space-y-4" @submit="onSubmit">
 ${formFields.join('\n')}
                 <UButton type="submit" label="Zapisz" icon="i-lucide-save" />
-              </form>
+              </UForm>
             </template>
           </USlideover>
         </template>
@@ -635,8 +740,7 @@ async function nextMigrationName(rootDir: string, moduleName: string): Promise<s
 }
 
 export async function generateModuleFiles(options: GenerateOptions): Promise<GeneratedFile[]> {
-  const definitionJson = JSON.parse(await readFile(options.definitionPath, 'utf8')) as unknown
-  const definition = validateDefinition(definitionJson)
+  const definition = await parseModuleDefinitionFile(options.definitionPath)
   const moduleFileName = toKebabCase(definition.module)
   const pagePath = definition.page || definition.route
   const migrationName = await nextMigrationName(options.rootDir, definition.module)
@@ -645,37 +749,103 @@ export async function generateModuleFiles(options: GenerateOptions): Promise<Gen
   return [
     {
       path: join(options.rootDir, 'server/db/generated', `${moduleFileName}.ts`),
-      content: renderSchema(definition)
+      content: renderSchema(definition),
+      kind: 'schema'
     },
     {
       path: join(options.rootDir, 'server/utils/generated', `${moduleFileName}.validation.ts`),
-      content: renderValidation(definition)
+      content: renderValidation(definition),
+      kind: 'validation'
     },
     {
       path: join(options.rootDir, 'server/db/migrations', migrationName),
-      content: renderMigration(definition)
+      content: renderMigration(definition),
+      kind: 'migration'
     },
     {
       path: join(apiBase, 'index.get.ts'),
-      content: renderIndexGet(definition)
+      content: renderIndexGet(definition),
+      kind: 'api'
     },
     {
       path: join(apiBase, 'index.post.ts'),
-      content: renderIndexPost(definition)
+      content: renderIndexPost(definition),
+      kind: 'api'
     },
     {
       path: join(apiBase, '[id].patch.ts'),
-      content: renderPatch(definition)
+      content: renderPatch(definition),
+      kind: 'api'
     },
     {
       path: join(apiBase, '[id].delete.ts'),
-      content: renderDelete(definition)
+      content: renderDelete(definition),
+      kind: 'api'
     },
     {
       path: join(options.rootDir, 'app/pages', `${pagePath}.vue`),
-      content: renderPage(definition)
+      content: renderPage(definition),
+      kind: 'page'
     }
   ]
+}
+
+export async function validateGeneratedModuleFiles(
+  files: GeneratedFile[],
+  options: { force?: boolean } = {}
+): Promise<ValidationReport> {
+  const errors: string[] = []
+  const warnings: string[] = []
+  const plannedPaths = new Set<string>()
+
+  for (const file of files) {
+    const normalizedPath = normalize(file.path)
+    if (normalizedPath.split('/').includes('..') || normalizedPath.split('\\').includes('..')) {
+      errors.push(`Niebezpieczna sciezka pliku: ${file.path}`)
+    }
+    if (plannedPaths.has(normalizedPath)) {
+      errors.push(`Powtorzona sciezka w planie: ${file.path}`)
+    }
+    plannedPaths.add(normalizedPath)
+    if (typeof file.content !== 'string' || !file.content.trim()) {
+      errors.push(`Pusty wygenerowany plik: ${file.path}`)
+    }
+    if (!options.force && await pathExists(file.path)) {
+      errors.push(`Plik juz istnieje: ${file.path}. Uzyj --force, jesli chcesz nadpisac.`)
+    }
+  }
+
+  return {
+    success: errors.length === 0,
+    phase: 'generated-files',
+    errors,
+    warnings
+  }
+}
+
+export async function generateModulePlan(options: {
+  rootDir: string
+  definitionPaths: string[]
+  force?: boolean
+}): Promise<ModuleGenerationPlan> {
+  const modules: ModuleDefinition[] = []
+  const files: GeneratedFile[] = []
+
+  for (const definitionPath of options.definitionPaths) {
+    modules.push(await parseModuleDefinitionFile(definitionPath))
+    files.push(...await generateModuleFiles({
+      rootDir: options.rootDir,
+      definitionPath,
+      force: options.force,
+      dryRun: true
+    }))
+  }
+
+  return {
+    modules,
+    files,
+    validation: await validateGeneratedModuleFiles(files, { force: options.force })
+  }
 }
 
 async function pathExists(path: string): Promise<boolean> {
