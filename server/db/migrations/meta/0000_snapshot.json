@@ -1,0 +1,1232 @@
+{
+  "id": "a67008b1-cd92-414e-8cfc-4a664738c3f9",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.access_profiles": {
+      "name": "access_profiles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "technology_type_id": {
+          "name": "technology_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "download_speed_mbps": {
+          "name": "download_speed_mbps",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "upload_speed_mbps": {
+          "name": "upload_speed_mbps",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_symmetric": {
+          "name": "is_symmetric",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "access_profiles_technology_type_id_uke_technology_types_id_fk": {
+          "name": "access_profiles_technology_type_id_uke_technology_types_id_fk",
+          "tableFrom": "access_profiles",
+          "tableTo": "uke_technology_types",
+          "columnsFrom": [
+            "technology_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "access_profiles_name_unique": {
+          "name": "access_profiles_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.customer_services": {
+      "name": "customer_services",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "customer_id": {
+          "name": "customer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profile_id": {
+          "name": "profile_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "equipment_id": {
+          "name": "equipment_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "service_teryt_area_id": {
+          "name": "service_teryt_area_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "service_simc_locality_id": {
+          "name": "service_simc_locality_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "service_street_id": {
+          "name": "service_street_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "service_building_number": {
+          "name": "service_building_number",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "service_apartment_number": {
+          "name": "service_apartment_number",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "activation_date": {
+          "name": "activation_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "customer_services_customer_id_customers_id_fk": {
+          "name": "customer_services_customer_id_customers_id_fk",
+          "tableFrom": "customer_services",
+          "tableTo": "customers",
+          "columnsFrom": [
+            "customer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "customer_services_profile_id_access_profiles_id_fk": {
+          "name": "customer_services_profile_id_access_profiles_id_fk",
+          "tableFrom": "customer_services",
+          "tableTo": "access_profiles",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "customer_services_equipment_id_network_equipment_id_fk": {
+          "name": "customer_services_equipment_id_network_equipment_id_fk",
+          "tableFrom": "customer_services",
+          "tableTo": "network_equipment",
+          "columnsFrom": [
+            "equipment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "customer_services_service_teryt_area_id_teryt_areas_id_fk": {
+          "name": "customer_services_service_teryt_area_id_teryt_areas_id_fk",
+          "tableFrom": "customer_services",
+          "tableTo": "teryt_areas",
+          "columnsFrom": [
+            "service_teryt_area_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "customer_services_service_simc_locality_id_simc_localities_id_fk": {
+          "name": "customer_services_service_simc_locality_id_simc_localities_id_fk",
+          "tableFrom": "customer_services",
+          "tableTo": "simc_localities",
+          "columnsFrom": [
+            "service_simc_locality_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "customer_services_service_street_id_ulic_streets_id_fk": {
+          "name": "customer_services_service_street_id_ulic_streets_id_fk",
+          "tableFrom": "customer_services",
+          "tableTo": "ulic_streets",
+          "columnsFrom": [
+            "service_street_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "customer_services_equipment_id_unique": {
+          "name": "customer_services_equipment_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "equipment_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.customers": {
+      "name": "customers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "customer_type": {
+          "name": "customer_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tax_id": {
+          "name": "tax_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contact_email": {
+          "name": "contact_email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contact_phone": {
+          "name": "contact_phone",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "billing_address": {
+          "name": "billing_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "customers_tax_id_unique": {
+          "name": "customers_tax_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "tax_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.device_models": {
+      "name": "device_models",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type_id": {
+          "name": "type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "manufacturer": {
+          "name": "manufacturer",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "model_name": {
+          "name": "model_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "technology_type_id": {
+          "name": "technology_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ports_upstream": {
+          "name": "ports_upstream",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "ports_downstream": {
+          "name": "ports_downstream",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "power_consumption_watt": {
+          "name": "power_consumption_watt",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "throughput_capabilities": {
+          "name": "throughput_capabilities",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "device_models_manufacturer_model_idx": {
+          "name": "device_models_manufacturer_model_idx",
+          "columns": [
+            {
+              "expression": "manufacturer",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "model_name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "device_models_type_id_device_types_id_fk": {
+          "name": "device_models_type_id_device_types_id_fk",
+          "tableFrom": "device_models",
+          "tableTo": "device_types",
+          "columnsFrom": [
+            "type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "device_models_technology_type_id_uke_technology_types_id_fk": {
+          "name": "device_models_technology_type_id_uke_technology_types_id_fk",
+          "tableFrom": "device_models",
+          "tableTo": "uke_technology_types",
+          "columnsFrom": [
+            "technology_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.device_types": {
+      "name": "device_types",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "device_types_name_unique": {
+          "name": "device_types_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.network_equipment": {
+      "name": "network_equipment",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "inventory_id": {
+          "name": "inventory_id",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "model_id": {
+          "name": "model_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "node_id": {
+          "name": "node_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mac_address": {
+          "name": "mac_address",
+          "type": "varchar(17)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "serial_number": {
+          "name": "serial_number",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "equipment_role": {
+          "name": "equipment_role",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'IN_USE'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "network_equipment_model_id_device_models_id_fk": {
+          "name": "network_equipment_model_id_device_models_id_fk",
+          "tableFrom": "network_equipment",
+          "tableTo": "device_models",
+          "columnsFrom": [
+            "model_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "network_equipment_node_id_network_nodes_id_fk": {
+          "name": "network_equipment_node_id_network_nodes_id_fk",
+          "tableFrom": "network_equipment",
+          "tableTo": "network_nodes",
+          "columnsFrom": [
+            "node_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "network_equipment_inventory_id_unique": {
+          "name": "network_equipment_inventory_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "inventory_id"
+          ]
+        },
+        "network_equipment_mac_address_unique": {
+          "name": "network_equipment_mac_address_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "mac_address"
+          ]
+        },
+        "network_equipment_serial_number_unique": {
+          "name": "network_equipment_serial_number_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "serial_number"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.network_lines": {
+      "name": "network_lines",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "inventory_id": {
+          "name": "inventory_id",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "node_start_id": {
+          "name": "node_start_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "node_end_id": {
+          "name": "node_end_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "medium_type_id": {
+          "name": "medium_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fiber_count": {
+          "name": "fiber_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "length_meters": {
+          "name": "length_meters",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'ACTIVE'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "network_lines_node_start_id_network_nodes_id_fk": {
+          "name": "network_lines_node_start_id_network_nodes_id_fk",
+          "tableFrom": "network_lines",
+          "tableTo": "network_nodes",
+          "columnsFrom": [
+            "node_start_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "network_lines_node_end_id_network_nodes_id_fk": {
+          "name": "network_lines_node_end_id_network_nodes_id_fk",
+          "tableFrom": "network_lines",
+          "tableTo": "network_nodes",
+          "columnsFrom": [
+            "node_end_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "network_lines_medium_type_id_uke_medium_types_id_fk": {
+          "name": "network_lines_medium_type_id_uke_medium_types_id_fk",
+          "tableFrom": "network_lines",
+          "tableTo": "uke_medium_types",
+          "columnsFrom": [
+            "medium_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "network_lines_inventory_id_unique": {
+          "name": "network_lines_inventory_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "inventory_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.network_nodes": {
+      "name": "network_nodes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "inventory_id": {
+          "name": "inventory_id",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "node_type": {
+          "name": "node_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "medium_type_id": {
+          "name": "medium_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "teryt_area_id": {
+          "name": "teryt_area_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "simc_locality_id": {
+          "name": "simc_locality_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "street_id": {
+          "name": "street_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "building_number": {
+          "name": "building_number",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PLANNED'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "network_nodes_medium_type_id_uke_medium_types_id_fk": {
+          "name": "network_nodes_medium_type_id_uke_medium_types_id_fk",
+          "tableFrom": "network_nodes",
+          "tableTo": "uke_medium_types",
+          "columnsFrom": [
+            "medium_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "network_nodes_teryt_area_id_teryt_areas_id_fk": {
+          "name": "network_nodes_teryt_area_id_teryt_areas_id_fk",
+          "tableFrom": "network_nodes",
+          "tableTo": "teryt_areas",
+          "columnsFrom": [
+            "teryt_area_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "network_nodes_simc_locality_id_simc_localities_id_fk": {
+          "name": "network_nodes_simc_locality_id_simc_localities_id_fk",
+          "tableFrom": "network_nodes",
+          "tableTo": "simc_localities",
+          "columnsFrom": [
+            "simc_locality_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "network_nodes_street_id_ulic_streets_id_fk": {
+          "name": "network_nodes_street_id_ulic_streets_id_fk",
+          "tableFrom": "network_nodes",
+          "tableTo": "ulic_streets",
+          "columnsFrom": [
+            "street_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "network_nodes_inventory_id_unique": {
+          "name": "network_nodes_inventory_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "inventory_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.simc_localities": {
+      "name": "simc_localities",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "simc_code": {
+          "name": "simc_code",
+          "type": "varchar(7)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "teryt_area_id": {
+          "name": "teryt_area_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "locality_type": {
+          "name": "locality_type",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "simc_localities_teryt_area_id_teryt_areas_id_fk": {
+          "name": "simc_localities_teryt_area_id_teryt_areas_id_fk",
+          "tableFrom": "simc_localities",
+          "tableTo": "teryt_areas",
+          "columnsFrom": [
+            "teryt_area_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "simc_localities_simc_code_unique": {
+          "name": "simc_localities_simc_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "simc_code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "simc_localities_code_check": {
+          "name": "simc_localities_code_check",
+          "value": "\"simc_localities\".\"simc_code\" ~ '^[0-9]{7}$'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.teryt_areas": {
+      "name": "teryt_areas",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "teryt_code": {
+          "name": "teryt_code",
+          "type": "varchar(7)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "area_type": {
+          "name": "area_type",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "voivodeship": {
+          "name": "voivodeship",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "county": {
+          "name": "county",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "commune": {
+          "name": "commune",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "teryt_areas_teryt_code_unique": {
+          "name": "teryt_areas_teryt_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "teryt_code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "teryt_areas_code_check": {
+          "name": "teryt_areas_code_check",
+          "value": "\"teryt_areas\".\"teryt_code\" ~ '^[0-9]{7}$'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.uke_medium_types": {
+      "name": "uke_medium_types",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "code": {
+          "name": "code",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "uke_medium_types_code_unique": {
+          "name": "uke_medium_types_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.uke_technology_types": {
+      "name": "uke_technology_types",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "code": {
+          "name": "code",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "uke_technology_types_code_unique": {
+          "name": "uke_technology_types_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.ulic_streets": {
+      "name": "ulic_streets",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "ulic_code": {
+          "name": "ulic_code",
+          "type": "varchar(7)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "simc_locality_id": {
+          "name": "simc_locality_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "street_type": {
+          "name": "street_type",
+          "type": "varchar(80)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "ulic_streets_simc_code_idx": {
+          "name": "ulic_streets_simc_code_idx",
+          "columns": [
+            {
+              "expression": "simc_locality_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "ulic_code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "ulic_streets_simc_locality_id_simc_localities_id_fk": {
+          "name": "ulic_streets_simc_locality_id_simc_localities_id_fk",
+          "tableFrom": "ulic_streets",
+          "tableTo": "simc_localities",
+          "columnsFrom": [
+            "simc_locality_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "ulic_streets_code_check": {
+          "name": "ulic_streets_code_check",
+          "value": "\"ulic_streets\".\"ulic_code\" ~ '^[0-9]{5,7}$'"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
