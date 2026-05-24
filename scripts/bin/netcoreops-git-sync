@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /home/sarna/netcoreops
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  netcoreops-git-sync [--commit "message"] [--no-return]
+
+Synchronizes the current branch with origin and updates main:
+  1. optionally stages and commits current changes
+  2. fetches origin
+  3. pushes the current branch
+  4. switches to main and fast-forwards it from origin/main
+  5. merges the starting branch into main
+  6. pushes main
+  7. returns to the starting branch unless --no-return is used
+
+The script refuses to continue with uncommitted changes unless --commit is used.
+EOF
+  exit 64
+}
+
+commit_message=""
+return_to_branch=1
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --commit|-m)
+      [ "$#" -ge 2 ] || usage
+      commit_message="$2"
+      shift 2
+      ;;
+    --no-return)
+      return_to_branch=0
+      shift
+      ;;
+    --help|-h)
+      usage
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage
+      ;;
+  esac
+done
+
+start_branch="$(git branch --show-current)"
+if [ -z "$start_branch" ]; then
+  echo "Detached HEAD is not supported." >&2
+  exit 1
+fi
+
+if [ -n "$(git status --porcelain)" ]; then
+  if [ -z "$commit_message" ]; then
+    echo "Worktree has uncommitted changes. Use --commit \"message\" or commit manually first." >&2
+    git status --short >&2
+    exit 1
+  fi
+
+  git add -A
+  if ! git diff --cached --quiet; then
+    git commit -m "$commit_message"
+  fi
+fi
+
+git fetch origin --prune
+
+if [ "$start_branch" = "main" ]; then
+  git pull --ff-only origin main
+  git push origin main
+  exit 0
+fi
+
+git push -u origin "$start_branch"
+
+git switch main
+git pull --ff-only origin main
+git merge --no-edit "$start_branch"
+git push origin main
+
+if [ "$return_to_branch" -eq 1 ]; then
+  git switch "$start_branch"
+  git merge --ff-only main
+  git push -u origin "$start_branch"
+fi
+
+git status --short --branch
