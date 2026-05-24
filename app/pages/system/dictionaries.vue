@@ -3,11 +3,15 @@ import type { ContextMenuItem, TableColumn } from '@nuxt/ui'
 
 type TabKey = 'media' | 'technologies' | 'teryt' | 'simc' | 'ulic'
 type DictionaryRow = Record<string, unknown>
+interface DictionariesResponse {
+  success: boolean
+  data: Record<TabKey, DictionaryRow[]>
+}
 
 const active = ref<TabKey>('teryt')
 const detailsOpen = ref(false)
 const selectedRow = ref<DictionaryRow | null>(null)
-const { data, status, refresh } = await useFetch('/api/system/dictionaries', {
+const { data, status, refresh } = await useFetch<DictionariesResponse>('/api/system/dictionaries', {
   default: () => ({
     success: false,
     data: { media: [], technologies: [], teryt: [], simc: [], ulic: [] }
