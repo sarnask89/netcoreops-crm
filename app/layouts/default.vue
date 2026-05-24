@@ -176,6 +176,18 @@ const links = [[{
     }
   }]
 }, {
+  label: 'Narzędzia',
+  icon: 'i-lucide-wrench',
+  type: 'trigger',
+  children: [{
+    label: 'Generator modułów',
+    icon: 'i-lucide-blocks',
+    to: '/tools/module-generator',
+    onSelect: () => {
+      open.value = false
+    }
+  }]
+}, {
   label: 'Słowniki UKE',
   icon: 'i-lucide-book-open',
   to: '/system/dictionaries',
