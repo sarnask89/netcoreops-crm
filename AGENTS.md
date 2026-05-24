@@ -231,6 +231,10 @@ show onu ip-host OLT_ID ONU_ID
 - Use `apply_patch` for manual file edits.
 - Avoid destructive git commands.
 - The repo may be in an unborn or dirty git state; do not revert user work.
+- Use the `netcoreops-memory` skill when the user asks to remember something or when durable NetCoreOps context should be preserved.
+- Save the most important NetCoreOps changes, plans, decisions, and explicit user memory requests to Mem. Do not store secrets, raw credentials, or noisy transient command output.
+- After successful fixes and deployments, make a git commit and push the branch unless the user explicitly asks not to.
+- Branch strategy: keep `main` as the aggregate/integration branch; use focused branches named `network`, `crm`, `tools`, `integrations`, and `module-generator` for their respective workstreams.
 - If build memory issues return in WSL, ensure `/swapfile-netcoreops` is active before building:
 
 ```bash
