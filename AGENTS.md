@@ -234,7 +234,9 @@ show onu ip-host OLT_ID ONU_ID
 - Use the `netcoreops-memory` skill when the user asks to remember something or when durable NetCoreOps context should be preserved.
 - Save the most important NetCoreOps changes, plans, decisions, and explicit user memory requests to Mem. Do not store secrets, raw credentials, or noisy transient command output.
 - After successful fixes and deployments, make a git commit and push the branch unless the user explicitly asks not to.
-- Branch strategy: keep `main` as the aggregate/integration branch; use focused branches named `network`, `crm`, `tools`, `integrations`, and `module-generator` for their respective workstreams.
+- Branch strategy: keep `main` as the aggregate/integration branch; use focused branches named `nms`, `crm`, `tools`, `integrations`, and `module-generator` for their respective workstreams.
+  - `nms`: portal/application NMS and FTTH domain screens/APIs.
+  - `tools`: operational scripts, diagnostics/import helpers, network drivers, and NetFlow collector/analytics code.
 - If build memory issues return in WSL, ensure `/swapfile-netcoreops` is active before building:
 
 ```bash
