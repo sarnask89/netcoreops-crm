@@ -16,6 +16,7 @@ logs
 .netcoreops-automation-*.ts
 *.swp
 scripts/.cleanup-backups/
+temp/
 
 # Misc
 .DS_Store

@@ -25,6 +25,11 @@ Project scripts live in `/home/sarna/netcoreops/scripts/bin` and are symlinked i
   - `netcoreops-build rtk` runs the Nuxt production build through `rtk`.
   - `netcoreops-build nortk` runs the same build without `rtk`.
   - The script sets `NODE_OPTIONS=--max-old-space-size=4096` unless already provided.
+- `/usr/bin/netcoreops-git-sync -> /home/sarna/netcoreops/scripts/bin/netcoreops-git-sync`
+  - `netcoreops-git-sync` fetches origin, pushes the current branch, fast-forwards local `main` from `origin/main`, merges the current branch into `main`, pushes `main`, then returns to the starting branch and fast-forwards it from `main`.
+  - The script refuses to run with uncommitted changes unless `--commit "message"` is provided.
+  - Use `netcoreops-git-sync --commit "message"` to stage all current changes, commit them, then synchronize the branch and `main`.
+  - Use `--no-return` to stay on `main` after the merge and push.
 - `/usr/bin/netcoreops-dev -> /home/sarna/netcoreops/scripts/bin/netcoreops-dev`
   - `netcoreops-dev rtk 3000` starts Nuxt dev on `0.0.0.0:3000` through `rtk`.
   - `netcoreops-dev nortk 3000` starts without `rtk`.
