@@ -1,28 +1,40 @@
-import { readBody } from 'h3'
 import { z } from 'zod'
-import { generateModulePlan, writeGeneratedFiles } from '../../../scripts/codegen/module-generator'
+import {
+  generateModulePlan,
+  writeGeneratedFiles
+} from '../../../scripts/codegen/module-generator'
 
-const bodySchema = z.object({
+const BodySchema = z.object({
   paths: z.array(z.string().min(1)).min(1),
   force: z.boolean().optional()
 })
 
 export default defineEventHandler(async (event) => {
-  const body = bodySchema.parse(await readBody(event))
+  const body = BodySchema.safeParse(await readBody(event))
+
+  if (!body.success) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: body.error.issues.map(issue => issue.message).join('; ')
+    })
+  }
+
   const plan = await generateModulePlan({
     rootDir: process.cwd(),
-    definitionPaths: body.paths,
-    force: body.force
+    definitionPaths: body.data.paths,
+    force: body.data.force
   })
 
   if (!plan.validation.success) {
     throw createError({
       statusCode: 400,
-      statusMessage: plan.validation.errors.join('; ') || 'Walidacja generatora nie powiodla sie'
+      statusMessage: plan.validation.errors.join('; ')
     })
   }
 
-  await writeGeneratedFiles(plan.files, { force: body.force })
+  await writeGeneratedFiles(plan.files, {
+    force: body.data.force
+  })
 
   return {
     success: true,

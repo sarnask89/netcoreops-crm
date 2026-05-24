@@ -1,18 +1,33 @@
 <script setup lang="ts">
-import type { ContextMenuItem, TableColumn } from '@nuxt/ui'
+import type { ContextMenuItem } from '@nuxt/ui'
+
+type SpecFormat = 'json' | 'xml'
 
 interface ModuleDefinition {
   module: string
   title: string
   tableName: string
   route: string
-  fields: Array<{ name: string, type: string, label?: string }>
+  page?: string
+  description?: string
+  timestamps?: boolean
+  fields: Array<{
+    name: string
+    label?: string
+    type: string
+    required?: boolean
+    max?: number
+    values?: string[]
+    default?: string | number | boolean | null
+    list?: boolean
+    form?: boolean
+  }>
 }
 
-interface GeneratedFileRow {
+interface GeneratedFile {
   path: string
-  kind?: string
   content: string
+  kind?: string
 }
 
 interface ValidationReport {
@@ -22,242 +37,383 @@ interface ValidationReport {
   warnings: string[]
 }
 
-interface ModulePlan {
+interface ModuleGenerationPlan {
   modules: ModuleDefinition[]
-  files: GeneratedFileRow[]
+  files: GeneratedFile[]
   validation: ValidationReport
 }
 
 const toast = useToast()
-const active = ref('spec')
-const specInput = ref(`{
-  "module": "helpdeskTickets",
-  "title": "Zgloszenia",
-  "tableName": "helpdesk_tickets",
-  "route": "helpdesk/tickets",
-  "fields": [
-    { "name": "subject", "label": "Temat", "type": "varchar", "required": true, "max": 180 }
-  ]
-}`)
-const specFormat = ref<'json' | 'xml'>('json')
-const pathInput = ref('')
-const force = ref(false)
-const parsedDefinition = ref<ModuleDefinition | null>(null)
-const plan = ref<ModulePlan | null>(null)
-const validation = computed(() => plan.value?.validation || null)
-const loading = ref(false)
-const previewOpen = ref(false)
-const previewFile = ref<GeneratedFileRow | null>(null)
 
 const tabs = [
-  { label: 'Spec', value: 'spec', icon: 'i-lucide-file-code-2' },
-  { label: 'Plan', value: 'plan', icon: 'i-lucide-list-checks' },
-  { label: 'Walidacja', value: 'validation', icon: 'i-lucide-shield-check' }
+  {
+    label: 'Spec',
+    icon: 'i-lucide-file-code',
+    slot: 'spec'
+  },
+  {
+    label: 'Plan',
+    icon: 'i-lucide-list-tree',
+    slot: 'plan'
+  },
+  {
+    label: 'Walidacja',
+    icon: 'i-lucide-shield-check',
+    slot: 'validation'
+  }
 ]
 
-const formatItems = [
-  { label: 'JSON', value: 'json' },
-  { label: 'XML', value: 'xml' }
+const formatOptions = [
+  {
+    label: 'JSON',
+    value: 'json'
+  },
+  {
+    label: 'XML',
+    value: 'xml'
+  }
 ]
 
-const fileColumns: TableColumn<GeneratedFileRow>[] = [
-  { accessorKey: 'path', header: 'Plik' },
-  { accessorKey: 'kind', header: 'Typ' }
+const specFormat = ref<SpecFormat>('json')
+const specInput = ref(`{
+  "module": "fiberTickets",
+  "title": "Awaria FTTH",
+  "tableName": "fiber_tickets",
+  "route": "network/fiber-tickets",
+  "timestamps": true,
+  "fields": [
+    {
+      "name": "subject",
+      "label": "Temat",
+      "type": "varchar",
+      "required": true,
+      "max": 120
+    },
+    {
+      "name": "status",
+      "label": "Status",
+      "type": "enum",
+      "default": "OPEN",
+      "values": ["OPEN", "CLOSED"]
+    }
+  ]
+}`)
+
+const parsedDefinition = ref<ModuleDefinition | null>(null)
+const pathsText = ref('')
+const force = ref(false)
+const loading = ref(false)
+const plan = ref<ModuleGenerationPlan | null>(null)
+const previewOpen = ref(false)
+const previewFile = ref<GeneratedFile | null>(null)
+const activeFile = ref<GeneratedFile | null>(null)
+
+const fileColumns = [
+  {
+    accessorKey: 'path',
+    header: 'Path'
+  },
+  {
+    accessorKey: 'kind',
+    header: 'Kind'
+  }
 ]
 
-const paths = computed(() => pathInput.value
-  .split('\n')
-  .map(path => path.trim())
-  .filter(Boolean))
+const planFiles = computed(() => plan.value?.files || [])
+const validation = computed<ValidationReport | null>(() => plan.value?.validation || null)
 
-async function parseSpec() {
+function inputPaths(): string[] {
+  return pathsText.value
+    .split('\n')
+    .map(path => path.trim())
+    .filter(Boolean)
+}
+
+async function parseSpec(): Promise<void> {
   loading.value = true
+
   try {
-    const response = await $fetch<{ success: boolean, data: ModuleDefinition }>('/api/module-generator/parse', {
+    const response = await $fetch<{ success: true, data: ModuleDefinition }>('/api/module-generator/parse', {
       method: 'POST',
       body: {
         input: specInput.value,
         format: specFormat.value
       }
     })
+
     parsedDefinition.value = response.data
-    toast.add({ title: 'Specyfikacja poprawna', color: 'success' })
+
+    toast.add({
+      title: 'Spec sparsowany',
+      description: response.data.module,
+      color: 'success'
+    })
+  } catch (error) {
+    toast.add({
+      title: 'Blad parsowania',
+      description: error instanceof Error ? error.message : 'Nie udalo sie sparsowac spec',
+      color: 'error'
+    })
   } finally {
     loading.value = false
   }
 }
 
-async function buildPlan() {
+async function dryRunPlan(): Promise<void> {
+  const paths = inputPaths()
+
+  if (paths.length === 0) {
+    toast.add({
+      title: 'Brak sciezek',
+      description: 'Dodaj jeden path na linie.',
+      color: 'warning'
+    })
+
+    return
+  }
+
   loading.value = true
+
   try {
-    const response = await $fetch<{ success: boolean, data: ModulePlan }>('/api/module-generator/plan', {
+    const response = await $fetch<{ success: true, data: ModuleGenerationPlan }>('/api/module-generator/plan', {
       method: 'POST',
       body: {
-        paths: paths.value,
+        paths,
         force: force.value
       }
     })
+
     plan.value = response.data
+
     toast.add({
-      title: response.data.validation.success ? 'Plan poprawny' : 'Plan wymaga poprawek',
-      color: response.data.validation.success ? 'success' : 'error'
+      title: 'Plan wygenerowany',
+      description: `${response.data.files.length} plikow w planie`,
+      color: response.data.validation.success ? 'success' : 'warning'
     })
-    active.value = response.data.validation.success ? 'plan' : 'validation'
+  } catch (error) {
+    toast.add({
+      title: 'Blad planowania',
+      description: error instanceof Error ? error.message : 'Nie udalo sie wygenerowac planu',
+      color: 'error'
+    })
   } finally {
     loading.value = false
   }
 }
 
-async function copyPath(row: GeneratedFileRow) {
-  await navigator.clipboard.writeText(row.path)
-  toast.add({ title: 'Skopiowano sciezke', color: 'success' })
+function onFileRowContext(file: GeneratedFile): void {
+  activeFile.value = file
 }
 
-function showPreview(row: GeneratedFileRow) {
-  previewFile.value = row
+function openPreview(file: GeneratedFile): void {
+  previewFile.value = file
   previewOpen.value = true
 }
 
-function fileContextItems(row: GeneratedFileRow): ContextMenuItem[][] {
-  return [[
-    { label: 'Kopiuj sciezke', icon: 'i-lucide-copy', onSelect: () => copyPath(row) },
-    { label: 'Pokaz podglad', icon: 'i-lucide-panel-right-open', onSelect: () => showPreview(row) }
-  ]]
+async function copyPath(file: GeneratedFile): Promise<void> {
+  await navigator.clipboard.writeText(file.path)
+
+  toast.add({
+    title: 'Skopiowano sciezke',
+    description: file.path,
+    color: 'success'
+  })
+}
+
+function fileContextItems(file?: GeneratedFile | null): ContextMenuItem[][] {
+  const target = file || activeFile.value
+
+  return [
+    [
+      {
+        label: 'Kopiuj sciezke',
+        icon: 'i-lucide-copy',
+        disabled: !target,
+        onSelect: () => target ? copyPath(target) : undefined
+      },
+      {
+        label: 'Pokaz podglad',
+        icon: 'i-lucide-eye',
+        disabled: !target,
+        onSelect: () => target ? openPreview(target) : undefined
+      }
+    ]
+  ]
 }
 </script>
 
 <template>
-  <UDashboardPanel id="tools-module-generator" :ui="{ body: 'p-0 sm:p-0 gap-0 sm:gap-0' }">
+  <UDashboardPanel>
     <template #header>
       <UDashboardNavbar title="Generator modulow">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
       </UDashboardNavbar>
-      <UDashboardToolbar>
-        <template #left>
-          <UTabs v-model="active" :items="tabs" />
-        </template>
-      </UDashboardToolbar>
     </template>
 
     <template #body>
-      <div v-if="active === 'spec'" class="grid h-full min-h-0 gap-4 overflow-auto p-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div class="flex min-h-0 flex-col gap-3">
-          <div class="flex items-center gap-2">
-            <USelect v-model="specFormat" :items="formatItems" class="w-36" />
-            <UButton
-              label="Parse"
-              icon="i-lucide-play"
-              :loading="loading"
-              @click="parseSpec"
-            />
+      <UTabs :items="tabs" class="w-full">
+        <template #spec>
+          <div class="grid gap-4 lg:grid-cols-[1fr_260px]">
+            <div class="space-y-4">
+              <UFormField label="Spec JSON/XML" name="specInput">
+                <UTextarea
+                  v-model="specInput"
+                  :rows="22"
+                  class="w-full font-mono"
+                  placeholder="Wklej ModuleDefinition JSON albo XML"
+                />
+              </UFormField>
+            </div>
+
+            <div class="space-y-4">
+              <UFormField label="Format" name="specFormat">
+                <USelect
+                  v-model="specFormat"
+                  :items="formatOptions"
+                  class="w-full"
+                />
+              </UFormField>
+
+              <UButton
+                block
+                icon="i-lucide-scan-text"
+                :loading="loading"
+                @click="parseSpec"
+              >
+                Parse
+              </UButton>
+
+              <UAlert
+                v-if="parsedDefinition"
+                color="success"
+                variant="soft"
+                title="Definicja poprawna"
+                :description="`${parsedDefinition.module} | ${parsedDefinition.tableName} | ${parsedDefinition.route}`"
+              />
+
+              <div v-if="parsedDefinition" class="rounded-lg border border-default p-4 text-sm">
+                <dl class="space-y-2">
+                  <div class="flex justify-between gap-4">
+                    <dt class="text-muted">
+                      Modul
+                    </dt>
+                    <dd class="font-medium">
+                      {{ parsedDefinition.module }}
+                    </dd>
+                  </div>
+                  <div class="flex justify-between gap-4">
+                    <dt class="text-muted">
+                      Tabela
+                    </dt>
+                    <dd class="font-medium">
+                      {{ parsedDefinition.tableName }}
+                    </dd>
+                  </div>
+                  <div class="flex justify-between gap-4">
+                    <dt class="text-muted">
+                      Route
+                    </dt>
+                    <dd class="font-medium">
+                      {{ parsedDefinition.route }}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
           </div>
-          <UTextarea
-            v-model="specInput"
-            class="min-h-[520px] font-mono"
-            :rows="24"
-          />
-        </div>
+        </template>
 
-        <div class="space-y-3 border border-default rounded-lg p-3">
-          <p class="text-sm font-medium text-highlighted">
-            Wynik parsera
-          </p>
-          <div v-if="parsedDefinition" class="space-y-2 text-sm">
-            <p><span class="text-muted">Modul:</span> {{ parsedDefinition.module }}</p>
-            <p><span class="text-muted">Tabela:</span> {{ parsedDefinition.tableName }}</p>
-            <p><span class="text-muted">Route:</span> {{ parsedDefinition.route }}</p>
-            <p><span class="text-muted">Pola:</span> {{ parsedDefinition.fields.length }}</p>
+        <template #plan>
+          <div class="space-y-4">
+            <div class="grid gap-4 lg:grid-cols-[1fr_260px]">
+              <UFormField label="Sciezki definicji, jedna na linie" name="pathsText">
+                <UTextarea
+                  v-model="pathsText"
+                  :rows="6"
+                  class="w-full font-mono"
+                  placeholder="module-definitions/fiber-tickets.json&#10;module-definitions/devices.xml"
+                />
+              </UFormField>
+
+              <div class="space-y-4">
+                <UFormField label="Force" name="force">
+                  <USwitch v-model="force" />
+                </UFormField>
+
+                <UButton
+                  block
+                  icon="i-lucide-play"
+                  :loading="loading"
+                  @click="dryRunPlan"
+                >
+                  Dry-run plan
+                </UButton>
+              </div>
+            </div>
+
+            <UContextMenu :items="fileContextItems(activeFile)">
+              <AppDataTable
+                :data="planFiles"
+                :columns="fileColumns"
+                @row-contextmenu="onFileRowContext"
+                @row-click="onFileRowContext"
+              />
+            </UContextMenu>
           </div>
-          <UAlert
-            v-else
-            color="neutral"
-            variant="subtle"
-            title="Brak sparsowanej specyfikacji"
-            description="Wklej JSON albo XML i uruchom parser."
-          />
-        </div>
-      </div>
 
-      <div v-else-if="active === 'plan'" class="grid h-full min-h-0 gap-4 overflow-hidden p-4 lg:grid-cols-[360px_minmax(0,1fr)]">
-        <div class="space-y-4 overflow-auto">
-          <UFormField label="Pliki definicji" name="paths">
-            <UTextarea
-              v-model="pathInput"
-              :rows="10"
-              placeholder="/home/sarna/netcoreops/scripts/module-definitions/example-helpdesk-tickets.json"
-              class="font-mono"
+          <USlideover v-model:open="previewOpen" :title="previewFile?.path || 'Podglad'">
+            <template #body>
+              <pre class="overflow-auto rounded-lg bg-muted p-4 text-xs"><code>{{ previewFile?.content }}</code></pre>
+            </template>
+          </USlideover>
+        </template>
+
+        <template #validation>
+          <div class="space-y-4">
+            <UAlert
+              v-if="validation"
+              :color="validation.success ? 'success' : 'error'"
+              variant="soft"
+              :title="validation.success ? 'Walidacja OK' : 'Walidacja FAIL'"
+              :description="validation.phase"
             />
-          </UFormField>
-          <USwitch v-model="force" label="Pozwol nadpisac istniejace pliki" />
-          <UButton
-            label="Dry-run plan"
-            icon="i-lucide-list-checks"
-            :loading="loading"
-            :disabled="paths.length === 0"
-            @click="buildPlan"
-          />
-        </div>
 
-        <AppDataTable
-          :data="plan?.files || []"
-          :columns="fileColumns"
-          :loading="loading"
-          :context-items="fileContextItems"
-          empty-label="Brak planu plikow"
-        />
-      </div>
+            <UAlert
+              v-else
+              color="neutral"
+              variant="soft"
+              title="Brak walidacji"
+              description="Wygeneruj dry-run plan, zeby zobaczyc raport."
+            />
 
-      <div v-else class="space-y-4 overflow-auto p-4">
-        <UAlert
-          v-if="validation"
-          :color="validation.success ? 'success' : 'error'"
-          variant="subtle"
-          :title="validation.success ? 'Walidacja poprawna' : 'Walidacja nie powiodla sie'"
-          :description="`Faza: ${validation.phase}`"
-        />
-        <UAlert
-          v-else
-          color="neutral"
-          variant="subtle"
-          title="Brak raportu walidacji"
-          description="Uruchom dry-run planu, zeby zobaczyc wynik."
-        />
+            <div v-if="validation?.errors.length" class="space-y-2">
+              <h3 class="font-medium">
+                Bledy
+              </h3>
 
-        <div v-if="validation?.errors.length" class="space-y-2">
-          <p class="text-sm font-medium text-error">
-            Bledy
-          </p>
-          <ul class="space-y-1 text-sm text-default">
-            <li v-for="error in validation.errors" :key="error">
-              {{ error }}
-            </li>
-          </ul>
-        </div>
+              <ul class="list-disc space-y-1 pl-5 text-sm text-error">
+                <li v-for="error in validation.errors" :key="error">
+                  {{ error }}
+                </li>
+              </ul>
+            </div>
 
-        <div v-if="validation?.warnings.length" class="space-y-2">
-          <p class="text-sm font-medium text-warning">
-            Ostrzezenia
-          </p>
-          <ul class="space-y-1 text-sm text-default">
-            <li v-for="warning in validation.warnings" :key="warning">
-              {{ warning }}
-            </li>
-          </ul>
-        </div>
-      </div>
+            <div v-if="validation?.warnings.length" class="space-y-2">
+              <h3 class="font-medium">
+                Ostrzezenia
+              </h3>
+
+              <ul class="list-disc space-y-1 pl-5 text-sm text-warning">
+                <li v-for="warning in validation.warnings" :key="warning">
+                  {{ warning }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </template>
+      </UTabs>
     </template>
   </UDashboardPanel>
-
-  <USlideover v-model:open="previewOpen" :title="previewFile?.path || 'Podglad pliku'">
-    <template #body>
-      <UTextarea
-        :model-value="previewFile?.content || ''"
-        readonly
-        :rows="28"
-        class="font-mono"
-      />
-    </template>
-  </USlideover>
 </template>

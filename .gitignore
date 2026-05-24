@@ -14,6 +14,7 @@ node_modules
 logs
 *.log
 .netcoreops-automation-*.ts
+temp/
 
 # Misc
 .DS_Store

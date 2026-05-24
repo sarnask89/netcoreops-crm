@@ -1,95 +1,172 @@
-import { resolve } from 'node:path'
+#!/usr/bin/env tsx
+
 import {
-  formatGeneratedFileList,
   generateModulePlan,
   writeGeneratedFiles
 } from './codegen/module-generator'
 
-function usage(exitCode: number): never {
-  console.log(`Uzycie:
-  rtk pnpm tsx scripts/generate-module.ts <definition.json|definition.xml> [--dry-run] [--validate-only] [--force]
-  rtk pnpm tsx scripts/generate-module.ts --input a.json --input b.xml [--dry-run] [--validate-only] [--force]
-
-JSON/XML tworzy migracje SQL, Drizzle table, Zod schema, endpointy CRUD i strone Vue.
-
-Opcje:
-  --input <path>       Dodaje plik definicji. Mozna podac wiele razy.
-  --dry-run           Pokazuje plan bez zapisu plikow.
-  --validate-only     Uruchamia walidacje planu bez zapisu plikow.
-  --force             Pozwala nadpisac istniejace wygenerowane pliki.
-  --repair-with-ollama Rozpoznany przelacznik dla lokalnej petli naprawczej Ollama.
-`)
-  process.exit(exitCode)
+interface CliOptions {
+  inputs: string[]
+  dryRun: boolean
+  validateOnly: boolean
+  force: boolean
+  repairWithOllama: boolean
 }
 
-function readArgs(argv: string[]) {
-  const definitionPaths: string[] = []
-  let dryRun = false
-  let force = false
-  let validateOnly = false
-  let repairWithOllama = false
+function usage(): string {
+  return [
+    'Uzycie:',
+    '  rtk pnpm tsx scripts/generate-module.ts <definition.json>',
+    '  rtk pnpm tsx scripts/generate-module.ts --input a.json --input b.xml',
+    '',
+    'Opcje:',
+    '  --input <path>          Definicja JSON/XML. Mozna powtorzyc.',
+    '  --dry-run              Pokaz plan bez zapisu.',
+    '  --validate-only        Tylko walidacja, bez zapisu.',
+    '  --force                Nadpisz istniejace pliki.',
+    '  --repair-with-ollama   Rozpoznane w v1. Repair loop jest dostepny przez osobny endpoint/skeleton.'
+  ].join('\n')
+}
 
-  for (let index = 2; index < argv.length; index += 1) {
+function parseArgs(argv: string[]): CliOptions {
+  const options: CliOptions = {
+    inputs: [],
+    dryRun: false,
+    validateOnly: false,
+    force: false,
+    repairWithOllama: false
+  }
+
+  for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index]
-    if (arg === '--help' || arg === '-h') usage(0)
-    else if (arg === '--dry-run') dryRun = true
-    else if (arg === '--force') force = true
-    else if (arg === '--validate-only') validateOnly = true
-    else if (arg === '--repair-with-ollama') repairWithOllama = true
-    else if (arg === '--input') {
+
+    if (arg === '--input') {
       const value = argv[index + 1]
-      if (!value) usage(1)
-      definitionPaths.push(resolve(value))
+
+      if (!value) {
+        throw new Error('Brak wartosci dla --input')
+      }
+
+      options.inputs.push(value)
       index += 1
-    } else if (arg.startsWith('--input=')) {
-      definitionPaths.push(resolve(arg.slice('--input='.length)))
-    } else if (arg.startsWith('-')) {
+      continue
+    }
+
+    if (arg.startsWith('--input=')) {
+      options.inputs.push(arg.slice('--input='.length))
+      continue
+    }
+
+    if (arg === '--dry-run') {
+      options.dryRun = true
+      continue
+    }
+
+    if (arg === '--validate-only') {
+      options.validateOnly = true
+      continue
+    }
+
+    if (arg === '--force') {
+      options.force = true
+      continue
+    }
+
+    if (arg === '--repair-with-ollama') {
+      options.repairWithOllama = true
+      continue
+    }
+
+    if (arg === '--help' || arg === '-h') {
+      console.log(usage())
+      process.exit(0)
+    }
+
+    if (arg.startsWith('-')) {
       throw new Error(`Nieznana opcja: ${arg}`)
-    } else {
-      definitionPaths.push(resolve(arg))
+    }
+
+    options.inputs.push(arg)
+  }
+
+  return options
+}
+
+function printValidationErrors(errors: string[]): void {
+  if (errors.length === 0) {
+    return
+  }
+
+  console.error('Bledy walidacji:')
+
+  for (const error of errors) {
+    console.error(`  - ${error}`)
+  }
+}
+
+async function main(): Promise<void> {
+  const options = parseArgs(process.argv.slice(2))
+
+  if (options.inputs.length === 0) {
+    console.error(usage())
+    process.exit(1)
+  }
+
+  if (options.repairWithOllama) {
+    console.warn('Opcja --repair-with-ollama zostala rozpoznana. W v1 repair loop jest dostepny przez osobny endpoint/skeleton.')
+  }
+
+  const plan = await generateModulePlan({
+    rootDir: process.cwd(),
+    definitionPaths: options.inputs,
+    force: options.force
+  })
+
+  console.log(`Moduly: ${plan.modules.length}`)
+  console.log(`Pliki w planie: ${plan.files.length}`)
+  console.log(`Walidacja: ${plan.validation.success ? 'OK' : 'FAIL'}`)
+
+  if (plan.validation.warnings.length > 0) {
+    console.warn('Ostrzezenia:')
+
+    for (const warning of plan.validation.warnings) {
+      console.warn(`  - ${warning}`)
     }
   }
 
-  if (definitionPaths.length === 0) usage(1)
+  if (!plan.validation.success) {
+    printValidationErrors(plan.validation.errors)
+    process.exit(1)
+  }
 
-  return {
-    definitionPaths,
-    dryRun,
-    force,
-    validateOnly,
-    repairWithOllama
+  if (options.validateOnly) {
+    console.log('Validate-only: zakonczono bez zapisu.')
+    return
+  }
+
+  if (options.dryRun) {
+    console.log('Dry-run: zakonczono bez zapisu.')
+    console.log('Planowane pliki:')
+
+    for (const file of plan.files) {
+      console.log(`  - ${file.path}${file.kind ? ` [${file.kind}]` : ''}`)
+    }
+
+    return
+  }
+
+  await writeGeneratedFiles(plan.files, {
+    force: options.force
+  })
+
+  console.log('Zapisano pliki:')
+
+  for (const file of plan.files) {
+    console.log(`  - ${file.path}`)
   }
 }
 
-const options = readArgs(process.argv)
-const rootDir = process.cwd()
-
-if (options.repairWithOllama) {
-  console.log('Ollama repair loop: przelacznik rozpoznany. W v1 generator waliduje plan deterministycznie; petla naprawcza uzyje modelu netcoreops-module-coder po dodaniu endpointu repair.')
-}
-
-const plan = await generateModulePlan({
-  rootDir,
-  definitionPaths: options.definitionPaths,
-  force: options.force
-})
-
-console.log(formatGeneratedFileList(plan.files))
-
-if (!plan.validation.success) {
-  console.error('\nWalidacja generatora nie powiodla sie:')
-  for (const error of plan.validation.errors) console.error(`- ${error}`)
+main().catch((error: unknown) => {
+  console.error(error instanceof Error ? error.message : String(error))
   process.exit(1)
-}
-
-if (plan.validation.warnings.length) {
-  console.warn('\nOstrzezenia generatora:')
-  for (const warning of plan.validation.warnings) console.warn(`- ${warning}`)
-}
-
-if (options.dryRun || options.validateOnly) {
-  console.log(options.validateOnly ? 'Tryb validate-only: nie zapisano plikow.' : 'Tryb dry-run: nie zapisano plikow.')
-} else {
-  await writeGeneratedFiles(plan.files, options)
-  console.log('Wygenerowano pliki modulu.')
-}
+})

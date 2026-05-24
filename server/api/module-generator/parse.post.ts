@@ -1,29 +1,45 @@
-import { mkdtemp, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { readBody } from 'h3'
+import { tmpdir } from 'node:os'
 import { z } from 'zod'
 import { parseModuleDefinitionFile } from '../../../scripts/codegen/module-generator'
 
-const bodySchema = z.object({
+const BodySchema = z.object({
   input: z.string().min(1),
   format: z.enum(['json', 'xml'])
 })
 
 export default defineEventHandler(async (event) => {
-  const body = bodySchema.parse(await readBody(event))
-  const directory = await mkdtemp(join(tmpdir(), 'netcoreops-module-generator-'))
-  const definitionPath = join(directory, `definition.${body.format}`)
+  const body = BodySchema.safeParse(await readBody(event))
 
-  await writeFile(definitionPath, body.input, 'utf8')
+  if (!body.success) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: body.error.issues.map(issue => issue.message).join('; ')
+    })
+  }
+
+  const dir = await mkdtemp(join(tmpdir(), 'netcoreops-module-generator-'))
+  const filePath = join(dir, `definition.${body.data.format}`)
 
   try {
-    const definition = await parseModuleDefinitionFile(definitionPath)
-    return { success: true, data: definition }
+    await writeFile(filePath, body.data.input, 'utf8')
+
+    const data = await parseModuleDefinitionFile(filePath)
+
+    return {
+      success: true,
+      data
+    }
   } catch (error) {
     throw createError({
       statusCode: 400,
-      statusMessage: error instanceof Error ? error.message : 'Nie mozna sparsowac definicji modulu'
+      statusMessage: error instanceof Error ? error.message : String(error)
+    })
+  } finally {
+    await rm(dir, {
+      recursive: true,
+      force: true
     })
   }
 })
