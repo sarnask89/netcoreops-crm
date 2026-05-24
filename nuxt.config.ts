@@ -6,19 +6,8 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@vueuse/nuxt'
   ],
-  devtools: {
-    enabled: false
-  },
 
   css: ['~/assets/css/main.css'],
-
-  // Vue optimizations
-  vue: {
-    // Disable Vue devtools in production
-    config: {
-      devtools: false
-    }
-  },
 
   routeRules: {
     '/api/**': {
@@ -46,8 +35,6 @@ export default defineNuxtConfig({
   experimental: {
     // Extract payload for better hydration
     payloadExtraction: true,
-    // Optimize tree-shaking for client-only components
-    treeshakeClientOnly: true,
     // Inline render function to reduce bundle size
     renderJsonPayloads: true
   },
@@ -62,8 +49,6 @@ export default defineNuxtConfig({
       crawlLinks: false,
       routes: ['/sitemap.xml']
     },
-    // Compress responses with gzip/brotli
-    compress: true,
     // Cache storage for API responses
     storage: {
       redis: {
@@ -99,21 +84,6 @@ export default defineNuxtConfig({
       stylistic: {
         commaDangle: 'never',
         braceStyle: '1tbs'
-      }
-    }
-  },
-
-  // Image optimization
-  image: {
-    quality: 80,
-    format: ['webp', 'jpeg'],
-    presets: {
-      avatar: {
-        modifiers: {
-          width: 64,
-          height: 64,
-          quality: 80
-        }
       }
     }
   }
