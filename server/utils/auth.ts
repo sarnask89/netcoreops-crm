@@ -11,7 +11,14 @@ export interface AuthConfig {
 }
 
 export interface AuthSession {
+  userId?: string
   username: string
+  name?: string
+  email?: string | null
+  groupId?: number
+  groupName?: string
+  isAdmin?: boolean
+  permissions?: string[]
   issuedAt: string
 }
 
@@ -38,9 +45,16 @@ export function validateLocalLogin(input: { username?: string, password?: string
   return input.username === config.username && input.password === config.password
 }
 
-export function createAuthSessionToken(input: { username: string, secret: string, issuedAt?: Date }) {
+export function createAuthSessionToken(input: Omit<AuthSession, 'issuedAt'> & { secret: string, issuedAt?: Date }) {
   const payload = base64Url(JSON.stringify({
+    userId: input.userId,
     username: input.username,
+    name: input.name,
+    email: input.email,
+    groupId: input.groupId,
+    groupName: input.groupName,
+    isAdmin: input.isAdmin,
+    permissions: input.permissions || [],
     issuedAt: (input.issuedAt || new Date()).toISOString()
   } satisfies AuthSession))
 

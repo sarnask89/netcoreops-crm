@@ -553,6 +553,31 @@ export const automationVariableDefinitions = pgTable('automation_variable_defini
   createdAt: timestamp('created_at').defaultNow().notNull()
 })
 
+export const authGroups = pgTable('auth_groups', {
+  id: serial('id').primaryKey(),
+  code: varchar('code', { length: 80 }).notNull().unique(),
+  name: varchar('name', { length: 160 }).notNull(),
+  description: text('description'),
+  isAdmin: boolean('is_admin').default(false).notNull(),
+  permissions: jsonb('permissions').$type<string[]>().default([]).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
+export const authUsers = pgTable('auth_users', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  username: varchar('username', { length: 120 }).notNull().unique(),
+  displayName: varchar('display_name', { length: 160 }).notNull(),
+  email: varchar('email', { length: 255 }),
+  passwordHash: text('password_hash').notNull(),
+  groupId: integer('group_id').references(() => authGroups.id, { onDelete: 'restrict' }).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  mustChangePassword: boolean('must_change_password').default(false).notNull(),
+  lastLoginAt: timestamp('last_login_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
 export const customers = pgTable('customers', {
   id: uuid('id').defaultRandom().primaryKey(),
   fullName: varchar('full_name', { length: 255 }).notNull(),
@@ -617,6 +642,8 @@ export type CustomerDevice = typeof customerDevices.$inferSelect
 export type AccessProfileDeviceBinding = typeof accessProfileDeviceBindings.$inferSelect
 export type AutomationScript = typeof automationScripts.$inferSelect
 export type AutomationVariableDefinition = typeof automationVariableDefinitions.$inferSelect
+export type AuthGroup = typeof authGroups.$inferSelect
+export type AuthUser = typeof authUsers.$inferSelect
 export type Customer = typeof customers.$inferSelect
 export type CustomerService = typeof customerServices.$inferSelect
 export type ManagementDriver = typeof managementDrivers.$inferSelect

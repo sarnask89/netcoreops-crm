@@ -15,6 +15,7 @@
     "db:restrict:sandomierz": "tsx server/db/restrict-teryt-sandomierz.ts",
     "db:studio": "drizzle-kit studio",
     "dev": "nuxt dev",
+    "generate:module": "tsx scripts/generate-module.ts",
     "lint": "eslint .",
     "postinstall": "nuxt prepare",
     "preview": "nuxt preview",
