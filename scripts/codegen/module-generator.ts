@@ -1,5 +1,5 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
-import { dirname, extname, isAbsolute, join, normalize, relative, resolve } from 'node:path'
+import { basename, dirname, extname, isAbsolute, join, normalize, resolve } from 'node:path'
 import { XMLParser } from 'fast-xml-parser'
 import { z } from 'zod'
 
@@ -70,29 +70,41 @@ const fieldTypeValues = [
   'enum'
 ] as const
 
-const FieldTypeSchema = z.enum(fieldTypeValues)
+const requiredGeneratedKinds = [
+  'schema',
+  'validation',
+  'migration',
+  'api',
+  'page'
+] as const
 
+const reservedFieldNames = new Set(['id', 'createdAt', 'updatedAt'])
+const FieldTypeSchema = z.enum(fieldTypeValues)
 const unsafePathMessage = 'Niedozwolona wartosc: path traversal albo niedozwolony separator'
 
 function hasPathTraversal(value: string): boolean {
   return (
     value.includes('\0')
-    || value.includes('..')
+    || value.split(/[\\/]+/).includes('..')
     || value.includes('\\')
     || isAbsolute(value)
   )
+}
+
+function hasGeneratedPathTraversal(value: string): boolean {
+  return value.includes('\0') || value.split(/[\\/]+/).includes('..')
 }
 
 function isSafeIdentifier(value: string): boolean {
   return /^[A-Za-z][A-Za-z0-9_]*$/.test(value) && !hasPathTraversal(value)
 }
 
-function isSafeModuleName(value: string): boolean {
-  return /^[A-Za-z][A-Za-z0-9]*$/.test(value) && !hasPathTraversal(value)
+function isCamelCase(value: string): boolean {
+  return /^[a-z][A-Za-z0-9]*$/.test(value) && !hasPathTraversal(value)
 }
 
-function isSafeTableName(value: string): boolean {
-  return /^[A-Za-z][A-Za-z0-9_]*$/.test(value) && !hasPathTraversal(value)
+function isSnakeCase(value: string): boolean {
+  return /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/.test(value) && !hasPathTraversal(value)
 }
 
 function isSafeRoute(value: string): boolean {
@@ -102,7 +114,7 @@ function isSafeRoute(value: string): boolean {
 
   return value
     .split('/')
-    .every(segment => /^[a-z0-9][a-z0-9-]*$/.test(segment))
+    .every(segment => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(segment))
 }
 
 const ModuleFieldSchema = z.object({
@@ -116,6 +128,14 @@ const ModuleFieldSchema = z.object({
   list: z.boolean().optional(),
   form: z.boolean().optional()
 }).superRefine((field, ctx) => {
+  if (reservedFieldNames.has(field.name)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['name'],
+      message: `Pole zarezerwowane: ${field.name}`
+    })
+  }
+
   if (field.type === 'enum' && (!field.values || field.values.length === 0)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -126,22 +146,22 @@ const ModuleFieldSchema = z.object({
 })
 
 const ModuleDefinitionSchema = z.object({
-  module: z.string().trim().min(1).refine(isSafeModuleName, unsafePathMessage),
+  module: z.string().trim().min(1).refine(isCamelCase, 'module musi byc camelCase'),
   title: z.string().trim().min(1),
-  tableName: z.string().trim().min(1).refine(isSafeTableName, unsafePathMessage),
-  route: z.string().trim().min(1).refine(isSafeRoute, unsafePathMessage),
-  page: z.string().trim().min(1).refine(isSafeRoute, unsafePathMessage).optional(),
+  tableName: z.string().trim().min(1).refine(isSnakeCase, 'tableName musi byc snake_case'),
+  route: z.string().trim().min(1).refine(isSafeRoute, 'route musi skladac sie z kebab-case segmentow'),
+  page: z.string().trim().min(1).refine(isSafeRoute, 'page musi skladac sie z kebab-case segmentow').optional(),
   description: z.string().trim().optional(),
   timestamps: z.boolean().optional(),
   fields: z.array(ModuleFieldSchema).min(1)
 }).superRefine((definition, ctx) => {
   const fieldNames = new Set<string>()
 
-  for (const field of definition.fields) {
+  for (const [index, field] of definition.fields.entries()) {
     if (fieldNames.has(field.name)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['fields'],
+        path: ['fields', index, 'name'],
         message: `Duplikat pola: ${field.name}`
       })
     }
@@ -201,7 +221,7 @@ function xmlNumber(value: unknown): number | undefined {
 
   const parsed = Number(value)
 
-  return Number.isFinite(parsed) ? parsed : undefined
+  return Number.isFinite(parsed) ? parsed : Number.NaN
 }
 
 function xmlDefault(value: unknown, type: FieldType): string | number | boolean | null | undefined {
@@ -303,10 +323,6 @@ export async function parseModuleDefinitionFile(definitionPath: string): Promise
   throw new Error(`Nieobslugiwany format definicji: ${extension || definitionPath}`)
 }
 
-/**
- * Jeżeli masz już istniejący generator, przenieś jego dotychczasowe body tutaj.
- * Ta funkcja przyjmuje już zwalidowaną definicję i nie czyta pliku wejściowego.
- */
 function toSnakeCase(value: string): string {
   return value
     .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
@@ -336,6 +352,7 @@ function renderMigrationFile(definition: ModuleDefinition): string {
                 : field.type === 'timestamp' || field.type === 'date'
                   ? 'timestamp'
                   : 'text'
+
       return `  "${columnName}" ${type}${field.required ? ' NOT NULL' : ''}`
     })
   ]
@@ -345,10 +362,7 @@ function renderMigrationFile(definition: ModuleDefinition): string {
     columns.push('  "updated_at" timestamp DEFAULT now() NOT NULL')
   }
 
-  return `CREATE TABLE "${definition.tableName}" (
-${columns.join(',\n')}
-);
-`
+  return `CREATE TABLE "${definition.tableName}" (\n${columns.join(',\n')}\n);\n`
 }
 
 function buildGeneratedModuleFiles(rootDir: string, definition: ModuleDefinition): GeneratedFile[] {
@@ -405,10 +419,6 @@ function buildGeneratedModuleFiles(rootDir: string, definition: ModuleDefinition
   }))
 }
 
-/**
- * Kompatybilne API:
- * generateModuleFiles({ rootDir, definitionPath })
- */
 export async function generateModuleFiles(options: {
   rootDir: string
   definitionPath: string
@@ -443,6 +453,55 @@ export async function generateModulePlan(options: {
   }
 }
 
+function inferGeneratedKind(file: GeneratedFile): GeneratedFile['kind'] | undefined {
+  if (file.kind) {
+    return file.kind
+  }
+
+  if (file.path.endsWith('.validation.ts')) {
+    return 'validation'
+  }
+
+  if (file.path.endsWith('.sql')) {
+    return 'migration'
+  }
+
+  if (file.path.endsWith('.vue')) {
+    return 'page'
+  }
+
+  if (file.path.includes(`${normalize('server/api')}`) && file.path.endsWith('.ts')) {
+    return 'api'
+  }
+
+  if (file.path.includes(`${normalize('server/db/generated')}`) && file.path.endsWith('.ts')) {
+    return 'schema'
+  }
+
+  return undefined
+}
+
+function inferModuleKey(file: GeneratedFile): string | undefined {
+  const kind = inferGeneratedKind(file)
+  const name = basename(file.path)
+
+  if (kind === 'schema' && name.endsWith('.ts')) {
+    return name.slice(0, -'.ts'.length)
+  }
+
+  if (kind === 'validation' && name.endsWith('.validation.ts')) {
+    return name.slice(0, -'.validation.ts'.length)
+  }
+
+  if (kind === 'migration' && name.endsWith('.sql')) {
+    return name
+      .slice(0, -'.sql'.length)
+      .replace(/^\d+_/, '')
+  }
+
+  return undefined
+}
+
 export async function validateGeneratedModuleFiles(
   files: GeneratedFile[],
   options: { force?: boolean } = {}
@@ -450,6 +509,8 @@ export async function validateGeneratedModuleFiles(
   const errors: string[] = []
   const warnings: string[] = []
   const seen = new Set<string>()
+  const kindCounts = new Map<string, number>()
+  const moduleKinds = new Map<string, Set<string>>()
 
   for (const file of files) {
     if (!file.path || typeof file.path !== 'string') {
@@ -457,7 +518,7 @@ export async function validateGeneratedModuleFiles(
       continue
     }
 
-    if (file.path.includes('..') || file.path.includes('\0')) {
+    if (hasGeneratedPathTraversal(file.path)) {
       errors.push(`Niedozwolona sciezka pliku: ${file.path}`)
       continue
     }
@@ -483,6 +544,34 @@ export async function validateGeneratedModuleFiles(
         // Plik nie istnieje, czyli dobrze.
       }
     }
+
+    const kind = inferGeneratedKind(file)
+
+    if (kind) {
+      kindCounts.set(kind, (kindCounts.get(kind) || 0) + 1)
+    }
+
+    const moduleKey = inferModuleKey(file)
+
+    if (moduleKey && kind) {
+      const set = moduleKinds.get(moduleKey) || new Set<string>()
+      set.add(kind)
+      moduleKinds.set(moduleKey, set)
+    }
+  }
+
+  for (const kind of requiredGeneratedKinds) {
+    if (!kindCounts.has(kind)) {
+      errors.push(`Brak wymaganego typu pliku: ${kind}`)
+    }
+  }
+
+  for (const [moduleKey, kinds] of moduleKinds.entries()) {
+    for (const kind of ['schema', 'validation', 'migration']) {
+      if (!kinds.has(kind)) {
+        errors.push(`Brak ${kind} dla modulu: ${moduleKey}`)
+      }
+    }
   }
 
   return {
@@ -503,15 +592,12 @@ export async function writeGeneratedFiles(
     throw new Error(validation.errors.join('\n'))
   }
 
-  const cwd = process.cwd()
-
   for (const file of files) {
-    const target = resolve(cwd, file.path)
-    const rel = relative(cwd, target)
-
-    if (rel.startsWith('..') || isAbsolute(rel)) {
+    if (hasGeneratedPathTraversal(file.path)) {
       throw new Error(`Niedozwolona sciezka pliku: ${file.path}`)
     }
+
+    const target = isAbsolute(file.path) ? normalize(file.path) : resolve(process.cwd(), file.path)
 
     await mkdir(dirname(target), { recursive: true })
     await writeFile(target, file.content, 'utf8')
@@ -519,17 +605,9 @@ export async function writeGeneratedFiles(
 }
 
 function renderSchemaFile(definition: ModuleDefinition): string {
-  return `import { boolean, integer, json, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
-
-export const ${definition.module} = pgTable('${definition.tableName}', {
-${definition.fields.map(renderSchemaField).join(',\n')}
-${definition.timestamps === false
-  ? ''
-  : `,
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()`}
-})
-`
+  return `import { boolean, integer, json, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'\n\nexport const ${definition.module} = pgTable('${definition.tableName}', {\n${definition.fields.map(renderSchemaField).join(',\n')}\n${definition.timestamps === false
+    ? ''
+    : `,\n  createdAt: timestamp('created_at').notNull().defaultNow(),\n  updatedAt: timestamp('updated_at').notNull().defaultNow()`}\n})\n`
 }
 
 function renderSchemaField(field: ModuleField): string {
@@ -560,14 +638,7 @@ function renderSchemaField(field: ModuleField): string {
 }
 
 function renderValidationFile(definition: ModuleDefinition): string {
-  return `import { z } from 'zod'
-
-export const ${definition.module}InputSchema = z.object({
-${definition.fields.map(renderValidationField).join(',\n')}
-})
-
-export type ${capitalize(definition.module)}Input = z.infer<typeof ${definition.module}InputSchema>
-`
+  return `import { z } from 'zod'\n\nexport const ${definition.module}InputSchema = z.object({\n${definition.fields.map(renderValidationField).join(',\n')}\n})\n\nexport type ${capitalize(definition.module)}Input = z.infer<typeof ${definition.module}InputSchema>\n`
 }
 
 function renderValidationField(field: ModuleField): string {
@@ -596,180 +667,33 @@ function renderValidationField(field: ModuleField): string {
   return `  ${field.name}: ${schema}`
 }
 
+function validationImportPath(definition: ModuleDefinition): string {
+  const depth = definition.route.split('/').filter(Boolean).length + 1
+
+  return `${'../'.repeat(depth)}utils/generated/${toKebabCase(definition.module)}.validation`
+}
+
 function renderApiListFile(definition: ModuleDefinition): string {
-  return `export default defineEventHandler(async () => {
-  return {
-    data: [],
-    module: '${definition.module}'
-  }
-})
-`
+  return `export default defineEventHandler(async () => {\n  return {\n    data: [],\n    module: '${definition.module}'\n  }\n})\n`
 }
 
 function renderApiCreateFile(definition: ModuleDefinition): string {
-  return `import { ${definition.module}InputSchema } from '../../modules/${definition.module}/validation'
-
-export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
-  const input = ${definition.module}InputSchema.parse(body)
-
-  return {
-    success: true,
-    data: input
-  }
-})
-`
+  return `import { ${definition.module}InputSchema } from '${validationImportPath(definition)}'\n\nexport default defineEventHandler(async (event) => {\n  const body = await readBody(event)\n  const input = ${definition.module}InputSchema.parse(body)\n\n  return {\n    success: true,\n    data: input\n  }\n})\n`
 }
 
 function renderApiUpdateFile(definition: ModuleDefinition): string {
-  return `import { ${definition.module}InputSchema } from '../../modules/${definition.module}/validation'
-
-export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
-  const body = await readBody(event)
-  const input = ${definition.module}InputSchema.partial().parse(body)
-
-  return {
-    success: true,
-    data: {
-      id,
-      ...input
-    }
-  }
-})
-`
+  return `import { ${definition.module}InputSchema } from '${validationImportPath(definition)}'\n\nexport default defineEventHandler(async (event) => {\n  const id = getRouterParam(event, 'id')\n  const body = await readBody(event)\n  const input = ${definition.module}InputSchema.partial().parse(body)\n\n  return {\n    success: true,\n    data: {\n      id,\n      ...input\n    }\n  }\n})\n`
 }
 
 function renderApiDeleteFile(_definition: ModuleDefinition): string {
-  return `export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
-
-  return {
-    success: true,
-    data: {
-      id
-    }
-  }
-})
-`
+  return `export default defineEventHandler(async (event) => {\n  const id = getRouterParam(event, 'id')\n\n  return {\n    success: true,\n    data: {\n      id\n    }\n  }\n})\n`
 }
 
-/**
- * Podmień renderer strony CRUD na ten wariant.
- * Spełnia wymagania: AppDataTable, brak kolumny akcji, prawy klik/context menu,
- * UForm, UInputNumber, USwitch, USelect.
- */
 function renderCrudPageVue(definition: ModuleDefinition): string {
   const visibleFields = definition.fields.filter(field => field.list !== false)
   const formFields = definition.fields.filter(field => field.form !== false && field.type !== 'uuid')
 
-  return `<script setup lang="ts">
-type Row = Record<string, unknown>
-
-const toast = useToast()
-const rows = ref<Row[]>([])
-const state = reactive<Record<string, unknown>>({
-${formFields.map(field => `  ${field.name}: ${JSON.stringify(field.default ?? defaultValueForField(field))}`).join(',\n')}
-})
-
-const columns = [
-${visibleFields.map(field => `  { accessorKey: '${field.name}', header: '${field.label || field.name}' }`).join(',\n')}
-]
-
-const selectedRow = ref<Row | null>(null)
-const slideoverOpen = ref(false)
-
-function rowContextItems(row: Row) {
-  return [[
-    {
-      label: 'Edytuj',
-      icon: 'i-lucide-pencil',
-      onSelect: () => {
-        selectedRow.value = row
-
-        for (const key of Object.keys(state)) {
-          state[key] = row[key] ?? state[key]
-        }
-
-        slideoverOpen.value = true
-      }
-    },
-    {
-      label: 'Usun',
-      icon: 'i-lucide-trash',
-      color: 'error',
-      onSelect: async () => {
-        if (!row.id) return
-
-        await $fetch('/api/${definition.route}/' + row.id, {
-          method: 'DELETE'
-        })
-
-        toast.add({
-          title: 'Rekord usuniety',
-          color: 'success'
-        })
-      }
-    }
-  ]]
-}
-
-async function onSubmit() {
-  await $fetch('/api/${definition.route}', {
-    method: 'POST',
-    body: state
-  })
-
-  toast.add({
-    title: 'Zapisano',
-    color: 'success'
-  })
-
-  slideoverOpen.value = false
-}
-</script>
-
-<template>
-  <UDashboardPanel>
-    <template #header>
-      <UDashboardNavbar title="${definition.title}">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-
-        <template #right>
-          <UButton icon="i-lucide-plus" label="Dodaj" @click="slideoverOpen = true" />
-        </template>
-      </UDashboardNavbar>
-    </template>
-
-    <template #body>
-      <AppDataTable
-        :data="rows"
-        :columns="columns"
-        :context-items="rowContextItems"
-      />
-
-      <USlideover v-model:open="slideoverOpen" title="${definition.title}">
-        <template #body>
-          <UForm :state="state" class="space-y-4" @submit="onSubmit">
-${formFields.map(renderVueFormField).join('\n\n')}
-
-            <div class="flex justify-end gap-2">
-              <UButton type="button" color="neutral" variant="ghost" @click="slideoverOpen = false">
-                Anuluj
-              </UButton>
-              <UButton type="submit">
-                Zapisz
-              </UButton>
-            </div>
-          </UForm>
-        </template>
-      </USlideover>
-    </template>
-  </UDashboardPanel>
-</template>
-`
+  return `<script setup lang="ts">\ntype Row = Record<string, unknown>\n\nconst toast = useToast()\nconst rows = ref<Row[]>([])\nconst state = reactive<Record<string, unknown>>({\n${formFields.map(field => `  ${field.name}: ${JSON.stringify(field.default ?? defaultValueForField(field))}`).join(',\n')}\n})\n\nconst columns = [\n${visibleFields.map(field => `  { accessorKey: '${field.name}', header: '${field.label || field.name}' }`).join(',\n')}\n]\n\nconst selectedRow = ref<Row | null>(null)\nconst slideoverOpen = ref(false)\n\nfunction rowContextItems(row: Row) {\n  return [[\n    {\n      label: 'Edytuj',\n      icon: 'i-lucide-pencil',\n      onSelect: () => {\n        selectedRow.value = row\n\n        for (const key of Object.keys(state)) {\n          state[key] = row[key] ?? state[key]\n        }\n\n        slideoverOpen.value = true\n      }\n    },\n    {\n      label: 'Usun',\n      icon: 'i-lucide-trash',\n      color: 'error',\n      onSelect: async () => {\n        if (!row.id) return\n\n        await $fetch('/api/${definition.route}/' + row.id, {\n          method: 'DELETE'\n        })\n\n        toast.add({\n          title: 'Rekord usuniety',\n          color: 'success'\n        })\n      }\n    }\n  ]]\n}\n\nasync function onSubmit() {\n  await $fetch('/api/${definition.route}', {\n    method: 'POST',\n    body: state\n  })\n\n  toast.add({\n    title: 'Zapisano',\n    color: 'success'\n  })\n\n  slideoverOpen.value = false\n}\n</script>\n\n<template>\n  <UDashboardPanel>\n    <template #header>\n      <UDashboardNavbar title="${definition.title}">\n        <template #leading>\n          <UDashboardSidebarCollapse />\n        </template>\n\n        <template #right>\n          <UButton icon="i-lucide-plus" label="Dodaj" @click="slideoverOpen = true" />\n        </template>\n      </UDashboardNavbar>\n    </template>\n\n    <template #body>\n      <AppDataTable\n        :data="rows"\n        :columns="columns"\n        :context-items="rowContextItems"\n      />\n\n      <USlideover v-model:open="slideoverOpen" title="${definition.title}">\n        <template #body>\n          <UForm :state="state" class="space-y-4" @submit="onSubmit">\n${formFields.map(renderVueFormField).join('\n\n')}\n\n            <div class="flex justify-end gap-2">\n              <UButton type="button" color="neutral" variant="ghost" @click="slideoverOpen = false">\n                Anuluj\n              </UButton>\n              <UButton type="submit">\n                Zapisz\n              </UButton>\n            </div>\n          </UForm>\n        </template>\n      </USlideover>\n    </template>\n  </UDashboardPanel>\n</template>\n`
 }
 
 function renderVueFormField(field: ModuleField): string {
@@ -777,34 +701,24 @@ function renderVueFormField(field: ModuleField): string {
   const required = field.required ? ' required' : ''
 
   if (field.type === 'integer' || field.type === 'number') {
-    return `            <UFormField label="${label}" name="${field.name}"${required}>
-              <UInputNumber v-model="state.${field.name}" class="w-full" />
-            </UFormField>`
+    return `            <UFormField label="${label}" name="${field.name}"${required}>\n              <UInputNumber v-model="state.${field.name}" class="w-full" />\n            </UFormField>`
   }
 
   if (field.type === 'boolean') {
-    return `            <UFormField label="${label}" name="${field.name}"${required}>
-              <USwitch v-model="state.${field.name}" />
-            </UFormField>`
+    return `            <UFormField label="${label}" name="${field.name}"${required}>\n              <USwitch v-model="state.${field.name}" />\n            </UFormField>`
   }
 
   if (field.type === 'enum') {
     const items = JSON.stringify((field.values || []).map(value => ({ label: value, value })))
 
-    return `            <UFormField label="${label}" name="${field.name}"${required}>
-              <USelect v-model="state.${field.name}" :items='${items}' class="w-full" />
-            </UFormField>`
+    return `            <UFormField label="${label}" name="${field.name}"${required}>\n              <USelect v-model="state.${field.name}" :items='${items}' class="w-full" />\n            </UFormField>`
   }
 
   if (field.type === 'text' || field.type === 'json') {
-    return `            <UFormField label="${label}" name="${field.name}"${required}>
-              <UTextarea v-model="state.${field.name}" class="w-full" />
-            </UFormField>`
+    return `            <UFormField label="${label}" name="${field.name}"${required}>\n              <UTextarea v-model="state.${field.name}" class="w-full" />\n            </UFormField>`
   }
 
-  return `            <UFormField label="${label}" name="${field.name}"${required}>
-              <UInput v-model="state.${field.name}" class="w-full" />
-            </UFormField>`
+  return `            <UFormField label="${label}" name="${field.name}"${required}>\n              <UInput v-model="state.${field.name}" class="w-full" />\n            </UFormField>`
 }
 
 function defaultValueForField(field: ModuleField): unknown {
