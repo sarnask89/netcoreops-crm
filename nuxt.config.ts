@@ -1,6 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
@@ -31,25 +30,20 @@ export default defineNuxtConfig({
     port: 3000
   },
 
-  // Experimental features for better performance
-  experimental: {
-    // Extract payload for better hydration
-    payloadExtraction: true,
-    // Inline render function to reduce bundle size
-    renderJsonPayloads: true
-  },
-
   compatibilityDate: '2024-07-11',
 
   nitro: {
-    minify: true,
+    minify: false,
     sourceMap: false,
     // Prerender routes for faster initial load
     prerender: {
       crawlLinks: false,
       routes: ['/sitemap.xml']
     },
-    // Cache storage for API responses
+    compressPublicAssets: {
+      gzip: true,
+      brotli: true
+    },
     storage: {
       redis: {
         driver: 'redis'
@@ -57,25 +51,9 @@ export default defineNuxtConfig({
     }
   },
 
-  // Vite build optimizations
   vite: {
     build: {
-      // Increase chunk size warning for large UI libraries
-      chunkSizeWarningLimit: 1000,
-      // Better code splitting
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            'nuxt-ui': ['@nuxt/ui'],
-            'vueuse': ['@vueuse/core', '@vueuse/nuxt'],
-            'utilities': ['date-fns', 'zod']
-          }
-        }
-      }
-    },
-    // Optimize dependency pre-bundling
-    optimizeDeps: {
-      include: ['@nuxt/ui', '@vueuse/core', '@vueuse/nuxt', 'date-fns', 'zod']
+      chunkSizeWarningLimit: 1000
     }
   },
 

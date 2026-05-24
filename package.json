@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "ai:gateway:test": "node --env-file=.env index.mjs",
     "build": "nuxt build",
+    "codex:vercel": "scripts/bin/netcoreops-codex-vercel",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx server/db/seed.ts",
@@ -27,6 +29,7 @@
     "@unovis/vue": "^1.6.5",
     "@vueuse/core": "^14.3.0",
     "@vueuse/nuxt": "^14.3.0",
+    "ai": "^6.0.191",
     "date-fns": "^4.2.1",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",

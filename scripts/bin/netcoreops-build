@@ -7,11 +7,11 @@ mode="${1:-rtk}"
 
 case "$mode" in
   rtk)
-    export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=2048}"
+    export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=3072}"
     exec rtk pnpm run build
     ;;
   nortk)
-    export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=2048}"
+    export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=3072}"
     exec pnpm run build
     ;;
   *)

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /home/sarna/netcoreops
+
+if [ -f .env ]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env
+  set +a
+fi
+
+profile="vercel"
+if [ "${1:-}" = "vercel" ] || [ "${1:-}" = "vercel-codex" ]; then
+  profile="$1"
+  shift
+fi
+
+codex_bin=""
+if command -v codex >/dev/null 2>&1 && [ -x "$(command -v codex)" ]; then
+  codex_bin="$(command -v codex)"
+elif command -v codex.exe >/dev/null 2>&1 && [ -x "$(command -v codex.exe)" ]; then
+  codex_bin="$(command -v codex.exe)"
+elif [ -x /mnt/c/Users/xxx/AppData/Local/OpenAI/Codex/bin/codex.exe ]; then
+  codex_bin="/mnt/c/Users/xxx/AppData/Local/OpenAI/Codex/bin/codex.exe"
+fi
+
+if [ -z "$codex_bin" ]; then
+  echo "Could not find an executable Codex CLI in WSL PATH." >&2
+  exit 127
+fi
+
+exec "$codex_bin" --profile "$profile" "$@"
