@@ -1,0 +1,312 @@
+import { _ as _sfc_main$2, a as _sfc_main$1$1, b as _sfc_main$3 } from './DashboardSidebarCollapse-DD95YI0W.mjs';
+import { _ as _sfc_main$4 } from './DashboardToolbar-D0tdyEuQ.mjs';
+import { _ as _sfc_main$5 } from './Select-N__9sMNx.mjs';
+import { _ as _sfc_main$1 } from './Input-DVuEqpoa.mjs';
+import { u as useToast, _ as _sfc_main$9 } from './server.mjs';
+import { _ as __nuxt_component_10 } from './AppDiagnosticResult-CoGySpM6.mjs';
+import { defineComponent, ref, withAsyncContext, computed, mergeProps, withCtx, unref, isRef, createVNode, toDisplayString, useSSRContext } from 'vue';
+import { ssrRenderComponent, ssrInterpolate } from 'vue/server-renderer';
+import { u as useFetch } from './fetch-B7i171gV.mjs';
+import './DashboardSidebarToggle-C_vEEhTE.mjs';
+import '../nitro/nitro.mjs';
+import 'zod';
+import 'drizzle-orm';
+import 'node:child_process';
+import 'node:fs/promises';
+import 'node:path';
+import 'ssh2';
+import 'node:net';
+import 'drizzle-orm/pg-core';
+import 'drizzle-orm/node-postgres';
+import 'pg';
+import 'node:crypto';
+import 'node:http';
+import 'node:https';
+import 'node:events';
+import 'node:buffer';
+import 'ioredis';
+import 'node:fs';
+import '@iconify/utils';
+import 'consola';
+import './ssr-BO1H6xpe.mjs';
+import './PopperArrow-CvIo2SqJ.mjs';
+import './useFormControl-IzN_Be5X.mjs';
+import './handleAndDispatchCustomEvent-Bk_AVSSo.mjs';
+import 'tailwindcss/colors';
+import 'perfect-debounce';
+import '../routes/renderer.mjs';
+import 'vue-bundle-renderer/runtime';
+import 'unhead/server';
+import 'devalue';
+import 'unhead/plugins';
+import 'unhead/utils';
+import './Alert-C2QsFOV3.mjs';
+import './Table-9O8FnRDu.mjs';
+import './index-DC8E8gNZ.mjs';
+import './Badge-CElKKp_G.mjs';
+
+const _sfc_main = /* @__PURE__ */ defineComponent({
+  __name: "diagnostics",
+  __ssrInlineRender: true,
+  async setup(__props) {
+    let __temp, __restore;
+    const toast = useToast();
+    const equipmentId = ref();
+    const oltPort = ref("1");
+    const onuId = ref("");
+    const macAddress = ref("");
+    const loading = ref("");
+    const result = ref(null);
+    const { data: options } = ([__temp, __restore] = withAsyncContext(() => useFetch(
+      "/api/network/import-options",
+      {
+        default: () => ({ success: false, data: { equipment: [] } })
+      },
+      "$1XZK90xlzr"
+      /* nuxt-injected */
+    )), __temp = await __temp, __restore(), __temp);
+    const dasanEquipment = computed(() => options.value.data.equipment.filter((item) => item.managementDriver?.code === "dasan_nos"));
+    const equipmentItems = computed(() => dasanEquipment.value.map((item) => ({
+      label: [item.inventoryId, item.hostname, item.managementIp].filter(Boolean).join(" - "),
+      value: item.id
+    })));
+    const selectedEquipment = computed(() => dasanEquipment.value.find((item) => item.id === equipmentId.value));
+    async function runOnuIpHost() {
+      if (!equipmentId.value || !oltPort.value || !onuId.value) return;
+      loading.value = "onu-ip-host";
+      try {
+        result.value = await $fetch(`/api/diagnostics/equipment/${equipmentId.value}/onu-ip-host`, {
+          method: "POST",
+          body: { oltPort: oltPort.value, onuId: onuId.value }
+        });
+      } catch (error) {
+        toast.add({ title: "ONU IP-host nie powiódł się", description: error instanceof Error ? error.message : String(error), color: "error" });
+      } finally {
+        loading.value = "";
+      }
+    }
+    async function runMacCheck() {
+      if (!equipmentId.value || !macAddress.value) return;
+      loading.value = "mac-check";
+      try {
+        result.value = await $fetch(`/api/diagnostics/equipment/${equipmentId.value}/mac-check`, {
+          method: "POST",
+          body: { macAddress: macAddress.value }
+        });
+      } catch (error) {
+        toast.add({ title: "MAC lookup nie powiódł się", description: error instanceof Error ? error.message : String(error), color: "error" });
+      } finally {
+        loading.value = "";
+      }
+    }
+    async function runCommandTree() {
+      if (!equipmentId.value) return;
+      loading.value = "command-tree";
+      try {
+        result.value = await $fetch(`/api/diagnostics/equipment/${equipmentId.value}/command-tree`, { method: "POST" });
+      } catch (error) {
+        toast.add({ title: "Command tree nie powiódł się", description: error instanceof Error ? error.message : String(error), color: "error" });
+      } finally {
+        loading.value = "";
+      }
+    }
+    return (_ctx, _push, _parent, _attrs) => {
+      const _component_UDashboardPanel = _sfc_main$2;
+      const _component_UDashboardNavbar = _sfc_main$1$1;
+      const _component_UDashboardSidebarCollapse = _sfc_main$3;
+      const _component_UDashboardToolbar = _sfc_main$4;
+      const _component_USelect = _sfc_main$5;
+      const _component_UInput = _sfc_main$1;
+      const _component_UButton = _sfc_main$9;
+      const _component_AppDiagnosticResult = __nuxt_component_10;
+      _push(ssrRenderComponent(_component_UDashboardPanel, mergeProps({
+        id: "network-ftth-diagnostics",
+        ui: { body: "p-0 sm:p-0 gap-0 sm:gap-0" }
+      }, _attrs), {
+        header: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(ssrRenderComponent(_component_UDashboardNavbar, { title: "FTTH diagnostyka" }, {
+              leading: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(_component_UDashboardSidebarCollapse, null, null, _parent3, _scopeId2));
+                } else {
+                  return [
+                    createVNode(_component_UDashboardSidebarCollapse)
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+            _push2(ssrRenderComponent(_component_UDashboardToolbar, null, {
+              left: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(`<div class="flex min-w-0 flex-1 flex-wrap items-center gap-2"${_scopeId2}>`);
+                  _push3(ssrRenderComponent(_component_USelect, {
+                    modelValue: unref(equipmentId),
+                    "onUpdate:modelValue": ($event) => isRef(equipmentId) ? equipmentId.value = $event : null,
+                    items: unref(equipmentItems),
+                    placeholder: "Wybierz Dasan OLT",
+                    class: "w-full min-w-0 sm:w-96"
+                  }, null, _parent3, _scopeId2));
+                  _push3(`</div>`);
+                } else {
+                  return [
+                    createVNode("div", { class: "flex min-w-0 flex-1 flex-wrap items-center gap-2" }, [
+                      createVNode(_component_USelect, {
+                        modelValue: unref(equipmentId),
+                        "onUpdate:modelValue": ($event) => isRef(equipmentId) ? equipmentId.value = $event : null,
+                        items: unref(equipmentItems),
+                        placeholder: "Wybierz Dasan OLT",
+                        class: "w-full min-w-0 sm:w-96"
+                      }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                    ])
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+          } else {
+            return [
+              createVNode(_component_UDashboardNavbar, { title: "FTTH diagnostyka" }, {
+                leading: withCtx(() => [
+                  createVNode(_component_UDashboardSidebarCollapse)
+                ]),
+                _: 1
+              }),
+              createVNode(_component_UDashboardToolbar, null, {
+                left: withCtx(() => [
+                  createVNode("div", { class: "flex min-w-0 flex-1 flex-wrap items-center gap-2" }, [
+                    createVNode(_component_USelect, {
+                      modelValue: unref(equipmentId),
+                      "onUpdate:modelValue": ($event) => isRef(equipmentId) ? equipmentId.value = $event : null,
+                      items: unref(equipmentItems),
+                      placeholder: "Wybierz Dasan OLT",
+                      class: "w-full min-w-0 sm:w-96"
+                    }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                  ])
+                ]),
+                _: 1
+              })
+            ];
+          }
+        }),
+        body: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(`<div class="grid min-h-0 flex-1 gap-0 xl:grid-cols-[360px_1fr]"${_scopeId}><div class="space-y-4 border-r border-default p-4 sm:p-6"${_scopeId}><div class="border border-default p-4"${_scopeId}><div class="text-sm font-semibold text-highlighted"${_scopeId}>${ssrInterpolate(unref(selectedEquipment)?.inventoryId || "Brak OLT")}</div><div class="mt-1 text-sm text-muted"${_scopeId}>${ssrInterpolate(unref(selectedEquipment)?.managementIp || "bez IP")} / ${ssrInterpolate(unref(selectedEquipment)?.managementDriver?.code || "bez drivera")}</div></div><div class="space-y-3 border border-default p-4"${_scopeId}><div class="text-sm font-semibold text-highlighted"${_scopeId}> ONU IP-host / VLAN 400 </div><div class="grid grid-cols-2 gap-2"${_scopeId}>`);
+            _push2(ssrRenderComponent(_component_UInput, {
+              modelValue: unref(oltPort),
+              "onUpdate:modelValue": ($event) => isRef(oltPort) ? oltPort.value = $event : null,
+              placeholder: "Port OLT"
+            }, null, _parent2, _scopeId));
+            _push2(ssrRenderComponent(_component_UInput, {
+              modelValue: unref(onuId),
+              "onUpdate:modelValue": ($event) => isRef(onuId) ? onuId.value = $event : null,
+              placeholder: "ONU ID"
+            }, null, _parent2, _scopeId));
+            _push2(`</div>`);
+            _push2(ssrRenderComponent(_component_UButton, {
+              block: "",
+              label: "show onu ip-host",
+              icon: "i-lucide-router",
+              loading: unref(loading) === "onu-ip-host",
+              onClick: runOnuIpHost
+            }, null, _parent2, _scopeId));
+            _push2(`</div><div class="space-y-3 border border-default p-4"${_scopeId}><div class="text-sm font-semibold text-highlighted"${_scopeId}> MAC lookup </div>`);
+            _push2(ssrRenderComponent(_component_UInput, {
+              modelValue: unref(macAddress),
+              "onUpdate:modelValue": ($event) => isRef(macAddress) ? macAddress.value = $event : null,
+              placeholder: "MAC do show mac | include"
+            }, null, _parent2, _scopeId));
+            _push2(ssrRenderComponent(_component_UButton, {
+              block: "",
+              label: "show mac | include",
+              icon: "i-lucide-search",
+              loading: unref(loading) === "mac-check",
+              onClick: runMacCheck
+            }, null, _parent2, _scopeId));
+            _push2(`</div>`);
+            _push2(ssrRenderComponent(_component_UButton, {
+              block: "",
+              label: "Command tree",
+              icon: "i-lucide-terminal",
+              variant: "subtle",
+              loading: unref(loading) === "command-tree",
+              onClick: runCommandTree
+            }, null, _parent2, _scopeId));
+            _push2(`</div><div class="min-w-0 p-4 sm:p-6"${_scopeId}>`);
+            _push2(ssrRenderComponent(_component_AppDiagnosticResult, { result: unref(result) }, null, _parent2, _scopeId));
+            _push2(`</div></div>`);
+          } else {
+            return [
+              createVNode("div", { class: "grid min-h-0 flex-1 gap-0 xl:grid-cols-[360px_1fr]" }, [
+                createVNode("div", { class: "space-y-4 border-r border-default p-4 sm:p-6" }, [
+                  createVNode("div", { class: "border border-default p-4" }, [
+                    createVNode("div", { class: "text-sm font-semibold text-highlighted" }, toDisplayString(unref(selectedEquipment)?.inventoryId || "Brak OLT"), 1),
+                    createVNode("div", { class: "mt-1 text-sm text-muted" }, toDisplayString(unref(selectedEquipment)?.managementIp || "bez IP") + " / " + toDisplayString(unref(selectedEquipment)?.managementDriver?.code || "bez drivera"), 1)
+                  ]),
+                  createVNode("div", { class: "space-y-3 border border-default p-4" }, [
+                    createVNode("div", { class: "text-sm font-semibold text-highlighted" }, " ONU IP-host / VLAN 400 "),
+                    createVNode("div", { class: "grid grid-cols-2 gap-2" }, [
+                      createVNode(_component_UInput, {
+                        modelValue: unref(oltPort),
+                        "onUpdate:modelValue": ($event) => isRef(oltPort) ? oltPort.value = $event : null,
+                        placeholder: "Port OLT"
+                      }, null, 8, ["modelValue", "onUpdate:modelValue"]),
+                      createVNode(_component_UInput, {
+                        modelValue: unref(onuId),
+                        "onUpdate:modelValue": ($event) => isRef(onuId) ? onuId.value = $event : null,
+                        placeholder: "ONU ID"
+                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                    ]),
+                    createVNode(_component_UButton, {
+                      block: "",
+                      label: "show onu ip-host",
+                      icon: "i-lucide-router",
+                      loading: unref(loading) === "onu-ip-host",
+                      onClick: runOnuIpHost
+                    }, null, 8, ["loading"])
+                  ]),
+                  createVNode("div", { class: "space-y-3 border border-default p-4" }, [
+                    createVNode("div", { class: "text-sm font-semibold text-highlighted" }, " MAC lookup "),
+                    createVNode(_component_UInput, {
+                      modelValue: unref(macAddress),
+                      "onUpdate:modelValue": ($event) => isRef(macAddress) ? macAddress.value = $event : null,
+                      placeholder: "MAC do show mac | include"
+                    }, null, 8, ["modelValue", "onUpdate:modelValue"]),
+                    createVNode(_component_UButton, {
+                      block: "",
+                      label: "show mac | include",
+                      icon: "i-lucide-search",
+                      loading: unref(loading) === "mac-check",
+                      onClick: runMacCheck
+                    }, null, 8, ["loading"])
+                  ]),
+                  createVNode(_component_UButton, {
+                    block: "",
+                    label: "Command tree",
+                    icon: "i-lucide-terminal",
+                    variant: "subtle",
+                    loading: unref(loading) === "command-tree",
+                    onClick: runCommandTree
+                  }, null, 8, ["loading"])
+                ]),
+                createVNode("div", { class: "min-w-0 p-4 sm:p-6" }, [
+                  createVNode(_component_AppDiagnosticResult, { result: unref(result) }, null, 8, ["result"])
+                ])
+              ])
+            ];
+          }
+        }),
+        _: 1
+      }, _parent));
+    };
+  }
+});
+const _sfc_setup = _sfc_main.setup;
+_sfc_main.setup = (props, ctx) => {
+  const ssrContext = useSSRContext();
+  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("pages/network/ftth/diagnostics.vue");
+  return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
+};
+
+export { _sfc_main as default };

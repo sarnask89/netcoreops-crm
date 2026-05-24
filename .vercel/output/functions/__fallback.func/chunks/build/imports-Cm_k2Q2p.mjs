@@ -1,0 +1,871 @@
+import { _ as _sfc_main$2, a as _sfc_main$1$1, b as _sfc_main$6 } from './DashboardSidebarCollapse-DD95YI0W.mjs';
+import { _ as _sfc_main$7 } from './DashboardToolbar-D0tdyEuQ.mjs';
+import { _ as _sfc_main$5 } from './Select-N__9sMNx.mjs';
+import { u as useToast, _ as _sfc_main$9 } from './server.mjs';
+import { _ as _sfc_main$1 } from './Input-DVuEqpoa.mjs';
+import { _ as _sfc_main$3 } from './Alert-C2QsFOV3.mjs';
+import { _ as _sfc_main$4 } from './Badge-CElKKp_G.mjs';
+import { _ as __nuxt_component_6 } from './AppDataTable-CYd00jpA.mjs';
+import { _ as __nuxt_component_10 } from './AppDiagnosticResult-CoGySpM6.mjs';
+import { _ as __nuxt_component_7 } from './AppRowDetailsSlideover-Q--6Q5Iy.mjs';
+import { defineComponent, ref, withAsyncContext, watch, computed, mergeProps, withCtx, unref, isRef, createTextVNode, toDisplayString, createVNode, openBlock, createBlock, Fragment, renderList, withDirectives, vModelCheckbox, createCommentVNode, useSSRContext } from 'vue';
+import { ssrRenderComponent, ssrInterpolate, ssrRenderList, ssrIncludeBooleanAttr, ssrLooseContain, ssrRenderAttr } from 'vue/server-renderer';
+import { u as useFetch } from './fetch-B7i171gV.mjs';
+import './DashboardSidebarToggle-C_vEEhTE.mjs';
+import '../nitro/nitro.mjs';
+import 'zod';
+import 'drizzle-orm';
+import 'node:child_process';
+import 'node:fs/promises';
+import 'node:path';
+import 'ssh2';
+import 'node:net';
+import 'drizzle-orm/pg-core';
+import 'drizzle-orm/node-postgres';
+import 'pg';
+import 'node:crypto';
+import 'node:http';
+import 'node:https';
+import 'node:events';
+import 'node:buffer';
+import 'ioredis';
+import 'node:fs';
+import '@iconify/utils';
+import 'consola';
+import './ssr-BO1H6xpe.mjs';
+import './PopperArrow-CvIo2SqJ.mjs';
+import './useFormControl-IzN_Be5X.mjs';
+import './handleAndDispatchCustomEvent-Bk_AVSSo.mjs';
+import 'tailwindcss/colors';
+import 'perfect-debounce';
+import '../routes/renderer.mjs';
+import 'vue-bundle-renderer/runtime';
+import 'unhead/server';
+import 'devalue';
+import 'unhead/plugins';
+import 'unhead/utils';
+import './Kbd-BRG7R5Q0.mjs';
+import '@internationalized/date';
+import './RovingFocusGroup-ByIEls-F.mjs';
+import './Table-9O8FnRDu.mjs';
+import './index-DC8E8gNZ.mjs';
+import './Slideover-DjbGE3Jt.mjs';
+import './overlay-CjyBzL1C.mjs';
+
+const _sfc_main = /* @__PURE__ */ defineComponent({
+  __name: "imports",
+  __ssrInlineRender: true,
+  async setup(__props) {
+    let __temp, __restore;
+    const toast = useToast();
+    const equipmentId = ref();
+    const mode = ref("preview");
+    const importFilter = ref("all");
+    const result = ref(null);
+    const loading = ref("");
+    const macAddress = ref("");
+    const selectedNetworks = ref([]);
+    const ipAddress = ref("");
+    const oltPort = ref("1");
+    const onuId = ref("");
+    const leases = ref([]);
+    const leaseTotal = ref(0);
+    const selectedLease = ref(null);
+    const leaseDetailsOpen = ref(false);
+    const { data: options, refresh: refreshOptions } = ([__temp, __restore] = withAsyncContext(() => useFetch(
+      "/api/network/import-options",
+      {
+        default: () => ({ success: false, data: { equipment: [] } })
+      },
+      "$Y-NVp1fxgJ"
+      /* nuxt-injected */
+    )), __temp = await __temp, __restore(), __temp);
+    watch(equipmentId, () => {
+      selectedNetworks.value = [];
+      leases.value = [];
+      leaseTotal.value = 0;
+      result.value = null;
+    });
+    const selectedEquipment = computed(() => options.value.data.equipment.find((item) => item.id === equipmentId.value));
+    const selectedDriver = computed(() => selectedEquipment.value?.managementDriver?.code || selectedEquipment.value?.managementProtocol || "");
+    const isMikrotikDevice = computed(() => {
+      const equipment = selectedEquipment.value;
+      const driverCode = equipment?.managementDriver?.code?.toLowerCase() || "";
+      const protocol = equipment?.managementProtocol?.toLowerCase() || "";
+      const inventoryId = equipment?.inventoryId?.toLowerCase() || "";
+      const hostname = equipment?.hostname?.toLowerCase() || "";
+      return driverCode === "mikrotik_v7" || protocol === "routeros" || inventoryId.startsWith("mt-") || hostname.includes("mikrotik");
+    });
+    const isDasanDevice = computed(() => selectedEquipment.value?.managementDriver?.code === "dasan_nos");
+    const equipmentItems = computed(() => options.value.data.equipment.map((item) => ({
+      label: [item.inventoryId, item.managementIp, item.managementDriver?.code || item.managementProtocol].filter(Boolean).join(" - "),
+      value: item.id
+    })));
+    const leaseColumns = [
+      { accessorKey: "address", header: "IP" },
+      { accessorKey: "macAddress", header: "MAC" },
+      { accessorKey: "status", header: "Status" },
+      { accessorKey: "disabled", header: "Disabled" },
+      { accessorKey: "blocked", header: "Blocked" },
+      { accessorKey: "server", header: "DHCP" },
+      { accessorKey: "interface", header: "Interfejs" },
+      { accessorKey: "rateLimit", header: "Rate limit" },
+      { accessorKey: "comment", header: "Komentarz" }
+    ];
+    const importFilterItems = [
+      { label: "Wszystkie", value: "all" },
+      { label: "Tylko z brakami", value: "issues" },
+      { label: "Gotowe do zapisu", value: "ready" },
+      { label: "Konflikty MAC/klient", value: "conflicts" }
+    ];
+    const importColumns = [
+      { accessorKey: "customer", header: "Klient" },
+      { accessorKey: "commentAddress", header: "Adres z komentarza" },
+      { accessorKey: "dictionaryAddress", header: "Adres slownikowy" },
+      { accessorKey: "ipAddress", header: "IP" },
+      { accessorKey: "macAddress", header: "MAC" },
+      { accessorKey: "tariff", header: "Taryfa" },
+      {
+        id: "issues",
+        header: "Braki",
+        cell: ({ row }) => row.original.issues.length ? row.original.issues.join(", ") : "Brak"
+      }
+    ];
+    function getImportActions() {
+      const value = result.value;
+      return value?.data?.sampleActions || [];
+    }
+    const importedNetworks = computed(() => {
+      const value = result.value;
+      return value?.data?.networks || [];
+    });
+    const importRows = computed(() => getImportActions().map((action) => {
+      const data = action.data || {};
+      const lease = data.lease || {};
+      const enriched = data.enriched || {};
+      const parsed = data.parsed || {};
+      const issues = Array.isArray(enriched.issues) ? enriched.issues : [];
+      return {
+        action: String(action.action || ""),
+        entity: String(action.entity || ""),
+        key: String(action.key || ""),
+        label: String(action.label || ""),
+        customer: String(enriched.customerName || "Brak"),
+        commentAddress: [parsed.streetName, parsed.streetNumber, parsed.apartmentNumber ? `/${parsed.apartmentNumber}` : ""].filter(Boolean).join("") || lease.comment || "Brak",
+        dictionaryAddress: String(enriched.displayAddress || "Brak dopasowania"),
+        ipAddress: lease.address || "",
+        macAddress: lease.macAddress || String(action.key || ""),
+        tariff: String(enriched.tariffName || lease.rateLimit || "Brak"),
+        issues: issues.map(String),
+        reason: typeof action.reason === "string" ? action.reason : void 0
+      };
+    }));
+    const filteredImportRows = computed(() => {
+      if (importFilter.value === "issues") return importRows.value.filter((row) => row.issues.length > 0);
+      if (importFilter.value === "ready") return importRows.value.filter((row) => row.issues.length === 0 && row.action !== "conflict");
+      if (importFilter.value === "conflicts") return importRows.value.filter((row) => row.action === "conflict" || row.issues.some((issue) => issue.toLowerCase().includes("konflikt")));
+      return importRows.value;
+    });
+    function showLeaseDetails(row) {
+      selectedLease.value = row;
+      leaseDetailsOpen.value = true;
+    }
+    function leaseContextItems(row) {
+      return [[
+        { label: "Szczegóły dzierżawy", icon: "i-lucide-panel-right-open", onSelect: () => showLeaseDetails(row) },
+        { label: "Użyj MAC w teście", icon: "i-lucide-network", onSelect: () => {
+          macAddress.value = row.macAddress || "";
+        } },
+        { label: "Użyj IP w teście", icon: "i-lucide-radar", onSelect: () => {
+          ipAddress.value = row.address || "";
+        } }
+      ], [
+        { label: "Odśwież DHCP leases", icon: "i-lucide-refresh-cw", onSelect: () => loadDhcpLeases() }
+      ]];
+    }
+    function endpoint(kind) {
+      if (!equipmentId.value) return "";
+      const scopedKind = kind.replace("/", `/${equipmentId.value}/`);
+      if (kind.startsWith("dasan/")) return `/api/ftth/imports/${scopedKind}`;
+      return `/api/import/${scopedKind}`;
+    }
+    function selectAllNetworks() {
+      selectedNetworks.value = importedNetworks.value.map((network) => network.cidr);
+    }
+    function clearSelectedNetworks() {
+      selectedNetworks.value = [];
+    }
+    async function runImport(kind) {
+      if (!equipmentId.value) return;
+      if (kind === "mikrotik/leases" && importedNetworks.value.length && !selectedNetworks.value.length) {
+        toast.add({ title: "Wybierz co najmniej jedną sieć DHCP", color: "warning" });
+        return;
+      }
+      loading.value = kind;
+      try {
+        const body = { mode: mode.value };
+        if (kind === "mikrotik/leases") body.selectedNetworks = selectedNetworks.value;
+        const response = await $fetch(endpoint(kind), {
+          method: "POST",
+          body
+        });
+        result.value = response;
+        if (kind === "mikrotik/networks") {
+          selectedNetworks.value = importedNetworks.value.map((network) => network.cidr);
+        }
+        if (mode.value === "apply") await refreshOptions();
+      } catch (error) {
+        toast.add({ title: "Import nie powiódł się", description: error instanceof Error ? error.message : String(error), color: "error" });
+      } finally {
+        loading.value = "";
+      }
+    }
+    async function loadDhcpLeases() {
+      if (!equipmentId.value) return;
+      loading.value = "dhcp-leases";
+      try {
+        const response = await $fetch(`/api/diagnostics/equipment/${equipmentId.value}/dhcp-leases`, {
+          query: { limit: 300 }
+        });
+        leases.value = response.data.leases;
+        leaseTotal.value = response.data.total;
+        result.value = response;
+      } catch (error) {
+        toast.add({ title: "DHCP leases nie działają", description: error instanceof Error ? error.message : String(error), color: "error" });
+      } finally {
+        loading.value = "";
+      }
+    }
+    async function runMikrotikCheck() {
+      if (!equipmentId.value) return;
+      loading.value = "mikrotik-check";
+      try {
+        result.value = await $fetch(`/api/diagnostics/equipment/${equipmentId.value}/mikrotik-check`, {
+          method: "POST",
+          body: {
+            macAddress: macAddress.value || null,
+            ipAddress: ipAddress.value || null
+          }
+        });
+      } catch (error) {
+        toast.add({ title: "Test MikroTik nie powiódł się", description: error instanceof Error ? error.message : String(error), color: "error" });
+      } finally {
+        loading.value = "";
+      }
+    }
+    async function runMacCheck() {
+      if (!equipmentId.value || !macAddress.value) return;
+      loading.value = "mac-check";
+      try {
+        result.value = await $fetch(`/api/diagnostics/equipment/${equipmentId.value}/mac-check`, {
+          method: "POST",
+          body: { macAddress: macAddress.value }
+        });
+      } catch (error) {
+        toast.add({ title: "MAC lookup nie powiódł się", description: error instanceof Error ? error.message : String(error), color: "error" });
+      } finally {
+        loading.value = "";
+      }
+    }
+    async function runCommandTree() {
+      if (!equipmentId.value) return;
+      loading.value = "command-tree";
+      try {
+        result.value = await $fetch(`/api/diagnostics/equipment/${equipmentId.value}/command-tree`, { method: "POST" });
+      } catch (error) {
+        toast.add({ title: "Command tree nie powiódł się", description: error instanceof Error ? error.message : String(error), color: "error" });
+      } finally {
+        loading.value = "";
+      }
+    }
+    async function runOnuIpHost() {
+      if (!equipmentId.value || !oltPort.value || !onuId.value) return;
+      loading.value = "onu-ip-host";
+      try {
+        result.value = await $fetch(`/api/diagnostics/equipment/${equipmentId.value}/onu-ip-host`, {
+          method: "POST",
+          body: {
+            oltPort: oltPort.value,
+            onuId: onuId.value
+          }
+        });
+      } catch (error) {
+        toast.add({ title: "ONU IP-host nie powiódł się", description: error instanceof Error ? error.message : String(error), color: "error" });
+      } finally {
+        loading.value = "";
+      }
+    }
+    return (_ctx, _push, _parent, _attrs) => {
+      const _component_UDashboardPanel = _sfc_main$2;
+      const _component_UDashboardNavbar = _sfc_main$1$1;
+      const _component_UDashboardSidebarCollapse = _sfc_main$6;
+      const _component_UDashboardToolbar = _sfc_main$7;
+      const _component_USelect = _sfc_main$5;
+      const _component_UButton = _sfc_main$9;
+      const _component_UInput = _sfc_main$1;
+      const _component_UAlert = _sfc_main$3;
+      const _component_UBadge = _sfc_main$4;
+      const _component_AppDataTable = __nuxt_component_6;
+      const _component_AppDiagnosticResult = __nuxt_component_10;
+      const _component_AppRowDetailsSlideover = __nuxt_component_7;
+      _push(ssrRenderComponent(_component_UDashboardPanel, mergeProps({
+        id: "network-imports",
+        ui: { body: "p-0 sm:p-0 gap-0 sm:gap-0" }
+      }, _attrs), {
+        header: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(ssrRenderComponent(_component_UDashboardNavbar, { title: "Importy i diagnostyka live" }, {
+              leading: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(_component_UDashboardSidebarCollapse, null, null, _parent3, _scopeId2));
+                } else {
+                  return [
+                    createVNode(_component_UDashboardSidebarCollapse)
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+            _push2(ssrRenderComponent(_component_UDashboardToolbar, null, {
+              left: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(_component_USelect, {
+                    modelValue: unref(equipmentId),
+                    "onUpdate:modelValue": ($event) => isRef(equipmentId) ? equipmentId.value = $event : null,
+                    items: unref(equipmentItems),
+                    "value-key": "value",
+                    "label-key": "label",
+                    placeholder: "Wybierz urządzenie",
+                    class: "min-w-96"
+                  }, null, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(_component_USelect, {
+                    modelValue: unref(mode),
+                    "onUpdate:modelValue": ($event) => isRef(mode) ? mode.value = $event : null,
+                    items: ["preview", "apply"],
+                    class: "min-w-32"
+                  }, null, _parent3, _scopeId2));
+                } else {
+                  return [
+                    createVNode(_component_USelect, {
+                      modelValue: unref(equipmentId),
+                      "onUpdate:modelValue": ($event) => isRef(equipmentId) ? equipmentId.value = $event : null,
+                      items: unref(equipmentItems),
+                      "value-key": "value",
+                      "label-key": "label",
+                      placeholder: "Wybierz urządzenie",
+                      class: "min-w-96"
+                    }, null, 8, ["modelValue", "onUpdate:modelValue", "items"]),
+                    createVNode(_component_USelect, {
+                      modelValue: unref(mode),
+                      "onUpdate:modelValue": ($event) => isRef(mode) ? mode.value = $event : null,
+                      items: ["preview", "apply"],
+                      class: "min-w-32"
+                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+          } else {
+            return [
+              createVNode(_component_UDashboardNavbar, { title: "Importy i diagnostyka live" }, {
+                leading: withCtx(() => [
+                  createVNode(_component_UDashboardSidebarCollapse)
+                ]),
+                _: 1
+              }),
+              createVNode(_component_UDashboardToolbar, null, {
+                left: withCtx(() => [
+                  createVNode(_component_USelect, {
+                    modelValue: unref(equipmentId),
+                    "onUpdate:modelValue": ($event) => isRef(equipmentId) ? equipmentId.value = $event : null,
+                    items: unref(equipmentItems),
+                    "value-key": "value",
+                    "label-key": "label",
+                    placeholder: "Wybierz urządzenie",
+                    class: "min-w-96"
+                  }, null, 8, ["modelValue", "onUpdate:modelValue", "items"]),
+                  createVNode(_component_USelect, {
+                    modelValue: unref(mode),
+                    "onUpdate:modelValue": ($event) => isRef(mode) ? mode.value = $event : null,
+                    items: ["preview", "apply"],
+                    class: "min-w-32"
+                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                ]),
+                _: 1
+              })
+            ];
+          }
+        }),
+        body: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(`<div class="grid min-h-0 flex-1 gap-0 xl:grid-cols-[380px_1fr]"${_scopeId}><div class="space-y-4 border-r border-default p-4 sm:p-6"${_scopeId}><div class="border border-default p-4"${_scopeId}><div class="text-sm font-semibold text-highlighted"${_scopeId}>${ssrInterpolate(unref(selectedEquipment)?.inventoryId || "Brak urządzenia")}</div><div class="mt-1 text-sm text-muted"${_scopeId}>${ssrInterpolate(unref(selectedEquipment)?.managementIp || "bez IP")} / ${ssrInterpolate(unref(selectedDriver) || "bez drivera")}</div></div>`);
+            if (unref(isMikrotikDevice)) {
+              _push2(`<div class="space-y-3 border border-default p-4"${_scopeId}><div class="text-sm font-semibold text-highlighted"${_scopeId}> MikroTik RouterOS </div>`);
+              _push2(ssrRenderComponent(_component_UButton, {
+                block: "",
+                label: "Pokaż DHCP leases",
+                icon: "i-lucide-list",
+                loading: unref(loading) === "dhcp-leases",
+                onClick: loadDhcpLeases
+              }, null, _parent2, _scopeId));
+              _push2(ssrRenderComponent(_component_UButton, {
+                block: "",
+                label: "Importuj DHCP leases",
+                icon: "i-lucide-database-zap",
+                variant: "subtle",
+                loading: unref(loading) === "mikrotik/leases",
+                onClick: ($event) => runImport("mikrotik/leases")
+              }, null, _parent2, _scopeId));
+              _push2(ssrRenderComponent(_component_UButton, {
+                block: "",
+                label: "Importuj DHCP networks",
+                icon: "i-lucide-network",
+                variant: "subtle",
+                loading: unref(loading) === "mikrotik/networks",
+                onClick: ($event) => runImport("mikrotik/networks")
+              }, null, _parent2, _scopeId));
+              if (unref(importedNetworks).length) {
+                _push2(`<div class="space-y-3 border border-default p-4"${_scopeId}><div class="flex items-center justify-between gap-3"${_scopeId}><div${_scopeId}><div class="text-sm font-semibold text-highlighted"${_scopeId}> Wybór sieci DHCP </div><div class="text-xs text-muted"${_scopeId}>${ssrInterpolate(unref(selectedNetworks).length)} / ${ssrInterpolate(unref(importedNetworks).length)} zaznaczonych </div></div><div class="flex gap-2"${_scopeId}>`);
+                _push2(ssrRenderComponent(_component_UButton, {
+                  size: "xs",
+                  icon: "i-lucide-check-check",
+                  variant: "subtle",
+                  label: "Wszystkie",
+                  onClick: selectAllNetworks
+                }, null, _parent2, _scopeId));
+                _push2(ssrRenderComponent(_component_UButton, {
+                  size: "xs",
+                  icon: "i-lucide-square",
+                  variant: "subtle",
+                  label: "Wyczyść",
+                  onClick: clearSelectedNetworks
+                }, null, _parent2, _scopeId));
+                _push2(`</div></div><div class="max-h-64 space-y-2 overflow-auto pr-1"${_scopeId}><!--[-->`);
+                ssrRenderList(unref(importedNetworks), (network) => {
+                  _push2(`<label class="flex cursor-pointer items-start gap-3 border border-default px-3 py-2 text-sm"${_scopeId}><input${ssrIncludeBooleanAttr(Array.isArray(unref(selectedNetworks)) ? ssrLooseContain(unref(selectedNetworks), network.cidr) : unref(selectedNetworks)) ? " checked" : ""} type="checkbox"${ssrRenderAttr("value", network.cidr)} class="mt-1 h-4 w-4 rounded border-default text-primary"${_scopeId}><span class="min-w-0"${_scopeId}><span class="block font-medium text-highlighted"${_scopeId}>${ssrInterpolate(network.cidr)}</span><span class="block text-xs text-muted"${_scopeId}>${ssrInterpolate(network.comment || network.gateway || "Brak opisu")}</span></span></label>`);
+                });
+                _push2(`<!--]--></div></div>`);
+              } else {
+                _push2(`<!---->`);
+              }
+              _push2(`<div class="grid gap-2"${_scopeId}>`);
+              _push2(ssrRenderComponent(_component_UInput, {
+                modelValue: unref(macAddress),
+                "onUpdate:modelValue": ($event) => isRef(macAddress) ? macAddress.value = $event : null,
+                placeholder: "MAC do DHCP/MAC check"
+              }, null, _parent2, _scopeId));
+              _push2(ssrRenderComponent(_component_UInput, {
+                modelValue: unref(ipAddress),
+                "onUpdate:modelValue": ($event) => isRef(ipAddress) ? ipAddress.value = $event : null,
+                placeholder: "IP do ping/ARP-ping"
+              }, null, _parent2, _scopeId));
+              _push2(`</div><div class="grid grid-cols-2 gap-2"${_scopeId}>`);
+              _push2(ssrRenderComponent(_component_UButton, {
+                label: "DHCP/Ping/ARP",
+                icon: "i-lucide-radar",
+                loading: unref(loading) === "mikrotik-check",
+                onClick: runMikrotikCheck
+              }, null, _parent2, _scopeId));
+              _push2(ssrRenderComponent(_component_UButton, {
+                label: "Bridge/FDB",
+                icon: "i-lucide-search",
+                variant: "subtle",
+                loading: unref(loading) === "mac-check",
+                onClick: runMacCheck
+              }, null, _parent2, _scopeId));
+              _push2(`</div></div>`);
+            } else if (unref(isDasanDevice)) {
+              _push2(`<div class="space-y-3 border border-default p-4"${_scopeId}><div class="text-sm font-semibold text-highlighted"${_scopeId}> Dasan OLT </div>`);
+              _push2(ssrRenderComponent(_component_UButton, {
+                block: "",
+                label: "Importuj ONU do FTTH",
+                icon: "i-lucide-git-branch",
+                loading: unref(loading) === "dasan/onus",
+                onClick: ($event) => runImport("dasan/onus")
+              }, null, _parent2, _scopeId));
+              _push2(ssrRenderComponent(_component_UButton, {
+                block: "",
+                label: "Importuj IP-host FTTH",
+                icon: "i-lucide-router",
+                variant: "subtle",
+                loading: unref(loading) === "dasan/ip-hosts",
+                onClick: ($event) => runImport("dasan/ip-hosts")
+              }, null, _parent2, _scopeId));
+              _push2(ssrRenderComponent(_component_UButton, {
+                block: "",
+                label: "Mapuj MAC FTTH",
+                icon: "i-lucide-list-tree",
+                variant: "subtle",
+                loading: unref(loading) === "dasan/mac-map",
+                onClick: ($event) => runImport("dasan/mac-map")
+              }, null, _parent2, _scopeId));
+              _push2(ssrRenderComponent(_component_UInput, {
+                modelValue: unref(macAddress),
+                "onUpdate:modelValue": ($event) => isRef(macAddress) ? macAddress.value = $event : null,
+                placeholder: "MAC do show mac | include"
+              }, null, _parent2, _scopeId));
+              _push2(ssrRenderComponent(_component_UButton, {
+                block: "",
+                label: "show mac | include",
+                icon: "i-lucide-search",
+                variant: "subtle",
+                loading: unref(loading) === "mac-check",
+                onClick: runMacCheck
+              }, null, _parent2, _scopeId));
+              _push2(`<div class="grid grid-cols-2 gap-2"${_scopeId}>`);
+              _push2(ssrRenderComponent(_component_UInput, {
+                modelValue: unref(oltPort),
+                "onUpdate:modelValue": ($event) => isRef(oltPort) ? oltPort.value = $event : null,
+                placeholder: "Port OLT"
+              }, null, _parent2, _scopeId));
+              _push2(ssrRenderComponent(_component_UInput, {
+                modelValue: unref(onuId),
+                "onUpdate:modelValue": ($event) => isRef(onuId) ? onuId.value = $event : null,
+                placeholder: "ONU ID"
+              }, null, _parent2, _scopeId));
+              _push2(`</div>`);
+              _push2(ssrRenderComponent(_component_UButton, {
+                block: "",
+                label: "show onu ip-host",
+                icon: "i-lucide-router",
+                variant: "subtle",
+                loading: unref(loading) === "onu-ip-host",
+                onClick: runOnuIpHost
+              }, null, _parent2, _scopeId));
+              _push2(ssrRenderComponent(_component_UButton, {
+                block: "",
+                label: "Command tree",
+                icon: "i-lucide-terminal",
+                variant: "subtle",
+                loading: unref(loading) === "command-tree",
+                onClick: runCommandTree
+              }, null, _parent2, _scopeId));
+              _push2(`</div>`);
+            } else {
+              _push2(ssrRenderComponent(_component_UAlert, {
+                color: "neutral",
+                variant: "subtle",
+                title: "Wybierz MikroTik albo Dasan",
+                description: "Akcje live są rozdzielone według drivera urządzenia."
+              }, null, _parent2, _scopeId));
+            }
+            _push2(`</div><div class="min-w-0 space-y-4 p-4 sm:p-6"${_scopeId}>`);
+            if (unref(leases).length) {
+              _push2(`<div class="border border-default"${_scopeId}><div class="mb-3 flex items-center justify-between"${_scopeId}><div class="text-sm font-semibold text-highlighted"${_scopeId}> DHCP leases </div>`);
+              _push2(ssrRenderComponent(_component_UBadge, {
+                color: "neutral",
+                variant: "subtle"
+              }, {
+                default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                  if (_push3) {
+                    _push3(`${ssrInterpolate(unref(leases).length)} / ${ssrInterpolate(unref(leaseTotal))}`);
+                  } else {
+                    return [
+                      createTextVNode(toDisplayString(unref(leases).length) + " / " + toDisplayString(unref(leaseTotal)), 1)
+                    ];
+                  }
+                }),
+                _: 1
+              }, _parent2, _scopeId));
+              _push2(`</div>`);
+              _push2(ssrRenderComponent(_component_AppDataTable, {
+                data: unref(leases),
+                columns: leaseColumns,
+                "context-items": leaseContextItems
+              }, null, _parent2, _scopeId));
+              _push2(`</div>`);
+            } else {
+              _push2(`<!---->`);
+            }
+            if (unref(importRows).length) {
+              _push2(`<div class="space-y-3 border border-default p-3"${_scopeId}><div class="flex flex-wrap items-center justify-between gap-3"${_scopeId}><div${_scopeId}><div class="text-sm font-semibold text-highlighted"${_scopeId}> Podglad importu </div><div class="text-xs text-muted"${_scopeId}>${ssrInterpolate(unref(filteredImportRows).length)} / ${ssrInterpolate(unref(importRows).length)} pozycji po filtrze </div></div>`);
+              _push2(ssrRenderComponent(_component_USelect, {
+                modelValue: unref(importFilter),
+                "onUpdate:modelValue": ($event) => isRef(importFilter) ? importFilter.value = $event : null,
+                items: importFilterItems,
+                class: "w-56"
+              }, null, _parent2, _scopeId));
+              _push2(`</div>`);
+              _push2(ssrRenderComponent(_component_AppDataTable, {
+                data: unref(filteredImportRows),
+                columns: importColumns,
+                "page-size": 20
+              }, null, _parent2, _scopeId));
+              _push2(`<details class="border border-default bg-default"${_scopeId}><summary class="cursor-pointer px-3 py-2 text-sm font-medium text-highlighted"${_scopeId}> Dane techniczne </summary><pre class="max-h-[360px] overflow-auto border-t border-default bg-elevated p-3 text-xs"${_scopeId}>${ssrInterpolate(JSON.stringify(unref(result), null, 2))}</pre></details></div>`);
+            } else {
+              _push2(ssrRenderComponent(_component_AppDiagnosticResult, { result: unref(result) }, null, _parent2, _scopeId));
+            }
+            _push2(`</div></div>`);
+            _push2(ssrRenderComponent(_component_AppRowDetailsSlideover, {
+              open: unref(leaseDetailsOpen),
+              "onUpdate:open": ($event) => isRef(leaseDetailsOpen) ? leaseDetailsOpen.value = $event : null,
+              title: "Szczegóły DHCP lease",
+              subtitle: unref(selectedLease)?.address || unref(selectedLease)?.macAddress,
+              item: unref(selectedLease)
+            }, null, _parent2, _scopeId));
+          } else {
+            return [
+              createVNode("div", { class: "grid min-h-0 flex-1 gap-0 xl:grid-cols-[380px_1fr]" }, [
+                createVNode("div", { class: "space-y-4 border-r border-default p-4 sm:p-6" }, [
+                  createVNode("div", { class: "border border-default p-4" }, [
+                    createVNode("div", { class: "text-sm font-semibold text-highlighted" }, toDisplayString(unref(selectedEquipment)?.inventoryId || "Brak urządzenia"), 1),
+                    createVNode("div", { class: "mt-1 text-sm text-muted" }, toDisplayString(unref(selectedEquipment)?.managementIp || "bez IP") + " / " + toDisplayString(unref(selectedDriver) || "bez drivera"), 1)
+                  ]),
+                  unref(isMikrotikDevice) ? (openBlock(), createBlock("div", {
+                    key: 0,
+                    class: "space-y-3 border border-default p-4"
+                  }, [
+                    createVNode("div", { class: "text-sm font-semibold text-highlighted" }, " MikroTik RouterOS "),
+                    createVNode(_component_UButton, {
+                      block: "",
+                      label: "Pokaż DHCP leases",
+                      icon: "i-lucide-list",
+                      loading: unref(loading) === "dhcp-leases",
+                      onClick: loadDhcpLeases
+                    }, null, 8, ["loading"]),
+                    createVNode(_component_UButton, {
+                      block: "",
+                      label: "Importuj DHCP leases",
+                      icon: "i-lucide-database-zap",
+                      variant: "subtle",
+                      loading: unref(loading) === "mikrotik/leases",
+                      onClick: ($event) => runImport("mikrotik/leases")
+                    }, null, 8, ["loading", "onClick"]),
+                    createVNode(_component_UButton, {
+                      block: "",
+                      label: "Importuj DHCP networks",
+                      icon: "i-lucide-network",
+                      variant: "subtle",
+                      loading: unref(loading) === "mikrotik/networks",
+                      onClick: ($event) => runImport("mikrotik/networks")
+                    }, null, 8, ["loading", "onClick"]),
+                    unref(importedNetworks).length ? (openBlock(), createBlock("div", {
+                      key: 0,
+                      class: "space-y-3 border border-default p-4"
+                    }, [
+                      createVNode("div", { class: "flex items-center justify-between gap-3" }, [
+                        createVNode("div", null, [
+                          createVNode("div", { class: "text-sm font-semibold text-highlighted" }, " Wybór sieci DHCP "),
+                          createVNode("div", { class: "text-xs text-muted" }, toDisplayString(unref(selectedNetworks).length) + " / " + toDisplayString(unref(importedNetworks).length) + " zaznaczonych ", 1)
+                        ]),
+                        createVNode("div", { class: "flex gap-2" }, [
+                          createVNode(_component_UButton, {
+                            size: "xs",
+                            icon: "i-lucide-check-check",
+                            variant: "subtle",
+                            label: "Wszystkie",
+                            onClick: selectAllNetworks
+                          }),
+                          createVNode(_component_UButton, {
+                            size: "xs",
+                            icon: "i-lucide-square",
+                            variant: "subtle",
+                            label: "Wyczyść",
+                            onClick: clearSelectedNetworks
+                          })
+                        ])
+                      ]),
+                      createVNode("div", { class: "max-h-64 space-y-2 overflow-auto pr-1" }, [
+                        (openBlock(true), createBlock(Fragment, null, renderList(unref(importedNetworks), (network) => {
+                          return openBlock(), createBlock("label", {
+                            key: network.cidr,
+                            class: "flex cursor-pointer items-start gap-3 border border-default px-3 py-2 text-sm"
+                          }, [
+                            withDirectives(createVNode("input", {
+                              "onUpdate:modelValue": ($event) => isRef(selectedNetworks) ? selectedNetworks.value = $event : null,
+                              type: "checkbox",
+                              value: network.cidr,
+                              class: "mt-1 h-4 w-4 rounded border-default text-primary"
+                            }, null, 8, ["onUpdate:modelValue", "value"]), [
+                              [vModelCheckbox, unref(selectedNetworks)]
+                            ]),
+                            createVNode("span", { class: "min-w-0" }, [
+                              createVNode("span", { class: "block font-medium text-highlighted" }, toDisplayString(network.cidr), 1),
+                              createVNode("span", { class: "block text-xs text-muted" }, toDisplayString(network.comment || network.gateway || "Brak opisu"), 1)
+                            ])
+                          ]);
+                        }), 128))
+                      ])
+                    ])) : createCommentVNode("", true),
+                    createVNode("div", { class: "grid gap-2" }, [
+                      createVNode(_component_UInput, {
+                        modelValue: unref(macAddress),
+                        "onUpdate:modelValue": ($event) => isRef(macAddress) ? macAddress.value = $event : null,
+                        placeholder: "MAC do DHCP/MAC check"
+                      }, null, 8, ["modelValue", "onUpdate:modelValue"]),
+                      createVNode(_component_UInput, {
+                        modelValue: unref(ipAddress),
+                        "onUpdate:modelValue": ($event) => isRef(ipAddress) ? ipAddress.value = $event : null,
+                        placeholder: "IP do ping/ARP-ping"
+                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                    ]),
+                    createVNode("div", { class: "grid grid-cols-2 gap-2" }, [
+                      createVNode(_component_UButton, {
+                        label: "DHCP/Ping/ARP",
+                        icon: "i-lucide-radar",
+                        loading: unref(loading) === "mikrotik-check",
+                        onClick: runMikrotikCheck
+                      }, null, 8, ["loading"]),
+                      createVNode(_component_UButton, {
+                        label: "Bridge/FDB",
+                        icon: "i-lucide-search",
+                        variant: "subtle",
+                        loading: unref(loading) === "mac-check",
+                        onClick: runMacCheck
+                      }, null, 8, ["loading"])
+                    ])
+                  ])) : unref(isDasanDevice) ? (openBlock(), createBlock("div", {
+                    key: 1,
+                    class: "space-y-3 border border-default p-4"
+                  }, [
+                    createVNode("div", { class: "text-sm font-semibold text-highlighted" }, " Dasan OLT "),
+                    createVNode(_component_UButton, {
+                      block: "",
+                      label: "Importuj ONU do FTTH",
+                      icon: "i-lucide-git-branch",
+                      loading: unref(loading) === "dasan/onus",
+                      onClick: ($event) => runImport("dasan/onus")
+                    }, null, 8, ["loading", "onClick"]),
+                    createVNode(_component_UButton, {
+                      block: "",
+                      label: "Importuj IP-host FTTH",
+                      icon: "i-lucide-router",
+                      variant: "subtle",
+                      loading: unref(loading) === "dasan/ip-hosts",
+                      onClick: ($event) => runImport("dasan/ip-hosts")
+                    }, null, 8, ["loading", "onClick"]),
+                    createVNode(_component_UButton, {
+                      block: "",
+                      label: "Mapuj MAC FTTH",
+                      icon: "i-lucide-list-tree",
+                      variant: "subtle",
+                      loading: unref(loading) === "dasan/mac-map",
+                      onClick: ($event) => runImport("dasan/mac-map")
+                    }, null, 8, ["loading", "onClick"]),
+                    createVNode(_component_UInput, {
+                      modelValue: unref(macAddress),
+                      "onUpdate:modelValue": ($event) => isRef(macAddress) ? macAddress.value = $event : null,
+                      placeholder: "MAC do show mac | include"
+                    }, null, 8, ["modelValue", "onUpdate:modelValue"]),
+                    createVNode(_component_UButton, {
+                      block: "",
+                      label: "show mac | include",
+                      icon: "i-lucide-search",
+                      variant: "subtle",
+                      loading: unref(loading) === "mac-check",
+                      onClick: runMacCheck
+                    }, null, 8, ["loading"]),
+                    createVNode("div", { class: "grid grid-cols-2 gap-2" }, [
+                      createVNode(_component_UInput, {
+                        modelValue: unref(oltPort),
+                        "onUpdate:modelValue": ($event) => isRef(oltPort) ? oltPort.value = $event : null,
+                        placeholder: "Port OLT"
+                      }, null, 8, ["modelValue", "onUpdate:modelValue"]),
+                      createVNode(_component_UInput, {
+                        modelValue: unref(onuId),
+                        "onUpdate:modelValue": ($event) => isRef(onuId) ? onuId.value = $event : null,
+                        placeholder: "ONU ID"
+                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                    ]),
+                    createVNode(_component_UButton, {
+                      block: "",
+                      label: "show onu ip-host",
+                      icon: "i-lucide-router",
+                      variant: "subtle",
+                      loading: unref(loading) === "onu-ip-host",
+                      onClick: runOnuIpHost
+                    }, null, 8, ["loading"]),
+                    createVNode(_component_UButton, {
+                      block: "",
+                      label: "Command tree",
+                      icon: "i-lucide-terminal",
+                      variant: "subtle",
+                      loading: unref(loading) === "command-tree",
+                      onClick: runCommandTree
+                    }, null, 8, ["loading"])
+                  ])) : (openBlock(), createBlock(_component_UAlert, {
+                    key: 2,
+                    color: "neutral",
+                    variant: "subtle",
+                    title: "Wybierz MikroTik albo Dasan",
+                    description: "Akcje live są rozdzielone według drivera urządzenia."
+                  }))
+                ]),
+                createVNode("div", { class: "min-w-0 space-y-4 p-4 sm:p-6" }, [
+                  unref(leases).length ? (openBlock(), createBlock("div", {
+                    key: 0,
+                    class: "border border-default"
+                  }, [
+                    createVNode("div", { class: "mb-3 flex items-center justify-between" }, [
+                      createVNode("div", { class: "text-sm font-semibold text-highlighted" }, " DHCP leases "),
+                      createVNode(_component_UBadge, {
+                        color: "neutral",
+                        variant: "subtle"
+                      }, {
+                        default: withCtx(() => [
+                          createTextVNode(toDisplayString(unref(leases).length) + " / " + toDisplayString(unref(leaseTotal)), 1)
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    createVNode(_component_AppDataTable, {
+                      data: unref(leases),
+                      columns: leaseColumns,
+                      "context-items": leaseContextItems
+                    }, null, 8, ["data"])
+                  ])) : createCommentVNode("", true),
+                  unref(importRows).length ? (openBlock(), createBlock("div", {
+                    key: 1,
+                    class: "space-y-3 border border-default p-3"
+                  }, [
+                    createVNode("div", { class: "flex flex-wrap items-center justify-between gap-3" }, [
+                      createVNode("div", null, [
+                        createVNode("div", { class: "text-sm font-semibold text-highlighted" }, " Podglad importu "),
+                        createVNode("div", { class: "text-xs text-muted" }, toDisplayString(unref(filteredImportRows).length) + " / " + toDisplayString(unref(importRows).length) + " pozycji po filtrze ", 1)
+                      ]),
+                      createVNode(_component_USelect, {
+                        modelValue: unref(importFilter),
+                        "onUpdate:modelValue": ($event) => isRef(importFilter) ? importFilter.value = $event : null,
+                        items: importFilterItems,
+                        class: "w-56"
+                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                    ]),
+                    createVNode(_component_AppDataTable, {
+                      data: unref(filteredImportRows),
+                      columns: importColumns,
+                      "page-size": 20
+                    }, null, 8, ["data"]),
+                    createVNode("details", { class: "border border-default bg-default" }, [
+                      createVNode("summary", { class: "cursor-pointer px-3 py-2 text-sm font-medium text-highlighted" }, " Dane techniczne "),
+                      createVNode("pre", { class: "max-h-[360px] overflow-auto border-t border-default bg-elevated p-3 text-xs" }, toDisplayString(JSON.stringify(unref(result), null, 2)), 1)
+                    ])
+                  ])) : (openBlock(), createBlock(_component_AppDiagnosticResult, {
+                    key: 2,
+                    result: unref(result)
+                  }, null, 8, ["result"]))
+                ])
+              ]),
+              createVNode(_component_AppRowDetailsSlideover, {
+                open: unref(leaseDetailsOpen),
+                "onUpdate:open": ($event) => isRef(leaseDetailsOpen) ? leaseDetailsOpen.value = $event : null,
+                title: "Szczegóły DHCP lease",
+                subtitle: unref(selectedLease)?.address || unref(selectedLease)?.macAddress,
+                item: unref(selectedLease)
+              }, null, 8, ["open", "onUpdate:open", "subtitle", "item"])
+            ];
+          }
+        }),
+        _: 1
+      }, _parent));
+    };
+  }
+});
+const _sfc_setup = _sfc_main.setup;
+_sfc_main.setup = (props, ctx) => {
+  const ssrContext = useSSRContext();
+  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("pages/network/imports.vue");
+  return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
+};
+
+export { _sfc_main as default };

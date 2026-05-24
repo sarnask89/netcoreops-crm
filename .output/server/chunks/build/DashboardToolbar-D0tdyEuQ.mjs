@@ -1,0 +1,71 @@
+import { computed, unref, mergeProps, withCtx, renderSlot, createVNode, useSSRContext } from 'vue';
+import { ssrRenderComponent, ssrRenderSlot, ssrRenderClass } from 'vue/server-renderer';
+import { e as useAppConfig, f as useComponentUI, t as tv, P as Primitive } from './server.mjs';
+
+const theme = {
+  "slots": {
+    "root": "shrink-0 flex items-center justify-between border-b border-default px-4 sm:px-6 gap-1.5 overflow-x-auto min-h-[49px]",
+    "left": "flex items-center gap-1.5",
+    "right": "flex items-center gap-1.5"
+  }
+};
+const _sfc_main = {
+  __name: "UDashboardToolbar",
+  __ssrInlineRender: true,
+  props: {
+    as: { type: null, required: false },
+    class: { type: null, required: false },
+    ui: { type: Object, required: false }
+  },
+  setup(__props) {
+    const props = __props;
+    const appConfig = useAppConfig();
+    const uiProp = useComponentUI("dashboardToolbar", props);
+    const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.dashboardToolbar || {} })());
+    return (_ctx, _push, _parent, _attrs) => {
+      _push(ssrRenderComponent(unref(Primitive), mergeProps({
+        as: __props.as,
+        "data-slot": "root",
+        class: ui.value.root({ class: [unref(uiProp)?.root, props.class] })
+      }, _attrs), {
+        default: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            ssrRenderSlot(_ctx.$slots, "default", {}, () => {
+              _push2(`<div data-slot="left" class="${ssrRenderClass(ui.value.left({ class: [unref(uiProp)?.left] }))}"${_scopeId}>`);
+              ssrRenderSlot(_ctx.$slots, "left", {}, null, _push2, _parent2, _scopeId);
+              _push2(`</div><div data-slot="right" class="${ssrRenderClass(ui.value.right({ class: [unref(uiProp)?.right] }))}"${_scopeId}>`);
+              ssrRenderSlot(_ctx.$slots, "right", {}, null, _push2, _parent2, _scopeId);
+              _push2(`</div>`);
+            }, _push2, _parent2, _scopeId);
+          } else {
+            return [
+              renderSlot(_ctx.$slots, "default", {}, () => [
+                createVNode("div", {
+                  "data-slot": "left",
+                  class: ui.value.left({ class: [unref(uiProp)?.left] })
+                }, [
+                  renderSlot(_ctx.$slots, "left")
+                ], 2),
+                createVNode("div", {
+                  "data-slot": "right",
+                  class: ui.value.right({ class: [unref(uiProp)?.right] })
+                }, [
+                  renderSlot(_ctx.$slots, "right")
+                ], 2)
+              ])
+            ];
+          }
+        }),
+        _: 3
+      }, _parent));
+    };
+  }
+};
+const _sfc_setup = _sfc_main.setup;
+_sfc_main.setup = (props, ctx) => {
+  const ssrContext = useSSRContext();
+  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("../node_modules/.pnpm/@nuxt+ui@4.7.1_@internationalized+date@3.12.1_@internationalized+number@3.6.6_@tiptap+e_f232df4310342c42e02e10fb94bda86b/node_modules/@nuxt/ui/dist/runtime/components/DashboardToolbar.vue");
+  return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
+};
+
+export { _sfc_main as _ };

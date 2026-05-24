@@ -1,0 +1,1324 @@
+import { computed, useTemplateRef, toRef, unref, mergeProps, withCtx, renderSlot, createVNode, openBlock, createBlock, createCommentVNode, defineComponent, toRefs, ref, watch, withKeys, withModifiers, useSSRContext } from 'vue';
+import { ssrRenderComponent, ssrRenderClass, ssrRenderSlot } from 'vue/server-renderer';
+import { b as useVModel, q as useLocale, e as useAppConfig, f as useComponentUI, g as useForwardPropsEmits, r as reactivePick, h as useFormField, s as useFieldGroup, t as tv, _ as _sfc_main$9, o as usePrimitiveElement, i as isNullish, P as Primitive, l as reactiveComputed, c as createContext, p as getActiveElement, m as unrefElement, n as createEventHook } from './server.mjs';
+import { c as clamp, s as snapValueToStep } from './Select-N__9sMNx.mjs';
+import { u as useFormControl } from './useFormControl-IzN_Be5X.mjs';
+import { u as useLocale$1 } from './RovingFocusGroup-ByIEls-F.mjs';
+import { V as VisuallyHiddenInput_default } from './VisuallyHiddenInput-Cbbw7kMc.mjs';
+
+let $1dfb119a85e764e5$var$formatterCache = /* @__PURE__ */ new Map();
+let $1dfb119a85e764e5$var$supportsSignDisplay = false;
+try {
+  $1dfb119a85e764e5$var$supportsSignDisplay = new Intl.NumberFormat("de-DE", {
+    signDisplay: "exceptZero"
+  }).resolvedOptions().signDisplay === "exceptZero";
+} catch {
+}
+let $1dfb119a85e764e5$var$supportsUnit = false;
+try {
+  $1dfb119a85e764e5$var$supportsUnit = new Intl.NumberFormat("de-DE", {
+    style: "unit",
+    unit: "degree"
+  }).resolvedOptions().style === "unit";
+} catch {
+}
+const $1dfb119a85e764e5$var$UNITS = {
+  degree: {
+    narrow: {
+      default: "°",
+      "ja-JP": " 度",
+      "zh-TW": "度",
+      "sl-SI": " °"
+    }
+  }
+};
+class $1dfb119a85e764e5$export$cc77c4ff7e8673c5 {
+  constructor(locale, options = {}) {
+    this.numberFormatter = $1dfb119a85e764e5$var$getCachedNumberFormatter(locale, options);
+    this.options = options;
+  }
+  /** Formats a number value as a string, according to the locale and options provided to the constructor. */
+  format(value) {
+    let res = "";
+    if (!$1dfb119a85e764e5$var$supportsSignDisplay && this.options.signDisplay != null) res = $1dfb119a85e764e5$export$711b50b3c525e0f2(this.numberFormatter, this.options.signDisplay, value);
+    else res = this.numberFormatter.format(value);
+    if (this.options.style === "unit" && !$1dfb119a85e764e5$var$supportsUnit) {
+      let { unit, unitDisplay = "short", locale } = this.resolvedOptions();
+      if (!unit) return res;
+      let values = $1dfb119a85e764e5$var$UNITS[unit]?.[unitDisplay];
+      res += values[locale] || values.default;
+    }
+    return res;
+  }
+  /** Formats a number to an array of parts such as separators, digits, punctuation, and more. */
+  formatToParts(value) {
+    return this.numberFormatter.formatToParts(value);
+  }
+  /** Formats a number range as a string. */
+  formatRange(start, end) {
+    if (typeof this.numberFormatter.formatRange === "function") return this.numberFormatter.formatRange(start, end);
+    if (end < start) throw new RangeError("End date must be >= start date");
+    return `${this.format(start)} – ${this.format(end)}`;
+  }
+  /** Formats a number range as an array of parts. */
+  formatRangeToParts(start, end) {
+    if (typeof this.numberFormatter.formatRangeToParts === "function") return this.numberFormatter.formatRangeToParts(start, end);
+    if (end < start) throw new RangeError("End date must be >= start date");
+    let startParts = this.numberFormatter.formatToParts(start);
+    let endParts = this.numberFormatter.formatToParts(end);
+    return [
+      ...startParts.map((p) => ({
+        ...p,
+        source: "startRange"
+      })),
+      {
+        type: "literal",
+        value: " – ",
+        source: "shared"
+      },
+      ...endParts.map((p) => ({
+        ...p,
+        source: "endRange"
+      }))
+    ];
+  }
+  /** Returns the resolved formatting options based on the values passed to the constructor. */
+  resolvedOptions() {
+    let options = this.numberFormatter.resolvedOptions();
+    if (!$1dfb119a85e764e5$var$supportsSignDisplay && this.options.signDisplay != null) options = {
+      ...options,
+      signDisplay: this.options.signDisplay
+    };
+    if (!$1dfb119a85e764e5$var$supportsUnit && this.options.style === "unit") options = {
+      ...options,
+      style: "unit",
+      unit: this.options.unit,
+      unitDisplay: this.options.unitDisplay
+    };
+    return options;
+  }
+}
+function $1dfb119a85e764e5$var$getCachedNumberFormatter(locale, options = {}) {
+  let { numberingSystem } = options;
+  if (numberingSystem && locale.includes("-nu-")) {
+    if (!locale.includes("-u-")) locale += "-u-";
+    locale += `-nu-${numberingSystem}`;
+  }
+  if (options.style === "unit" && !$1dfb119a85e764e5$var$supportsUnit) {
+    let { unit, unitDisplay = "short" } = options;
+    if (!unit) throw new Error('unit option must be provided with style: "unit"');
+    if (!$1dfb119a85e764e5$var$UNITS[unit]?.[unitDisplay]) throw new Error(`Unsupported unit ${unit} with unitDisplay = ${unitDisplay}`);
+    options = {
+      ...options,
+      style: "decimal"
+    };
+  }
+  let cacheKey = locale + (options ? Object.entries(options).sort((a, b) => a[0] < b[0] ? -1 : 1).join() : "");
+  if ($1dfb119a85e764e5$var$formatterCache.has(cacheKey)) return $1dfb119a85e764e5$var$formatterCache.get(cacheKey);
+  let numberFormatter = new Intl.NumberFormat(locale, options);
+  $1dfb119a85e764e5$var$formatterCache.set(cacheKey, numberFormatter);
+  return numberFormatter;
+}
+function $1dfb119a85e764e5$export$711b50b3c525e0f2(numberFormat, signDisplay, num) {
+  if (signDisplay === "auto") return numberFormat.format(num);
+  else if (signDisplay === "never") return numberFormat.format(Math.abs(num));
+  else {
+    let needsPositiveSign = false;
+    if (signDisplay === "always") needsPositiveSign = num > 0 || Object.is(num, 0);
+    else if (signDisplay === "exceptZero") {
+      if (Object.is(num, -0) || Object.is(num, 0)) num = Math.abs(num);
+      else needsPositiveSign = num > 0;
+    }
+    if (needsPositiveSign) {
+      let negative = numberFormat.format(-num);
+      let noSign = numberFormat.format(num);
+      let minus = negative.replace(noSign, "").replace(/\u200e|\u061C/, "");
+      if ([
+        ...minus
+      ].length !== 1) console.warn("@react-aria/i18n polyfill for NumberFormat signDisplay: Unsupported case");
+      let positive = negative.replace(noSign, "!!!").replace(minus, "+").replace("!!!", noSign);
+      return positive;
+    } else return numberFormat.format(num);
+  }
+}
+const $eb76cf4feb040f77$var$CURRENCY_SIGN_REGEX = new RegExp("^.*\\(.*\\).*$");
+const $eb76cf4feb040f77$var$NUMBERING_SYSTEMS = [
+  "latn",
+  "arab",
+  "hanidec",
+  "deva",
+  "beng",
+  "fullwide"
+];
+class $eb76cf4feb040f77$export$cd11ab140839f11d {
+  constructor(locale, options = {}) {
+    this.locale = locale;
+    this.options = options;
+  }
+  /**
+  * Parses the given string to a number. Returns NaN if a valid number could not be parsed.
+  */
+  parse(value) {
+    return $eb76cf4feb040f77$var$getNumberParserImpl(this.locale, this.options, value).parse(value);
+  }
+  /**
+  * Returns whether the given string could potentially be a valid number. This should be used to
+  * validate user input as the user types. If a `minValue` or `maxValue` is provided, the validity
+  * of the minus/plus sign characters can be checked.
+  */
+  isValidPartialNumber(value, minValue, maxValue) {
+    return $eb76cf4feb040f77$var$getNumberParserImpl(this.locale, this.options, value).isValidPartialNumber(value, minValue, maxValue);
+  }
+  /**
+  * Returns a numbering system for which the given string is valid in the current locale.
+  * If no numbering system could be detected, the default numbering system for the current
+  * locale is returned.
+  */
+  getNumberingSystem(value) {
+    return $eb76cf4feb040f77$var$getNumberParserImpl(this.locale, this.options, value).options.numberingSystem;
+  }
+}
+const $eb76cf4feb040f77$var$numberParserCache = /* @__PURE__ */ new Map();
+function $eb76cf4feb040f77$var$getNumberParserImpl(locale, options, value) {
+  let defaultParser = $eb76cf4feb040f77$var$getCachedNumberParser(locale, options);
+  if (!locale.includes("-nu-") && !defaultParser.isValidPartialNumber(value)) {
+    for (let numberingSystem of $eb76cf4feb040f77$var$NUMBERING_SYSTEMS) if (numberingSystem !== defaultParser.options.numberingSystem) {
+      let parser = $eb76cf4feb040f77$var$getCachedNumberParser(locale + (locale.includes("-u-") ? "-nu-" : "-u-nu-") + numberingSystem, options);
+      if (parser.isValidPartialNumber(value)) return parser;
+    }
+  }
+  return defaultParser;
+}
+function $eb76cf4feb040f77$var$getCachedNumberParser(locale, options) {
+  let cacheKey = locale + (options ? Object.entries(options).sort((a, b) => a[0] < b[0] ? -1 : 1).join() : "");
+  let parser = $eb76cf4feb040f77$var$numberParserCache.get(cacheKey);
+  if (!parser) {
+    parser = new $eb76cf4feb040f77$var$NumberParserImpl(locale, options);
+    $eb76cf4feb040f77$var$numberParserCache.set(cacheKey, parser);
+  }
+  return parser;
+}
+class $eb76cf4feb040f77$var$NumberParserImpl {
+  constructor(locale, options = {}) {
+    this.locale = locale;
+    if (options.roundingIncrement !== 1 && options.roundingIncrement != null) {
+      if (options.maximumFractionDigits == null && options.minimumFractionDigits == null) {
+        options.maximumFractionDigits = 0;
+        options.minimumFractionDigits = 0;
+      } else if (options.maximumFractionDigits == null) options.maximumFractionDigits = options.minimumFractionDigits;
+      else if (options.minimumFractionDigits == null) options.minimumFractionDigits = options.maximumFractionDigits;
+    }
+    this.formatter = new Intl.NumberFormat(locale, options);
+    this.options = this.formatter.resolvedOptions();
+    this.symbols = $eb76cf4feb040f77$var$getSymbols(locale, this.formatter, this.options, options);
+    if (this.options.style === "percent" && ((this.options.minimumFractionDigits ?? 0) > 18 || (this.options.maximumFractionDigits ?? 0) > 18)) console.warn("NumberParser cannot handle percentages with greater than 18 decimal places, please reduce the number in your options.");
+  }
+  parse(value) {
+    let isGroupSymbolAllowed = this.formatter.resolvedOptions().useGrouping;
+    let fullySanitizedValue = this.sanitize(value);
+    if (!isGroupSymbolAllowed && this.symbols.group && fullySanitizedValue.includes(this.symbols.group)) return NaN;
+    else if (this.symbols.group) fullySanitizedValue = fullySanitizedValue.replaceAll(this.symbols.group, "");
+    if (this.symbols.decimal) fullySanitizedValue = fullySanitizedValue.replace(this.symbols.decimal, ".");
+    if (this.symbols.minusSign) fullySanitizedValue = fullySanitizedValue.replace(this.symbols.minusSign, "-");
+    fullySanitizedValue = fullySanitizedValue.replace(this.symbols.numeral, this.symbols.index);
+    if (this.options.style === "percent") {
+      let isNegative = fullySanitizedValue.indexOf("-");
+      fullySanitizedValue = fullySanitizedValue.replace("-", "");
+      fullySanitizedValue = fullySanitizedValue.replace("+", "");
+      let index = fullySanitizedValue.indexOf(".");
+      if (index === -1) index = fullySanitizedValue.length;
+      fullySanitizedValue = fullySanitizedValue.replace(".", "");
+      if (index - 2 === 0) fullySanitizedValue = `0.${fullySanitizedValue}`;
+      else if (index - 2 === -1) fullySanitizedValue = `0.0${fullySanitizedValue}`;
+      else if (index - 2 === -2) fullySanitizedValue = "0.00";
+      else fullySanitizedValue = `${fullySanitizedValue.slice(0, index - 2)}.${fullySanitizedValue.slice(index - 2)}`;
+      if (isNegative > -1) fullySanitizedValue = `-${fullySanitizedValue}`;
+    }
+    let newValue = fullySanitizedValue ? +fullySanitizedValue : NaN;
+    if (isNaN(newValue)) return NaN;
+    if (this.options.style === "percent") {
+      let options = {
+        ...this.options,
+        style: "decimal",
+        minimumFractionDigits: Math.min((this.options.minimumFractionDigits ?? 0) + 2, 20),
+        maximumFractionDigits: Math.min((this.options.maximumFractionDigits ?? 0) + 2, 20)
+      };
+      return new $eb76cf4feb040f77$export$cd11ab140839f11d(this.locale, options).parse(new $1dfb119a85e764e5$export$cc77c4ff7e8673c5(this.locale, options).format(newValue));
+    }
+    if (this.options.currencySign === "accounting" && $eb76cf4feb040f77$var$CURRENCY_SIGN_REGEX.test(value)) newValue = -1 * newValue;
+    return newValue;
+  }
+  sanitize(value) {
+    let isGroupSymbolAllowed = this.formatter.resolvedOptions().useGrouping;
+    if (this.symbols.noNumeralUnits.length > 0 && this.symbols.noNumeralUnits.find((obj) => obj.unit === value)) return this.symbols.noNumeralUnits.find((obj) => obj.unit === value).value.toString();
+    value = value.replace(this.symbols.literals, "");
+    if (this.symbols.minusSign) value = value.replace("-", this.symbols.minusSign);
+    if (this.options.numberingSystem === "arab") {
+      if (this.symbols.decimal) {
+        value = $eb76cf4feb040f77$var$replaceAll(value, ",", this.symbols.decimal);
+        value = $eb76cf4feb040f77$var$replaceAll(value, String.fromCharCode(1548), this.symbols.decimal);
+      }
+      if (this.symbols.group && isGroupSymbolAllowed) value = $eb76cf4feb040f77$var$replaceAll(value, ".", this.symbols.group);
+    }
+    if (this.symbols.group === "’" && value.includes("'") && isGroupSymbolAllowed) value = $eb76cf4feb040f77$var$replaceAll(value, "'", this.symbols.group);
+    if (this.options.locale === "fr-FR" && this.symbols.group && isGroupSymbolAllowed) {
+      value = $eb76cf4feb040f77$var$replaceAll(value, " ", this.symbols.group);
+      value = $eb76cf4feb040f77$var$replaceAll(value, /\u00A0/g, this.symbols.group);
+    }
+    return value;
+  }
+  isValidPartialNumber(value, minValue = -Infinity, maxValue = Infinity) {
+    let isGroupSymbolAllowed = this.formatter.resolvedOptions().useGrouping;
+    value = this.sanitize(value);
+    if (this.symbols.minusSign && value.startsWith(this.symbols.minusSign) && minValue < 0) value = value.slice(this.symbols.minusSign.length);
+    else if (this.symbols.plusSign && value.startsWith(this.symbols.plusSign) && maxValue > 0) value = value.slice(this.symbols.plusSign.length);
+    if (this.symbols.decimal && value.indexOf(this.symbols.decimal) > -1 && this.options.maximumFractionDigits === 0) return false;
+    if (this.symbols.group && isGroupSymbolAllowed) value = $eb76cf4feb040f77$var$replaceAll(value, this.symbols.group, "");
+    value = value.replace(this.symbols.numeral, "");
+    if (this.symbols.decimal) value = value.replace(this.symbols.decimal, "");
+    return value.length === 0;
+  }
+}
+const $eb76cf4feb040f77$var$nonLiteralParts = /* @__PURE__ */ new Set([
+  "decimal",
+  "fraction",
+  "integer",
+  "minusSign",
+  "plusSign",
+  "group"
+]);
+const $eb76cf4feb040f77$var$pluralNumbers = [
+  0,
+  4,
+  2,
+  1,
+  11,
+  20,
+  3,
+  7,
+  100,
+  21,
+  0.1,
+  1.1
+];
+function $eb76cf4feb040f77$var$getSymbols(locale, formatter, intlOptions, originalOptions) {
+  let symbolFormatter = new Intl.NumberFormat(locale, {
+    ...intlOptions,
+    // Resets so we get the full range of symbols
+    minimumSignificantDigits: 1,
+    maximumSignificantDigits: 21,
+    roundingIncrement: 1,
+    roundingPriority: "auto",
+    roundingMode: "halfExpand",
+    useGrouping: true
+  });
+  let allParts = symbolFormatter.formatToParts(-10000.111);
+  let posAllParts = symbolFormatter.formatToParts(10000.111);
+  let pluralParts = $eb76cf4feb040f77$var$pluralNumbers.map((n) => symbolFormatter.formatToParts(n));
+  let noNumeralUnits = pluralParts.map((p, i) => {
+    let unit = p.find((p2) => p2.type === "unit");
+    if (unit && !p.some((p2) => p2.type === "integer" || p2.type === "fraction")) return {
+      unit: unit.value,
+      value: $eb76cf4feb040f77$var$pluralNumbers[i]
+    };
+    return null;
+  }).filter((p) => !!p);
+  let minusSign = allParts.find((p) => p.type === "minusSign")?.value ?? "-";
+  let plusSign = posAllParts.find((p) => p.type === "plusSign")?.value;
+  if (!plusSign && (originalOptions?.signDisplay === "exceptZero" || originalOptions?.signDisplay === "always")) plusSign = "+";
+  let decimalParts = new Intl.NumberFormat(locale, {
+    ...intlOptions,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).formatToParts(1e-3);
+  let decimal = decimalParts.find((p) => p.type === "decimal")?.value;
+  let group = allParts.find((p) => p.type === "group")?.value;
+  let allPartsLiterals = allParts.filter((p) => !$eb76cf4feb040f77$var$nonLiteralParts.has(p.type)).map((p) => $eb76cf4feb040f77$var$escapeRegex(p.value));
+  let pluralPartsLiterals = pluralParts.flatMap((p) => p.filter((p2) => !$eb76cf4feb040f77$var$nonLiteralParts.has(p2.type)).map((p2) => $eb76cf4feb040f77$var$escapeRegex(p2.value)));
+  let sortedLiterals = [
+    .../* @__PURE__ */ new Set([
+      ...allPartsLiterals,
+      ...pluralPartsLiterals
+    ])
+  ].sort((a, b) => b.length - a.length);
+  let literals = sortedLiterals.length === 0 ? new RegExp("\\p{White_Space}|\\p{Cf}", "gu") : new RegExp(`${sortedLiterals.join("|")}|\\p{White_Space}|\\p{Cf}`, "gu");
+  let numerals = [
+    ...new Intl.NumberFormat(intlOptions.locale, {
+      useGrouping: false
+    }).format(9876543210)
+  ].reverse();
+  let indexes = new Map(numerals.map((d, i) => [
+    d,
+    i
+  ]));
+  let numeral = new RegExp(`[${numerals.join("")}]`, "g");
+  let index = (d) => String(indexes.get(d));
+  return {
+    minusSign,
+    plusSign,
+    decimal,
+    group,
+    literals,
+    numeral,
+    numerals,
+    index,
+    noNumeralUnits
+  };
+}
+function $eb76cf4feb040f77$var$replaceAll(str, find, replace) {
+  if (str.replaceAll) return str.replaceAll(find, replace);
+  return str.split(find).join(replace);
+}
+function $eb76cf4feb040f77$var$escapeRegex(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+function usePressedHold(options) {
+  const { disabled } = options;
+  ref();
+  const triggerHook = createEventHook();
+  const isPressed = ref(false);
+  computed(() => unrefElement(options.target));
+  return {
+    isPressed,
+    onTrigger: triggerHook.on
+  };
+}
+function useNumberFormatter(locale, options = ref({})) {
+  return reactiveComputed(() => new $1dfb119a85e764e5$export$cc77c4ff7e8673c5(locale.value, options.value));
+}
+function useNumberParser(locale, options = ref({})) {
+  return reactiveComputed(() => new $eb76cf4feb040f77$export$cd11ab140839f11d(locale.value, options.value));
+}
+function handleDecimalOperation(operator, value1, value2) {
+  let result = operator === "+" ? value1 + value2 : value1 - value2;
+  if (value1 % 1 !== 0 || value2 % 1 !== 0) {
+    const value1Decimal = value1.toString().split(".");
+    const value2Decimal = value2.toString().split(".");
+    const value1DecimalLength = value1Decimal[1] && value1Decimal[1].length || 0;
+    const value2DecimalLength = value2Decimal[1] && value2Decimal[1].length || 0;
+    const multiplier = 10 ** Math.max(value1DecimalLength, value2DecimalLength);
+    value1 = Math.round(value1 * multiplier);
+    value2 = Math.round(value2 * multiplier);
+    result = operator === "+" ? value1 + value2 : value1 - value2;
+    result /= multiplier;
+  }
+  return result;
+}
+const [injectNumberFieldRootContext, provideNumberFieldRootContext] = /* @__PURE__ */ createContext("NumberFieldRoot");
+var NumberFieldRoot_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
+  inheritAttrs: false,
+  __name: "NumberFieldRoot",
+  props: {
+    defaultValue: {
+      type: Number,
+      required: false,
+      default: void 0
+    },
+    modelValue: {
+      type: [Number, null],
+      required: false
+    },
+    min: {
+      type: Number,
+      required: false
+    },
+    max: {
+      type: Number,
+      required: false
+    },
+    step: {
+      type: Number,
+      required: false,
+      default: 1
+    },
+    stepSnapping: {
+      type: Boolean,
+      required: false,
+      default: true
+    },
+    focusOnChange: {
+      type: Boolean,
+      required: false,
+      default: true
+    },
+    formatOptions: {
+      type: null,
+      required: false
+    },
+    locale: {
+      type: String,
+      required: false
+    },
+    disabled: {
+      type: Boolean,
+      required: false
+    },
+    readonly: {
+      type: Boolean,
+      required: false
+    },
+    disableWheelChange: {
+      type: Boolean,
+      required: false
+    },
+    invertWheelChange: {
+      type: Boolean,
+      required: false
+    },
+    id: {
+      type: String,
+      required: false
+    },
+    asChild: {
+      type: Boolean,
+      required: false
+    },
+    as: {
+      type: null,
+      required: false,
+      default: "div"
+    },
+    name: {
+      type: String,
+      required: false
+    },
+    required: {
+      type: Boolean,
+      required: false
+    }
+  },
+  emits: ["update:modelValue"],
+  setup(__props, { emit: __emit }) {
+    const props = __props;
+    const emits = __emit;
+    const { disabled, readonly, disableWheelChange, invertWheelChange, min, max, step, stepSnapping, formatOptions, id, locale: propLocale } = toRefs(props);
+    const modelValue = useVModel(props, "modelValue", emits, {
+      defaultValue: props.defaultValue,
+      passive: props.modelValue === void 0
+    });
+    const { primitiveElement, currentElement } = usePrimitiveElement();
+    const locale = useLocale$1(propLocale);
+    const isFormControl = useFormControl(currentElement);
+    const inputEl = ref();
+    const isDecreaseDisabled = computed(() => !isNullish(modelValue.value) && (clampInputValue(modelValue.value) === min.value || min.value && !isNaN(modelValue.value) ? handleDecimalOperation("-", modelValue.value, step.value) < min.value : false));
+    const isIncreaseDisabled = computed(() => !isNullish(modelValue.value) && (clampInputValue(modelValue.value) === max.value || max.value && !isNaN(modelValue.value) ? handleDecimalOperation("+", modelValue.value, step.value) > max.value : false));
+    function handleChangingValue(type, multiplier = 1) {
+      if (props.focusOnChange) inputEl.value?.focus();
+      if (props.disabled || props.readonly) return;
+      const currentInputValue = numberParser.parse(inputEl.value?.value ?? "");
+      if (isNaN(currentInputValue)) modelValue.value = min.value ?? 0;
+      else if (type === "increase") modelValue.value = clampInputValue(currentInputValue + (step.value ?? 1) * multiplier);
+      else modelValue.value = clampInputValue(currentInputValue - (step.value ?? 1) * multiplier);
+    }
+    function handleIncrease(multiplier = 1) {
+      handleChangingValue("increase", multiplier);
+    }
+    function handleDecrease(multiplier = 1) {
+      handleChangingValue("decrease", multiplier);
+    }
+    function handleMinMaxValue(type) {
+      if (type === "min" && min.value !== void 0) modelValue.value = clampInputValue(min.value);
+      else if (type === "max" && max.value !== void 0) modelValue.value = clampInputValue(max.value);
+    }
+    const numberFormatter = useNumberFormatter(locale, formatOptions);
+    const numberParser = useNumberParser(locale, formatOptions);
+    const inputMode = computed(() => {
+      const hasDecimals = numberFormatter.resolvedOptions().maximumFractionDigits > 0;
+      return hasDecimals ? "decimal" : "numeric";
+    });
+    const textValueFormatter = useNumberFormatter(locale, formatOptions);
+    const textValue = computed(() => isNullish(modelValue.value) || isNaN(modelValue.value) ? "" : textValueFormatter.format(modelValue.value));
+    function validate(val) {
+      return numberParser.isValidPartialNumber(val, min.value, max.value);
+    }
+    function setInputValue(val) {
+      if (inputEl.value) inputEl.value.value = val;
+    }
+    function clampInputValue(val) {
+      let clampedValue;
+      if (step.value === void 0 || isNaN(step.value) || !stepSnapping.value) clampedValue = clamp(val, min.value, max.value);
+      else clampedValue = snapValueToStep(val, min.value, max.value, step.value);
+      clampedValue = numberParser.parse(numberFormatter.format(clampedValue));
+      return clampedValue;
+    }
+    function applyInputValue(val) {
+      const parsedValue = numberParser.parse(val);
+      modelValue.value = isNaN(parsedValue) ? void 0 : clampInputValue(parsedValue);
+      if (!val.length) return setInputValue(val);
+      if (isNaN(parsedValue)) return setInputValue(textValue.value);
+      return setInputValue(textValue.value);
+    }
+    provideNumberFieldRootContext({
+      modelValue,
+      handleDecrease,
+      handleIncrease,
+      handleMinMaxValue,
+      inputMode,
+      inputEl,
+      onInputElement: (el) => inputEl.value = el,
+      textValue,
+      readonly,
+      validate,
+      applyInputValue,
+      disabled,
+      disableWheelChange,
+      invertWheelChange,
+      max,
+      min,
+      isDecreaseDisabled,
+      isIncreaseDisabled,
+      id
+    });
+    return (_ctx, _cache) => {
+      return openBlock(), createBlock(unref(Primitive), mergeProps(_ctx.$attrs, {
+        ref_key: "primitiveElement",
+        ref: primitiveElement,
+        role: "group",
+        as: _ctx.as,
+        "as-child": _ctx.asChild,
+        "data-disabled": unref(disabled) ? "" : void 0,
+        "data-readonly": unref(readonly) ? "" : void 0
+      }), {
+        default: withCtx(() => [renderSlot(_ctx.$slots, "default", {
+          modelValue: unref(modelValue),
+          textValue: textValue.value,
+          readonly: unref(readonly)
+        }), unref(isFormControl) && _ctx.name ? (openBlock(), createBlock(unref(VisuallyHiddenInput_default), {
+          key: 0,
+          type: "text",
+          value: unref(modelValue),
+          name: _ctx.name,
+          disabled: unref(disabled),
+          readonly: unref(readonly),
+          required: _ctx.required
+        }, null, 8, [
+          "value",
+          "name",
+          "disabled",
+          "readonly",
+          "required"
+        ])) : createCommentVNode("v-if", true)]),
+        _: 3
+      }, 16, [
+        "as",
+        "as-child",
+        "data-disabled",
+        "data-readonly"
+      ]);
+    };
+  }
+});
+var NumberFieldRoot_default = NumberFieldRoot_vue_vue_type_script_setup_true_lang_default;
+var NumberFieldDecrement_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
+  __name: "NumberFieldDecrement",
+  props: {
+    disabled: {
+      type: Boolean,
+      required: false
+    },
+    asChild: {
+      type: Boolean,
+      required: false
+    },
+    as: {
+      type: null,
+      required: false,
+      default: "button"
+    }
+  },
+  setup(__props) {
+    const props = __props;
+    const rootContext = injectNumberFieldRootContext();
+    const isDisabled = computed(() => rootContext.disabled?.value || rootContext.readonly.value || props.disabled || rootContext.isDecreaseDisabled.value);
+    const { primitiveElement, currentElement } = usePrimitiveElement();
+    const { isPressed, onTrigger } = usePressedHold({
+      target: currentElement,
+      disabled: isDisabled
+    });
+    onTrigger(() => {
+      rootContext.handleDecrease();
+    });
+    return (_ctx, _cache) => {
+      return openBlock(), createBlock(unref(Primitive), mergeProps(props, {
+        ref_key: "primitiveElement",
+        ref: primitiveElement,
+        tabindex: "-1",
+        "aria-label": "Decrease",
+        type: _ctx.as === "button" ? "button" : void 0,
+        style: { userSelect: unref(isPressed) ? "none" : void 0 },
+        disabled: isDisabled.value ? "" : void 0,
+        "data-disabled": isDisabled.value ? "" : void 0,
+        "data-pressed": unref(isPressed) ? "true" : void 0,
+        onContextmenu: _cache[0] || (_cache[0] = withModifiers(() => {
+        }, ["prevent"]))
+      }), {
+        default: withCtx(() => [renderSlot(_ctx.$slots, "default")]),
+        _: 3
+      }, 16, [
+        "type",
+        "style",
+        "disabled",
+        "data-disabled",
+        "data-pressed"
+      ]);
+    };
+  }
+});
+var NumberFieldDecrement_default = NumberFieldDecrement_vue_vue_type_script_setup_true_lang_default;
+var NumberFieldIncrement_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
+  __name: "NumberFieldIncrement",
+  props: {
+    disabled: {
+      type: Boolean,
+      required: false
+    },
+    asChild: {
+      type: Boolean,
+      required: false
+    },
+    as: {
+      type: null,
+      required: false,
+      default: "button"
+    }
+  },
+  setup(__props) {
+    const props = __props;
+    const rootContext = injectNumberFieldRootContext();
+    const isDisabled = computed(() => rootContext.disabled?.value || rootContext.readonly.value || props.disabled || rootContext.isIncreaseDisabled.value);
+    const { primitiveElement, currentElement } = usePrimitiveElement();
+    const { isPressed, onTrigger } = usePressedHold({
+      target: currentElement,
+      disabled: isDisabled
+    });
+    onTrigger(() => {
+      rootContext.handleIncrease();
+    });
+    return (_ctx, _cache) => {
+      return openBlock(), createBlock(unref(Primitive), mergeProps(props, {
+        ref_key: "primitiveElement",
+        ref: primitiveElement,
+        tabindex: "-1",
+        "aria-label": "Increase",
+        type: _ctx.as === "button" ? "button" : void 0,
+        style: { userSelect: unref(isPressed) ? "none" : void 0 },
+        disabled: isDisabled.value ? "" : void 0,
+        "data-disabled": isDisabled.value ? "" : void 0,
+        "data-pressed": unref(isPressed) ? "true" : void 0,
+        onContextmenu: _cache[0] || (_cache[0] = withModifiers(() => {
+        }, ["prevent"]))
+      }), {
+        default: withCtx(() => [renderSlot(_ctx.$slots, "default")]),
+        _: 3
+      }, 16, [
+        "type",
+        "style",
+        "disabled",
+        "data-disabled",
+        "data-pressed"
+      ]);
+    };
+  }
+});
+var NumberFieldIncrement_default = NumberFieldIncrement_vue_vue_type_script_setup_true_lang_default;
+var NumberFieldInput_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
+  __name: "NumberFieldInput",
+  props: {
+    asChild: {
+      type: Boolean,
+      required: false
+    },
+    as: {
+      type: null,
+      required: false,
+      default: "input"
+    }
+  },
+  setup(__props) {
+    const props = __props;
+    const { primitiveElement } = usePrimitiveElement();
+    const rootContext = injectNumberFieldRootContext();
+    function handleWheelEvent(event) {
+      if (rootContext.disableWheelChange.value) return;
+      if (event.target !== getActiveElement()) return;
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      event.preventDefault();
+      if (event.deltaY > 0) rootContext.invertWheelChange.value ? rootContext.handleDecrease() : rootContext.handleIncrease();
+      else if (event.deltaY < 0) rootContext.invertWheelChange.value ? rootContext.handleIncrease() : rootContext.handleDecrease();
+    }
+    const inputValue = ref(rootContext.textValue.value);
+    watch(() => rootContext.textValue.value, () => {
+      inputValue.value = rootContext.textValue.value;
+    }, {
+      immediate: true,
+      deep: true
+    });
+    function handleChange() {
+      requestAnimationFrame(() => {
+        inputValue.value = rootContext.textValue.value;
+      });
+    }
+    return (_ctx, _cache) => {
+      return openBlock(), createBlock(unref(Primitive), mergeProps(props, {
+        id: unref(rootContext).id.value,
+        ref_key: "primitiveElement",
+        ref: primitiveElement,
+        value: inputValue.value,
+        role: "spinbutton",
+        type: "text",
+        tabindex: "0",
+        inputmode: unref(rootContext).inputMode.value,
+        disabled: unref(rootContext).disabled.value ? "" : void 0,
+        "data-disabled": unref(rootContext).disabled.value ? "" : void 0,
+        readonly: unref(rootContext).readonly.value ? "" : void 0,
+        "data-readonly": unref(rootContext).readonly.value ? "" : void 0,
+        autocomplete: "off",
+        autocorrect: "off",
+        spellcheck: "false",
+        "aria-roledescription": "Number field",
+        "aria-valuenow": unref(rootContext).modelValue.value,
+        "aria-valuemin": unref(rootContext).min.value,
+        "aria-valuemax": unref(rootContext).max.value,
+        onKeydown: [
+          _cache[0] || (_cache[0] = withKeys(withModifiers(($event) => unref(rootContext).handleIncrease(), ["prevent"]), ["up"])),
+          _cache[1] || (_cache[1] = withKeys(withModifiers(($event) => unref(rootContext).handleDecrease(), ["prevent"]), ["down"])),
+          _cache[2] || (_cache[2] = withKeys(withModifiers(($event) => unref(rootContext).handleIncrease(10), ["prevent"]), ["page-up"])),
+          _cache[3] || (_cache[3] = withKeys(withModifiers(($event) => unref(rootContext).handleDecrease(10), ["prevent"]), ["page-down"])),
+          _cache[4] || (_cache[4] = withKeys(withModifiers(($event) => unref(rootContext).handleMinMaxValue("min"), ["prevent"]), ["home"])),
+          _cache[5] || (_cache[5] = withKeys(withModifiers(($event) => unref(rootContext).handleMinMaxValue("max"), ["prevent"]), ["end"])),
+          _cache[8] || (_cache[8] = withKeys(($event) => unref(rootContext).applyInputValue($event.target?.value), ["enter"]))
+        ],
+        onWheel: handleWheelEvent,
+        onBeforeinput: _cache[6] || (_cache[6] = (event) => {
+          const target = event.target;
+          let nextValue = target.value.slice(0, target.selectionStart ?? void 0) + (event.data ?? "") + target.value.slice(target.selectionEnd ?? void 0);
+          if (!unref(rootContext).validate(nextValue)) event.preventDefault();
+        }),
+        onInput: _cache[7] || (_cache[7] = (event) => {
+          const target = event.target;
+          inputValue.value = target.value;
+        }),
+        onChange: handleChange,
+        onBlur: _cache[9] || (_cache[9] = ($event) => unref(rootContext).applyInputValue($event.target?.value))
+      }), {
+        default: withCtx(() => [renderSlot(_ctx.$slots, "default")]),
+        _: 3
+      }, 16, [
+        "id",
+        "value",
+        "inputmode",
+        "disabled",
+        "data-disabled",
+        "readonly",
+        "data-readonly",
+        "aria-valuenow",
+        "aria-valuemin",
+        "aria-valuemax"
+      ]);
+    };
+  }
+});
+var NumberFieldInput_default = NumberFieldInput_vue_vue_type_script_setup_true_lang_default;
+const theme = {
+  "slots": {
+    "root": "relative inline-flex items-center",
+    "base": [
+      "w-full rounded-md border-0 placeholder:text-dimmed focus:outline-none disabled:cursor-not-allowed disabled:opacity-75",
+      "transition-colors"
+    ],
+    "increment": "absolute flex items-center",
+    "decrement": "absolute flex items-center"
+  },
+  "variants": {
+    "fieldGroup": {
+      "horizontal": {
+        "root": "group has-focus-visible:z-[1]",
+        "base": "group-not-only:group-first:rounded-e-none group-not-only:group-last:rounded-s-none group-not-last:group-not-first:rounded-none"
+      },
+      "vertical": {
+        "root": "group has-focus-visible:z-[1]",
+        "base": "group-not-only:group-first:rounded-b-none group-not-only:group-last:rounded-t-none group-not-last:group-not-first:rounded-none"
+      }
+    },
+    "color": {
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "info": "",
+      "warning": "",
+      "error": "",
+      "neutral": ""
+    },
+    "size": {
+      "xs": "px-2 py-1 text-sm/4 gap-1",
+      "sm": "px-2.5 py-1.5 text-sm/4 gap-1.5",
+      "md": "px-2.5 py-1.5 text-base/5 gap-1.5",
+      "lg": "px-3 py-2 text-base/5 gap-2",
+      "xl": "px-3 py-2 text-base gap-2"
+    },
+    "variant": {
+      "outline": "text-highlighted bg-default ring ring-inset ring-accented",
+      "soft": "text-highlighted bg-elevated/50 hover:bg-elevated focus:bg-elevated disabled:bg-elevated/50",
+      "subtle": "text-highlighted bg-elevated ring ring-inset ring-accented",
+      "ghost": "text-highlighted bg-transparent hover:bg-elevated focus:bg-elevated disabled:bg-transparent dark:disabled:bg-transparent",
+      "none": "text-highlighted bg-transparent"
+    },
+    "disabled": {
+      "true": {
+        "increment": "opacity-75 cursor-not-allowed",
+        "decrement": "opacity-75 cursor-not-allowed"
+      }
+    },
+    "orientation": {
+      "horizontal": {
+        "base": "text-center",
+        "increment": "inset-y-0 end-0 pe-1",
+        "decrement": "inset-y-0 start-0 ps-1"
+      },
+      "vertical": {
+        "increment": "top-0 end-0 pe-1 [&>button]:py-0 scale-80",
+        "decrement": "bottom-0 end-0 pe-1 [&>button]:py-0 scale-80"
+      }
+    },
+    "highlight": {
+      "true": ""
+    },
+    "fixed": {
+      "false": ""
+    },
+    "increment": {
+      "false": ""
+    },
+    "decrement": {
+      "false": ""
+    }
+  },
+  "compoundVariants": [
+    {
+      "color": "primary",
+      "variant": [
+        "outline",
+        "subtle"
+      ],
+      "class": "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+    },
+    {
+      "color": "secondary",
+      "variant": [
+        "outline",
+        "subtle"
+      ],
+      "class": "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-secondary"
+    },
+    {
+      "color": "success",
+      "variant": [
+        "outline",
+        "subtle"
+      ],
+      "class": "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-success"
+    },
+    {
+      "color": "info",
+      "variant": [
+        "outline",
+        "subtle"
+      ],
+      "class": "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-info"
+    },
+    {
+      "color": "warning",
+      "variant": [
+        "outline",
+        "subtle"
+      ],
+      "class": "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-warning"
+    },
+    {
+      "color": "error",
+      "variant": [
+        "outline",
+        "subtle"
+      ],
+      "class": "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-error"
+    },
+    {
+      "color": "primary",
+      "highlight": true,
+      "class": "ring ring-inset ring-primary"
+    },
+    {
+      "color": "secondary",
+      "highlight": true,
+      "class": "ring ring-inset ring-secondary"
+    },
+    {
+      "color": "success",
+      "highlight": true,
+      "class": "ring ring-inset ring-success"
+    },
+    {
+      "color": "info",
+      "highlight": true,
+      "class": "ring ring-inset ring-info"
+    },
+    {
+      "color": "warning",
+      "highlight": true,
+      "class": "ring ring-inset ring-warning"
+    },
+    {
+      "color": "error",
+      "highlight": true,
+      "class": "ring ring-inset ring-error"
+    },
+    {
+      "color": "neutral",
+      "variant": [
+        "outline",
+        "subtle"
+      ],
+      "class": "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-inverted"
+    },
+    {
+      "color": "neutral",
+      "highlight": true,
+      "class": "ring ring-inset ring-inverted"
+    },
+    {
+      "orientation": "horizontal",
+      "decrement": false,
+      "class": "text-start"
+    },
+    {
+      "decrement": true,
+      "size": "xs",
+      "class": "ps-7"
+    },
+    {
+      "decrement": true,
+      "size": "sm",
+      "class": "ps-8"
+    },
+    {
+      "decrement": true,
+      "size": "md",
+      "class": "ps-9"
+    },
+    {
+      "decrement": true,
+      "size": "lg",
+      "class": "ps-10"
+    },
+    {
+      "decrement": true,
+      "size": "xl",
+      "class": "ps-11"
+    },
+    {
+      "increment": true,
+      "size": "xs",
+      "class": "pe-7"
+    },
+    {
+      "increment": true,
+      "size": "sm",
+      "class": "pe-8"
+    },
+    {
+      "increment": true,
+      "size": "md",
+      "class": "pe-9"
+    },
+    {
+      "increment": true,
+      "size": "lg",
+      "class": "pe-10"
+    },
+    {
+      "increment": true,
+      "size": "xl",
+      "class": "pe-11"
+    },
+    {
+      "fixed": false,
+      "size": "xs",
+      "class": "md:text-xs"
+    },
+    {
+      "fixed": false,
+      "size": "sm",
+      "class": "md:text-xs"
+    },
+    {
+      "fixed": false,
+      "size": "md",
+      "class": "md:text-sm"
+    },
+    {
+      "fixed": false,
+      "size": "lg",
+      "class": "md:text-sm"
+    }
+  ],
+  "defaultVariants": {
+    "size": "md",
+    "color": "primary",
+    "variant": "outline"
+  }
+};
+const _sfc_main = /* @__PURE__ */ Object.assign({ inheritAttrs: false }, {
+  __name: "UInputNumber",
+  __ssrInlineRender: true,
+  props: {
+    as: { type: null, required: false },
+    placeholder: { type: String, required: false },
+    color: { type: null, required: false },
+    variant: { type: null, required: false },
+    size: { type: null, required: false },
+    highlight: { type: Boolean, required: false },
+    fixed: { type: Boolean, required: false },
+    orientation: { type: null, required: false, default: "horizontal" },
+    increment: { type: [Boolean, Object], required: false, default: true },
+    incrementIcon: { type: null, required: false },
+    incrementDisabled: { type: Boolean, required: false },
+    decrement: { type: [Boolean, Object], required: false, default: true },
+    decrementIcon: { type: null, required: false },
+    decrementDisabled: { type: Boolean, required: false },
+    autofocus: { type: Boolean, required: false },
+    autofocusDelay: { type: Number, required: false },
+    defaultValue: { type: null, required: false },
+    modelValue: { type: null, required: false },
+    modelModifiers: { type: null, required: false },
+    class: { type: null, required: false },
+    ui: { type: Object, required: false },
+    min: { type: Number, required: false },
+    max: { type: Number, required: false },
+    step: { type: Number, required: false },
+    stepSnapping: { type: Boolean, required: false },
+    disabled: { type: Boolean, required: false },
+    required: { type: Boolean, required: false },
+    id: { type: String, required: false },
+    name: { type: String, required: false },
+    formatOptions: { type: null, required: false },
+    disableWheelChange: { type: Boolean, required: false },
+    invertWheelChange: { type: Boolean, required: false },
+    readonly: { type: Boolean, required: false },
+    focusOnChange: { type: Boolean, required: false }
+  },
+  emits: ["update:modelValue", "blur", "change"],
+  setup(__props, { expose: __expose, emit: __emit }) {
+    const props = __props;
+    const emits = __emit;
+    const modelValue = useVModel(props, "modelValue", emits, { defaultValue: props.defaultValue });
+    const { t } = useLocale();
+    const appConfig = useAppConfig();
+    const uiProp = useComponentUI("inputNumber", props);
+    const rootProps = useForwardPropsEmits(reactivePick(props, "as", "stepSnapping", "formatOptions", "disableWheelChange", "invertWheelChange", "required", "readonly", "focusOnChange"), emits);
+    const { emitFormBlur, emitFormFocus, emitFormChange, emitFormInput, id, color, size: formFieldSize, name, highlight, disabled, ariaAttrs } = useFormField(props);
+    const { orientation, size: fieldGroupSize } = useFieldGroup(props);
+    const inputSize = computed(() => fieldGroupSize.value || formFieldSize.value);
+    const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.inputNumber || {} })({
+      color: color.value,
+      variant: props.variant,
+      size: inputSize.value,
+      highlight: highlight.value,
+      fixed: props.fixed,
+      orientation: props.orientation,
+      fieldGroup: orientation.value,
+      increment: props.orientation === "vertical" ? !!props.increment || !!props.decrement : !!props.increment,
+      decrement: props.orientation === "vertical" ? false : !!props.decrement
+    }));
+    const incrementIcon = computed(() => props.incrementIcon || (props.orientation === "horizontal" ? appConfig.ui.icons.plus : appConfig.ui.icons.chevronUp));
+    const decrementIcon = computed(() => props.decrementIcon || (props.orientation === "horizontal" ? appConfig.ui.icons.minus : appConfig.ui.icons.chevronDown));
+    const inputRef = useTemplateRef("inputRef");
+    function onUpdate(value) {
+      if (props.modelModifiers?.optional) {
+        modelValue.value = value = value ?? void 0;
+      }
+      const event = new Event("change", { target: { value } });
+      emits("change", event);
+      emitFormChange();
+      emitFormInput();
+    }
+    function onBlur(event) {
+      emitFormBlur();
+      emits("blur", event);
+    }
+    __expose({
+      inputRef: toRef(() => inputRef.value?.$el)
+    });
+    return (_ctx, _push, _parent, _attrs) => {
+      _push(ssrRenderComponent(unref(NumberFieldRoot_default), mergeProps(unref(rootProps), {
+        id: unref(id),
+        "default-value": __props.defaultValue,
+        "model-value": unref(modelValue),
+        min: __props.min,
+        max: __props.max,
+        step: __props.step,
+        "data-slot": "root",
+        class: ui.value.root({ class: [unref(uiProp)?.root, props.class] }),
+        name: unref(name),
+        disabled: unref(disabled),
+        "onUpdate:modelValue": (val) => onUpdate(val)
+      }, _attrs), {
+        default: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(ssrRenderComponent(unref(NumberFieldInput_default), mergeProps({ ..._ctx.$attrs, ...unref(ariaAttrs) }, {
+              ref_key: "inputRef",
+              ref: inputRef,
+              placeholder: __props.placeholder,
+              required: __props.required,
+              "data-slot": "base",
+              class: ui.value.base({ class: unref(uiProp)?.base }),
+              onBlur,
+              onFocus: unref(emitFormFocus)
+            }), null, _parent2, _scopeId));
+            if (!!__props.increment) {
+              _push2(`<div data-slot="increment" class="${ssrRenderClass(ui.value.increment({ class: unref(uiProp)?.increment }))}"${_scopeId}>`);
+              _push2(ssrRenderComponent(unref(NumberFieldIncrement_default), {
+                "as-child": "",
+                disabled: unref(disabled) || __props.incrementDisabled
+              }, {
+                default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                  if (_push3) {
+                    ssrRenderSlot(_ctx.$slots, "increment", {}, () => {
+                      _push3(ssrRenderComponent(_sfc_main$9, mergeProps({
+                        icon: incrementIcon.value,
+                        color: unref(color),
+                        size: inputSize.value,
+                        variant: "link",
+                        "aria-label": unref(t)("inputNumber.increment")
+                      }, typeof __props.increment === "object" ? __props.increment : void 0), null, _parent3, _scopeId2));
+                    }, _push3, _parent3, _scopeId2);
+                  } else {
+                    return [
+                      renderSlot(_ctx.$slots, "increment", {}, () => [
+                        createVNode(_sfc_main$9, mergeProps({
+                          icon: incrementIcon.value,
+                          color: unref(color),
+                          size: inputSize.value,
+                          variant: "link",
+                          "aria-label": unref(t)("inputNumber.increment")
+                        }, typeof __props.increment === "object" ? __props.increment : void 0), null, 16, ["icon", "color", "size", "aria-label"])
+                      ])
+                    ];
+                  }
+                }),
+                _: 3
+              }, _parent2, _scopeId));
+              _push2(`</div>`);
+            } else {
+              _push2(`<!---->`);
+            }
+            if (!!__props.decrement) {
+              _push2(`<div data-slot="decrement" class="${ssrRenderClass(ui.value.decrement({ class: unref(uiProp)?.decrement }))}"${_scopeId}>`);
+              _push2(ssrRenderComponent(unref(NumberFieldDecrement_default), {
+                "as-child": "",
+                disabled: unref(disabled) || __props.decrementDisabled
+              }, {
+                default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                  if (_push3) {
+                    ssrRenderSlot(_ctx.$slots, "decrement", {}, () => {
+                      _push3(ssrRenderComponent(_sfc_main$9, mergeProps({
+                        icon: decrementIcon.value,
+                        color: unref(color),
+                        size: inputSize.value,
+                        variant: "link",
+                        "aria-label": unref(t)("inputNumber.decrement")
+                      }, typeof __props.decrement === "object" ? __props.decrement : void 0), null, _parent3, _scopeId2));
+                    }, _push3, _parent3, _scopeId2);
+                  } else {
+                    return [
+                      renderSlot(_ctx.$slots, "decrement", {}, () => [
+                        createVNode(_sfc_main$9, mergeProps({
+                          icon: decrementIcon.value,
+                          color: unref(color),
+                          size: inputSize.value,
+                          variant: "link",
+                          "aria-label": unref(t)("inputNumber.decrement")
+                        }, typeof __props.decrement === "object" ? __props.decrement : void 0), null, 16, ["icon", "color", "size", "aria-label"])
+                      ])
+                    ];
+                  }
+                }),
+                _: 3
+              }, _parent2, _scopeId));
+              _push2(`</div>`);
+            } else {
+              _push2(`<!---->`);
+            }
+          } else {
+            return [
+              createVNode(unref(NumberFieldInput_default), mergeProps({ ..._ctx.$attrs, ...unref(ariaAttrs) }, {
+                ref_key: "inputRef",
+                ref: inputRef,
+                placeholder: __props.placeholder,
+                required: __props.required,
+                "data-slot": "base",
+                class: ui.value.base({ class: unref(uiProp)?.base }),
+                onBlur,
+                onFocus: unref(emitFormFocus)
+              }), null, 16, ["placeholder", "required", "class", "onFocus"]),
+              !!__props.increment ? (openBlock(), createBlock("div", {
+                key: 0,
+                "data-slot": "increment",
+                class: ui.value.increment({ class: unref(uiProp)?.increment })
+              }, [
+                createVNode(unref(NumberFieldIncrement_default), {
+                  "as-child": "",
+                  disabled: unref(disabled) || __props.incrementDisabled
+                }, {
+                  default: withCtx(() => [
+                    renderSlot(_ctx.$slots, "increment", {}, () => [
+                      createVNode(_sfc_main$9, mergeProps({
+                        icon: incrementIcon.value,
+                        color: unref(color),
+                        size: inputSize.value,
+                        variant: "link",
+                        "aria-label": unref(t)("inputNumber.increment")
+                      }, typeof __props.increment === "object" ? __props.increment : void 0), null, 16, ["icon", "color", "size", "aria-label"])
+                    ])
+                  ]),
+                  _: 3
+                }, 8, ["disabled"])
+              ], 2)) : createCommentVNode("", true),
+              !!__props.decrement ? (openBlock(), createBlock("div", {
+                key: 1,
+                "data-slot": "decrement",
+                class: ui.value.decrement({ class: unref(uiProp)?.decrement })
+              }, [
+                createVNode(unref(NumberFieldDecrement_default), {
+                  "as-child": "",
+                  disabled: unref(disabled) || __props.decrementDisabled
+                }, {
+                  default: withCtx(() => [
+                    renderSlot(_ctx.$slots, "decrement", {}, () => [
+                      createVNode(_sfc_main$9, mergeProps({
+                        icon: decrementIcon.value,
+                        color: unref(color),
+                        size: inputSize.value,
+                        variant: "link",
+                        "aria-label": unref(t)("inputNumber.decrement")
+                      }, typeof __props.decrement === "object" ? __props.decrement : void 0), null, 16, ["icon", "color", "size", "aria-label"])
+                    ])
+                  ]),
+                  _: 3
+                }, 8, ["disabled"])
+              ], 2)) : createCommentVNode("", true)
+            ];
+          }
+        }),
+        _: 3
+      }, _parent));
+    };
+  }
+});
+const _sfc_setup = _sfc_main.setup;
+_sfc_main.setup = (props, ctx) => {
+  const ssrContext = useSSRContext();
+  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("../node_modules/.pnpm/@nuxt+ui@4.7.1_@internationalized+date@3.12.1_@internationalized+number@3.6.6_@tiptap+e_f232df4310342c42e02e10fb94bda86b/node_modules/@nuxt/ui/dist/runtime/components/InputNumber.vue");
+  return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
+};
+
+export { _sfc_main as _ };

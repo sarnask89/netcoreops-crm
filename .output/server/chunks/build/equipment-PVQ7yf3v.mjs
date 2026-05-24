@@ -1,0 +1,2426 @@
+import { _ as _sfc_main$2, a as _sfc_main$1$1, b as _sfc_main$b } from './DashboardSidebarCollapse-DD95YI0W.mjs';
+import { _ as _sfc_main$1 } from './Slideover-DjbGE3Jt.mjs';
+import { u as useToast, _ as _sfc_main$9 } from './server.mjs';
+import { _ as _sfc_main$5 } from './Form-CH5OBfDe.mjs';
+import { _ as _sfc_main$3 } from './FormField-D5WtVCdC.mjs';
+import { _ as _sfc_main$4 } from './Input-DVuEqpoa.mjs';
+import { _ as _sfc_main$6 } from './Select-N__9sMNx.mjs';
+import { _ as _sfc_main$7 } from './InputNumber-C_3Tnd-3.mjs';
+import { _ as _sfc_main$8 } from './Switch-BjjnqNfE.mjs';
+import { _ as _sfc_main$a } from './Textarea-C69jS_Io.mjs';
+import { _ as _sfc_main$c } from './DashboardToolbar-D0tdyEuQ.mjs';
+import { _ as __nuxt_component_6 } from './AppDataTable-CYd00jpA.mjs';
+import { _ as __nuxt_component_7 } from './AppRowDetailsSlideover-Q--6Q5Iy.mjs';
+import { _ as __nuxt_component_10 } from './AppDiagnosticResult-CoGySpM6.mjs';
+import { defineComponent, ref, reactive, withAsyncContext, computed, mergeProps, withCtx, unref, isRef, createVNode, useSSRContext } from 'vue';
+import { ssrRenderComponent } from 'vue/server-renderer';
+import * as z from 'zod';
+import { u as useFetch } from './fetch-B7i171gV.mjs';
+import './DashboardSidebarToggle-C_vEEhTE.mjs';
+import '../nitro/nitro.mjs';
+import 'drizzle-orm';
+import 'node:child_process';
+import 'node:fs/promises';
+import 'node:path';
+import 'ssh2';
+import 'node:net';
+import 'drizzle-orm/pg-core';
+import 'drizzle-orm/node-postgres';
+import 'pg';
+import 'node:crypto';
+import 'node:http';
+import 'node:https';
+import 'node:events';
+import 'node:buffer';
+import 'ioredis';
+import 'node:fs';
+import 'node:url';
+import '@iconify/utils';
+import 'consola';
+import './ssr-BO1H6xpe.mjs';
+import './PopperArrow-CvIo2SqJ.mjs';
+import './overlay-CjyBzL1C.mjs';
+import 'tailwindcss/colors';
+import 'perfect-debounce';
+import '../routes/renderer.mjs';
+import 'vue-bundle-renderer/runtime';
+import 'unhead/server';
+import 'devalue';
+import 'unhead/plugins';
+import 'unhead/utils';
+import './useFormControl-IzN_Be5X.mjs';
+import './handleAndDispatchCustomEvent-Bk_AVSSo.mjs';
+import './RovingFocusGroup-ByIEls-F.mjs';
+import './VisuallyHiddenInput-Cbbw7kMc.mjs';
+import './Kbd-BRG7R5Q0.mjs';
+import '@internationalized/date';
+import './Table-9O8FnRDu.mjs';
+import './index-DC8E8gNZ.mjs';
+import './Alert-C2QsFOV3.mjs';
+import './Badge-CElKKp_G.mjs';
+
+const _sfc_main = /* @__PURE__ */ defineComponent({
+  __name: "equipment",
+  __ssrInlineRender: true,
+  async setup(__props) {
+    let __temp, __restore;
+    const toast = useToast();
+    const role = ref("all");
+    const equipmentOpen = ref(false);
+    const detailsOpen = ref(false);
+    const diagnosticOpen = ref(false);
+    const selectedRow = ref(null);
+    const editingEquipmentId = ref(null);
+    const diagnosticResult = ref(null);
+    const diagnosticLoading = ref("");
+    const diagnosticMac = ref("");
+    const diagnosticIp = ref("");
+    const diagnosticOltPort = ref("1");
+    const diagnosticOnuId = ref("");
+    const equipmentSchema = z.object({
+      inventoryId: z.string().min(1),
+      modelId: z.number().int().positive(),
+      nodeId: z.string().uuid().optional().nullable(),
+      accessProfileId: z.number().int().positive().optional().nullable(),
+      managementDriverId: z.number().int().positive().optional().nullable(),
+      parentEquipmentId: z.string().uuid().optional().nullable(),
+      hostname: z.string().optional(),
+      managementIp: z.string().optional(),
+      managementPort: z.number().int().positive().max(65535).optional().nullable(),
+      managementProtocol: z.enum(["ssh", "snmp", "http", "https", "tr069", "netconf"]).optional(),
+      macAddress: z.string().optional(),
+      serialNumber: z.string().optional(),
+      loginUrl: z.string().optional(),
+      equipmentRole: z.enum(["BACKBONE", "CLIENT_PE"]),
+      bridgeMode: z.boolean(),
+      onuPort: z.string().optional(),
+      onuId: z.string().optional(),
+      notes: z.string().optional(),
+      status: z.enum(["IN_USE", "SPARE", "FAILED", "DECOMMISSIONED"])
+    });
+    const equipmentState = reactive({
+      equipmentRole: "CLIENT_PE",
+      managementProtocol: "ssh",
+      managementPort: 22,
+      bridgeMode: false,
+      status: "IN_USE"
+    });
+    const { data, status, refresh } = ([__temp, __restore] = withAsyncContext(() => useFetch(
+      "/api/network/equipment",
+      {
+        query: computed(() => role.value === "all" ? {} : { role: role.value }),
+        default: () => ({ success: false, data: [] })
+      },
+      "$H3ViRTlFn7"
+      /* nuxt-injected */
+    )), __temp = await __temp, __restore(), __temp);
+    const { data: options } = ([__temp, __restore] = withAsyncContext(() => useFetch(
+      "/api/system/options",
+      {
+        default: () => ({ success: false, data: { models: [], nodes: [], profiles: [], drivers: [], equipment: [] } })
+      },
+      "$CH40qAFyqr"
+      /* nuxt-injected */
+    )), __temp = await __temp, __restore(), __temp);
+    const modelItems = computed(() => options.value.data.models.map((model) => ({
+      label: `${model.manufacturer} ${model.modelName}`,
+      value: model.id
+    })));
+    const nodeItems = computed(() => [
+      { label: "Bez węzła", value: null },
+      ...options.value.data.nodes.map((node) => ({ label: node.name, value: node.id }))
+    ]);
+    const profileItems = computed(() => [
+      { label: "Bez profilu", value: null },
+      ...options.value.data.profiles.map((profile) => ({ label: profile.name, value: profile.id }))
+    ]);
+    const driverItems = computed(() => [
+      { label: "Mock / brak drivera", value: null },
+      ...options.value.data.drivers.map((driver) => ({ label: `${driver.label} (${driver.code})`, value: driver.id }))
+    ]);
+    const parentItems = computed(() => [
+      { label: "Bez nadrzędnego", value: null },
+      ...options.value.data.equipment.map((equipment) => ({
+        label: [equipment.inventoryId, equipment.hostname].filter(Boolean).join(" - "),
+        value: equipment.id
+      }))
+    ]);
+    const columns = [
+      { accessorKey: "inventoryId", header: "ID" },
+      {
+        id: "model",
+        header: "Model",
+        cell: ({ row }) => `${row.original.model.manufacturer} ${row.original.model.modelName}`
+      },
+      { accessorKey: "hostname", header: "Hostname" },
+      { accessorKey: "managementIp", header: "IP zarządzania" },
+      {
+        id: "management",
+        header: "Protokół",
+        cell: ({ row }) => [row.original.managementProtocol, row.original.managementPort].filter(Boolean).join(":") || "Brak"
+      },
+      {
+        id: "driver",
+        header: "Driver",
+        cell: ({ row }) => row.original.managementDriver?.code || "mock"
+      },
+      {
+        id: "profile",
+        header: "Profil",
+        cell: ({ row }) => row.original.accessProfile?.name || "Brak"
+      },
+      { accessorKey: "equipmentRole", header: "Rola" },
+      { accessorKey: "node.name", header: "Węzeł zasilający" },
+      {
+        id: "profiles",
+        header: "Profile",
+        cell: ({ row }) => row.original.profileBindings?.map((binding) => binding.profile.name).join(", ") || "Brak"
+      },
+      {
+        id: "parent",
+        header: "Nadrzędne/ONU",
+        cell: ({ row }) => row.original.parentEquipment?.inventoryId || [row.original.onuPort, row.original.onuId].filter(Boolean).join("/") || "Brak"
+      },
+      { accessorKey: "status", header: "Status" }
+    ];
+    function resetEquipmentForm() {
+      editingEquipmentId.value = null;
+      selectedRow.value = null;
+      Object.assign(equipmentState, {
+        inventoryId: void 0,
+        modelId: void 0,
+        nodeId: null,
+        accessProfileId: null,
+        managementDriverId: null,
+        parentEquipmentId: null,
+        hostname: void 0,
+        managementIp: void 0,
+        managementPort: 22,
+        managementProtocol: "ssh",
+        macAddress: void 0,
+        serialNumber: void 0,
+        loginUrl: void 0,
+        equipmentRole: "CLIENT_PE",
+        bridgeMode: false,
+        onuPort: void 0,
+        onuId: void 0,
+        notes: void 0,
+        status: "IN_USE"
+      });
+    }
+    function openCreateEquipment() {
+      resetEquipmentForm();
+      equipmentOpen.value = true;
+    }
+    function openEditEquipment(row) {
+      selectedRow.value = row;
+      editingEquipmentId.value = row.id;
+      Object.assign(equipmentState, {
+        inventoryId: row.inventoryId,
+        modelId: row.model.id,
+        nodeId: row.node?.id || null,
+        accessProfileId: row.accessProfile?.id || null,
+        managementDriverId: row.managementDriver?.id || null,
+        parentEquipmentId: row.parentEquipment?.id || null,
+        hostname: row.hostname || void 0,
+        managementIp: row.managementIp || void 0,
+        managementPort: row.managementPort || void 0,
+        managementProtocol: row.managementProtocol || "ssh",
+        macAddress: row.macAddress || void 0,
+        serialNumber: row.serialNumber || void 0,
+        equipmentRole: row.equipmentRole,
+        bridgeMode: row.bridgeMode,
+        onuPort: row.onuPort || void 0,
+        onuId: row.onuId || void 0,
+        status: row.status
+      });
+      equipmentOpen.value = true;
+    }
+    async function saveEquipment(event) {
+      await $fetch(editingEquipmentId.value ? `/api/network/equipment/${editingEquipmentId.value}` : "/api/network/equipment", {
+        method: editingEquipmentId.value ? "PATCH" : "POST",
+        body: {
+          ...event.data,
+          hostname: event.data.hostname || null,
+          managementIp: event.data.managementIp || null,
+          accessProfileId: event.data.accessProfileId || null,
+          managementDriverId: event.data.managementDriverId || null,
+          parentEquipmentId: event.data.parentEquipmentId || null,
+          macAddress: event.data.macAddress || null,
+          serialNumber: event.data.serialNumber || null,
+          loginUrl: event.data.loginUrl || null,
+          onuPort: event.data.onuPort || null,
+          onuId: event.data.onuId || null,
+          notes: event.data.notes || null
+        }
+      });
+      toast.add({ title: "Urządzenie zapisane", color: "success" });
+      equipmentOpen.value = false;
+      resetEquipmentForm();
+      await refresh();
+    }
+    async function deleteEquipment(row) {
+      if (!(void 0).confirm(`Usunąć urządzenie ${row.inventoryId}?`)) return;
+      await $fetch(`/api/network/equipment/${row.id}`, { method: "DELETE" });
+      toast.add({ title: "Urządzenie usunięte", color: "success" });
+      await refresh();
+    }
+    function showDetails(row) {
+      selectedRow.value = row;
+      detailsOpen.value = true;
+    }
+    function showDiagnostics(row) {
+      selectedRow.value = row;
+      diagnosticResult.value = null;
+      diagnosticMac.value = row.macAddress || "";
+      diagnosticIp.value = row.managementIp || "";
+      diagnosticOltPort.value = row.onuPort || "1";
+      diagnosticOnuId.value = row.onuId || "";
+      diagnosticOpen.value = true;
+    }
+    async function runEquipmentDiagnostic(action) {
+      if (!selectedRow.value) return;
+      if (action === "mac-check" && !diagnosticMac.value) {
+        toast.add({ title: "Podaj MAC", color: "warning" });
+        return;
+      }
+      if (action === "onu-ip-host" && (!diagnosticOltPort.value || !diagnosticOnuId.value)) {
+        toast.add({ title: "Podaj port OLT i ONU ID", color: "warning" });
+        return;
+      }
+      diagnosticLoading.value = action;
+      try {
+        const body = action === "mikrotik-check" ? { macAddress: diagnosticMac.value || null, ipAddress: diagnosticIp.value || null } : action === "mac-check" ? { macAddress: diagnosticMac.value } : action === "onu-ip-host" ? { oltPort: diagnosticOltPort.value, onuId: diagnosticOnuId.value } : action === "netflow-config" ? { collector: "10.0.222.226:2055" } : void 0;
+        diagnosticResult.value = await $fetch(`/api/diagnostics/equipment/${selectedRow.value.id}/${action}`, {
+          method: "POST",
+          body
+        });
+      } catch (error) {
+        toast.add({ title: "Diagnostyka nie powiodła się", description: error instanceof Error ? error.message : String(error), color: "error" });
+      } finally {
+        diagnosticLoading.value = "";
+      }
+    }
+    function rowContextItems(row) {
+      return [[
+        { label: "Edytuj urządzenie", icon: "i-lucide-pencil", onSelect: () => openEditEquipment(row) },
+        { label: "Szczegóły", icon: "i-lucide-panel-right-open", onSelect: () => showDetails(row) },
+        { label: "Diagnostyka live", icon: "i-lucide-activity", onSelect: () => showDiagnostics(row) },
+        { label: "Włącz NetFlow", icon: "i-lucide-chart-network", onSelect: () => {
+          showDiagnostics(row);
+          runEquipmentDiagnostic("netflow-config");
+        } }
+      ], [
+        { label: "Usuń urządzenie", icon: "i-lucide-trash-2", color: "error", onSelect: () => deleteEquipment(row) },
+        { label: "Odśwież", icon: "i-lucide-refresh-cw", onSelect: () => refresh() }
+      ]];
+    }
+    return (_ctx, _push, _parent, _attrs) => {
+      const _component_UDashboardPanel = _sfc_main$2;
+      const _component_UDashboardNavbar = _sfc_main$1$1;
+      const _component_UDashboardSidebarCollapse = _sfc_main$b;
+      const _component_USlideover = _sfc_main$1;
+      const _component_UButton = _sfc_main$9;
+      const _component_UForm = _sfc_main$5;
+      const _component_UFormField = _sfc_main$3;
+      const _component_UInput = _sfc_main$4;
+      const _component_USelect = _sfc_main$6;
+      const _component_UInputNumber = _sfc_main$7;
+      const _component_USwitch = _sfc_main$8;
+      const _component_UTextarea = _sfc_main$a;
+      const _component_UDashboardToolbar = _sfc_main$c;
+      const _component_AppDataTable = __nuxt_component_6;
+      const _component_AppRowDetailsSlideover = __nuxt_component_7;
+      const _component_AppDiagnosticResult = __nuxt_component_10;
+      _push(ssrRenderComponent(_component_UDashboardPanel, mergeProps({
+        id: "network-equipment",
+        ui: { body: "p-0 sm:p-0 gap-0 sm:gap-0" }
+      }, _attrs), {
+        header: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(ssrRenderComponent(_component_UDashboardNavbar, { title: "Urządzenia" }, {
+              leading: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(_component_UDashboardSidebarCollapse, null, null, _parent3, _scopeId2));
+                } else {
+                  return [
+                    createVNode(_component_UDashboardSidebarCollapse)
+                  ];
+                }
+              }),
+              right: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(_component_USlideover, {
+                    open: unref(equipmentOpen),
+                    "onUpdate:open": ($event) => isRef(equipmentOpen) ? equipmentOpen.value = $event : null,
+                    title: unref(editingEquipmentId) ? "Edytuj urządzenie" : "Dodaj urządzenie"
+                  }, {
+                    body: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_UForm, {
+                          schema: unref(equipmentSchema),
+                          state: unref(equipmentState),
+                          class: "space-y-4",
+                          onSubmit: saveEquipment
+                        }, {
+                          default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "ID inwentarzowe",
+                                name: "inventoryId",
+                                required: ""
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_UInput, {
+                                      modelValue: unref(equipmentState).inventoryId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).inventoryId = $event,
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).inventoryId,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).inventoryId = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Model",
+                                name: "modelId",
+                                required: ""
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_USelect, {
+                                      modelValue: unref(equipmentState).modelId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).modelId = $event,
+                                      items: unref(modelItems),
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_USelect, {
+                                        modelValue: unref(equipmentState).modelId,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).modelId = $event,
+                                        items: unref(modelItems),
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Węzeł zasilający",
+                                name: "nodeId"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_USelect, {
+                                      modelValue: unref(equipmentState).nodeId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).nodeId = $event,
+                                      items: unref(nodeItems),
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_USelect, {
+                                        modelValue: unref(equipmentState).nodeId,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).nodeId = $event,
+                                        items: unref(nodeItems),
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(`<div class="grid gap-4 md:grid-cols-2"${_scopeId4}>`);
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Profil dostępu",
+                                name: "accessProfileId"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_USelect, {
+                                      modelValue: unref(equipmentState).accessProfileId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).accessProfileId = $event,
+                                      items: unref(profileItems),
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_USelect, {
+                                        modelValue: unref(equipmentState).accessProfileId,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).accessProfileId = $event,
+                                        items: unref(profileItems),
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Driver backendu",
+                                name: "managementDriverId"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_USelect, {
+                                      modelValue: unref(equipmentState).managementDriverId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).managementDriverId = $event,
+                                      items: unref(driverItems),
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_USelect, {
+                                        modelValue: unref(equipmentState).managementDriverId,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).managementDriverId = $event,
+                                        items: unref(driverItems),
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(`</div><div class="grid gap-4 md:grid-cols-2"${_scopeId4}>`);
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Hostname",
+                                name: "hostname"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_UInput, {
+                                      modelValue: unref(equipmentState).hostname,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).hostname = $event,
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).hostname,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).hostname = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "IP zarządzania",
+                                name: "managementIp"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_UInput, {
+                                      modelValue: unref(equipmentState).managementIp,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).managementIp = $event,
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).managementIp,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).managementIp = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Protokół",
+                                name: "managementProtocol"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_USelect, {
+                                      modelValue: unref(equipmentState).managementProtocol,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).managementProtocol = $event,
+                                      items: ["ssh", "snmp", "http", "https", "tr069", "netconf"],
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_USelect, {
+                                        modelValue: unref(equipmentState).managementProtocol,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).managementProtocol = $event,
+                                        items: ["ssh", "snmp", "http", "https", "tr069", "netconf"],
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Port",
+                                name: "managementPort"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_UInputNumber, {
+                                      modelValue: unref(equipmentState).managementPort,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).managementPort = $event,
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_UInputNumber, {
+                                        modelValue: unref(equipmentState).managementPort,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).managementPort = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(`</div><div class="grid gap-4 md:grid-cols-2"${_scopeId4}>`);
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "MAC",
+                                name: "macAddress"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_UInput, {
+                                      modelValue: unref(equipmentState).macAddress,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).macAddress = $event,
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).macAddress,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).macAddress = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Numer seryjny",
+                                name: "serialNumber"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_UInput, {
+                                      modelValue: unref(equipmentState).serialNumber,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).serialNumber = $event,
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).serialNumber,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).serialNumber = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(`</div>`);
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Rola",
+                                name: "equipmentRole"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_USelect, {
+                                      modelValue: unref(equipmentState).equipmentRole,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).equipmentRole = $event,
+                                      items: ["BACKBONE", "CLIENT_PE"],
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_USelect, {
+                                        modelValue: unref(equipmentState).equipmentRole,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).equipmentRole = $event,
+                                        items: ["BACKBONE", "CLIENT_PE"],
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(`<div class="grid gap-4 md:grid-cols-2"${_scopeId4}>`);
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Urządzenie nadrzędne / ONU",
+                                name: "parentEquipmentId"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_USelect, {
+                                      modelValue: unref(equipmentState).parentEquipmentId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).parentEquipmentId = $event,
+                                      items: unref(parentItems),
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_USelect, {
+                                        modelValue: unref(equipmentState).parentEquipmentId,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).parentEquipmentId = $event,
+                                        items: unref(parentItems),
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Tryb bridge za ONU",
+                                name: "bridgeMode"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_USwitch, {
+                                      modelValue: unref(equipmentState).bridgeMode,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).bridgeMode = $event
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_USwitch, {
+                                        modelValue: unref(equipmentState).bridgeMode,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).bridgeMode = $event
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(`</div><div class="grid gap-4 md:grid-cols-2"${_scopeId4}>`);
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Port OLT",
+                                name: "onuPort"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_UInput, {
+                                      modelValue: unref(equipmentState).onuPort,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).onuPort = $event,
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).onuPort,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).onuPort = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "ONU ID",
+                                name: "onuId"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_UInput, {
+                                      modelValue: unref(equipmentState).onuId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).onuId = $event,
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).onuId,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).onuId = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(`</div>`);
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Login URL",
+                                name: "loginUrl"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_UInput, {
+                                      modelValue: unref(equipmentState).loginUrl,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).loginUrl = $event,
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).loginUrl,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).loginUrl = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Notatki",
+                                name: "notes"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_UTextarea, {
+                                      modelValue: unref(equipmentState).notes,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).notes = $event,
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_UTextarea, {
+                                        modelValue: unref(equipmentState).notes,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).notes = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_UFormField, {
+                                label: "Status",
+                                name: "status"
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_USelect, {
+                                      modelValue: unref(equipmentState).status,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).status = $event,
+                                      items: ["IN_USE", "SPARE", "FAILED", "DECOMMISSIONED"],
+                                      class: "w-full"
+                                    }, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_USelect, {
+                                        modelValue: unref(equipmentState).status,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).status = $event,
+                                        items: ["IN_USE", "SPARE", "FAILED", "DECOMMISSIONED"],
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_UButton, {
+                                type: "submit",
+                                label: "Zapisz",
+                                icon: "i-lucide-save"
+                              }, null, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(_component_UFormField, {
+                                  label: "ID inwentarzowe",
+                                  name: "inventoryId",
+                                  required: ""
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_UInput, {
+                                      modelValue: unref(equipmentState).inventoryId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).inventoryId = $event,
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_UFormField, {
+                                  label: "Model",
+                                  name: "modelId",
+                                  required: ""
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_USelect, {
+                                      modelValue: unref(equipmentState).modelId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).modelId = $event,
+                                      items: unref(modelItems),
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_UFormField, {
+                                  label: "Węzeł zasilający",
+                                  name: "nodeId"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_USelect, {
+                                      modelValue: unref(equipmentState).nodeId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).nodeId = $event,
+                                      items: unref(nodeItems),
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                                  createVNode(_component_UFormField, {
+                                    label: "Profil dostępu",
+                                    name: "accessProfileId"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_USelect, {
+                                        modelValue: unref(equipmentState).accessProfileId,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).accessProfileId = $event,
+                                        items: unref(profileItems),
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_UFormField, {
+                                    label: "Driver backendu",
+                                    name: "managementDriverId"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_USelect, {
+                                        modelValue: unref(equipmentState).managementDriverId,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).managementDriverId = $event,
+                                        items: unref(driverItems),
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                                  createVNode(_component_UFormField, {
+                                    label: "Hostname",
+                                    name: "hostname"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).hostname,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).hostname = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_UFormField, {
+                                    label: "IP zarządzania",
+                                    name: "managementIp"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).managementIp,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).managementIp = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_UFormField, {
+                                    label: "Protokół",
+                                    name: "managementProtocol"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_USelect, {
+                                        modelValue: unref(equipmentState).managementProtocol,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).managementProtocol = $event,
+                                        items: ["ssh", "snmp", "http", "https", "tr069", "netconf"],
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_UFormField, {
+                                    label: "Port",
+                                    name: "managementPort"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_UInputNumber, {
+                                        modelValue: unref(equipmentState).managementPort,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).managementPort = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                                  createVNode(_component_UFormField, {
+                                    label: "MAC",
+                                    name: "macAddress"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).macAddress,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).macAddress = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_UFormField, {
+                                    label: "Numer seryjny",
+                                    name: "serialNumber"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).serialNumber,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).serialNumber = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                createVNode(_component_UFormField, {
+                                  label: "Rola",
+                                  name: "equipmentRole"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_USelect, {
+                                      modelValue: unref(equipmentState).equipmentRole,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).equipmentRole = $event,
+                                      items: ["BACKBONE", "CLIENT_PE"],
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                                  createVNode(_component_UFormField, {
+                                    label: "Urządzenie nadrzędne / ONU",
+                                    name: "parentEquipmentId"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_USelect, {
+                                        modelValue: unref(equipmentState).parentEquipmentId,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).parentEquipmentId = $event,
+                                        items: unref(parentItems),
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_UFormField, {
+                                    label: "Tryb bridge za ONU",
+                                    name: "bridgeMode"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_USwitch, {
+                                        modelValue: unref(equipmentState).bridgeMode,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).bridgeMode = $event
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                                  createVNode(_component_UFormField, {
+                                    label: "Port OLT",
+                                    name: "onuPort"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).onuPort,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).onuPort = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_UFormField, {
+                                    label: "ONU ID",
+                                    name: "onuId"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_UInput, {
+                                        modelValue: unref(equipmentState).onuId,
+                                        "onUpdate:modelValue": ($event) => unref(equipmentState).onuId = $event,
+                                        class: "w-full"
+                                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                createVNode(_component_UFormField, {
+                                  label: "Login URL",
+                                  name: "loginUrl"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_UInput, {
+                                      modelValue: unref(equipmentState).loginUrl,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).loginUrl = $event,
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_UFormField, {
+                                  label: "Notatki",
+                                  name: "notes"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_UTextarea, {
+                                      modelValue: unref(equipmentState).notes,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).notes = $event,
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_UFormField, {
+                                  label: "Status",
+                                  name: "status"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_USelect, {
+                                      modelValue: unref(equipmentState).status,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).status = $event,
+                                      items: ["IN_USE", "SPARE", "FAILED", "DECOMMISSIONED"],
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_UButton, {
+                                  type: "submit",
+                                  label: "Zapisz",
+                                  icon: "i-lucide-save"
+                                })
+                              ];
+                            }
+                          }),
+                          _: 1
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_UForm, {
+                            schema: unref(equipmentSchema),
+                            state: unref(equipmentState),
+                            class: "space-y-4",
+                            onSubmit: saveEquipment
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_UFormField, {
+                                label: "ID inwentarzowe",
+                                name: "inventoryId",
+                                required: ""
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_UInput, {
+                                    modelValue: unref(equipmentState).inventoryId,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).inventoryId = $event,
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_UFormField, {
+                                label: "Model",
+                                name: "modelId",
+                                required: ""
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_USelect, {
+                                    modelValue: unref(equipmentState).modelId,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).modelId = $event,
+                                    items: unref(modelItems),
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_UFormField, {
+                                label: "Węzeł zasilający",
+                                name: "nodeId"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_USelect, {
+                                    modelValue: unref(equipmentState).nodeId,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).nodeId = $event,
+                                    items: unref(nodeItems),
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                                createVNode(_component_UFormField, {
+                                  label: "Profil dostępu",
+                                  name: "accessProfileId"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_USelect, {
+                                      modelValue: unref(equipmentState).accessProfileId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).accessProfileId = $event,
+                                      items: unref(profileItems),
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_UFormField, {
+                                  label: "Driver backendu",
+                                  name: "managementDriverId"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_USelect, {
+                                      modelValue: unref(equipmentState).managementDriverId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).managementDriverId = $event,
+                                      items: unref(driverItems),
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                  ]),
+                                  _: 1
+                                })
+                              ]),
+                              createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                                createVNode(_component_UFormField, {
+                                  label: "Hostname",
+                                  name: "hostname"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_UInput, {
+                                      modelValue: unref(equipmentState).hostname,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).hostname = $event,
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_UFormField, {
+                                  label: "IP zarządzania",
+                                  name: "managementIp"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_UInput, {
+                                      modelValue: unref(equipmentState).managementIp,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).managementIp = $event,
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_UFormField, {
+                                  label: "Protokół",
+                                  name: "managementProtocol"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_USelect, {
+                                      modelValue: unref(equipmentState).managementProtocol,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).managementProtocol = $event,
+                                      items: ["ssh", "snmp", "http", "https", "tr069", "netconf"],
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_UFormField, {
+                                  label: "Port",
+                                  name: "managementPort"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_UInputNumber, {
+                                      modelValue: unref(equipmentState).managementPort,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).managementPort = $event,
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                })
+                              ]),
+                              createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                                createVNode(_component_UFormField, {
+                                  label: "MAC",
+                                  name: "macAddress"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_UInput, {
+                                      modelValue: unref(equipmentState).macAddress,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).macAddress = $event,
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_UFormField, {
+                                  label: "Numer seryjny",
+                                  name: "serialNumber"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_UInput, {
+                                      modelValue: unref(equipmentState).serialNumber,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).serialNumber = $event,
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                })
+                              ]),
+                              createVNode(_component_UFormField, {
+                                label: "Rola",
+                                name: "equipmentRole"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_USelect, {
+                                    modelValue: unref(equipmentState).equipmentRole,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).equipmentRole = $event,
+                                    items: ["BACKBONE", "CLIENT_PE"],
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                                createVNode(_component_UFormField, {
+                                  label: "Urządzenie nadrzędne / ONU",
+                                  name: "parentEquipmentId"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_USelect, {
+                                      modelValue: unref(equipmentState).parentEquipmentId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).parentEquipmentId = $event,
+                                      items: unref(parentItems),
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_UFormField, {
+                                  label: "Tryb bridge za ONU",
+                                  name: "bridgeMode"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_USwitch, {
+                                      modelValue: unref(equipmentState).bridgeMode,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).bridgeMode = $event
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                })
+                              ]),
+                              createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                                createVNode(_component_UFormField, {
+                                  label: "Port OLT",
+                                  name: "onuPort"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_UInput, {
+                                      modelValue: unref(equipmentState).onuPort,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).onuPort = $event,
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_UFormField, {
+                                  label: "ONU ID",
+                                  name: "onuId"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_UInput, {
+                                      modelValue: unref(equipmentState).onuId,
+                                      "onUpdate:modelValue": ($event) => unref(equipmentState).onuId = $event,
+                                      class: "w-full"
+                                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                  ]),
+                                  _: 1
+                                })
+                              ]),
+                              createVNode(_component_UFormField, {
+                                label: "Login URL",
+                                name: "loginUrl"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_UInput, {
+                                    modelValue: unref(equipmentState).loginUrl,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).loginUrl = $event,
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_UFormField, {
+                                label: "Notatki",
+                                name: "notes"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_UTextarea, {
+                                    modelValue: unref(equipmentState).notes,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).notes = $event,
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_UFormField, {
+                                label: "Status",
+                                name: "status"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_USelect, {
+                                    modelValue: unref(equipmentState).status,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).status = $event,
+                                    items: ["IN_USE", "SPARE", "FAILED", "DECOMMISSIONED"],
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_UButton, {
+                                type: "submit",
+                                label: "Zapisz",
+                                icon: "i-lucide-save"
+                              })
+                            ]),
+                            _: 1
+                          }, 8, ["schema", "state"])
+                        ];
+                      }
+                    }),
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_UButton, {
+                          label: "Dodaj urządzenie",
+                          icon: "i-lucide-server-cog",
+                          onClick: openCreateEquipment
+                        }, null, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_UButton, {
+                            label: "Dodaj urządzenie",
+                            icon: "i-lucide-server-cog",
+                            onClick: openCreateEquipment
+                          })
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                } else {
+                  return [
+                    createVNode(_component_USlideover, {
+                      open: unref(equipmentOpen),
+                      "onUpdate:open": ($event) => isRef(equipmentOpen) ? equipmentOpen.value = $event : null,
+                      title: unref(editingEquipmentId) ? "Edytuj urządzenie" : "Dodaj urządzenie"
+                    }, {
+                      body: withCtx(() => [
+                        createVNode(_component_UForm, {
+                          schema: unref(equipmentSchema),
+                          state: unref(equipmentState),
+                          class: "space-y-4",
+                          onSubmit: saveEquipment
+                        }, {
+                          default: withCtx(() => [
+                            createVNode(_component_UFormField, {
+                              label: "ID inwentarzowe",
+                              name: "inventoryId",
+                              required: ""
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_UInput, {
+                                  modelValue: unref(equipmentState).inventoryId,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).inventoryId = $event,
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_UFormField, {
+                              label: "Model",
+                              name: "modelId",
+                              required: ""
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_USelect, {
+                                  modelValue: unref(equipmentState).modelId,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).modelId = $event,
+                                  items: unref(modelItems),
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_UFormField, {
+                              label: "Węzeł zasilający",
+                              name: "nodeId"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_USelect, {
+                                  modelValue: unref(equipmentState).nodeId,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).nodeId = $event,
+                                  items: unref(nodeItems),
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                              createVNode(_component_UFormField, {
+                                label: "Profil dostępu",
+                                name: "accessProfileId"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_USelect, {
+                                    modelValue: unref(equipmentState).accessProfileId,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).accessProfileId = $event,
+                                    items: unref(profileItems),
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_UFormField, {
+                                label: "Driver backendu",
+                                name: "managementDriverId"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_USelect, {
+                                    modelValue: unref(equipmentState).managementDriverId,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).managementDriverId = $event,
+                                    items: unref(driverItems),
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                              createVNode(_component_UFormField, {
+                                label: "Hostname",
+                                name: "hostname"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_UInput, {
+                                    modelValue: unref(equipmentState).hostname,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).hostname = $event,
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_UFormField, {
+                                label: "IP zarządzania",
+                                name: "managementIp"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_UInput, {
+                                    modelValue: unref(equipmentState).managementIp,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).managementIp = $event,
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_UFormField, {
+                                label: "Protokół",
+                                name: "managementProtocol"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_USelect, {
+                                    modelValue: unref(equipmentState).managementProtocol,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).managementProtocol = $event,
+                                    items: ["ssh", "snmp", "http", "https", "tr069", "netconf"],
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_UFormField, {
+                                label: "Port",
+                                name: "managementPort"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_UInputNumber, {
+                                    modelValue: unref(equipmentState).managementPort,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).managementPort = $event,
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                              createVNode(_component_UFormField, {
+                                label: "MAC",
+                                name: "macAddress"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_UInput, {
+                                    modelValue: unref(equipmentState).macAddress,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).macAddress = $event,
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_UFormField, {
+                                label: "Numer seryjny",
+                                name: "serialNumber"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_UInput, {
+                                    modelValue: unref(equipmentState).serialNumber,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).serialNumber = $event,
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            createVNode(_component_UFormField, {
+                              label: "Rola",
+                              name: "equipmentRole"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_USelect, {
+                                  modelValue: unref(equipmentState).equipmentRole,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).equipmentRole = $event,
+                                  items: ["BACKBONE", "CLIENT_PE"],
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                              createVNode(_component_UFormField, {
+                                label: "Urządzenie nadrzędne / ONU",
+                                name: "parentEquipmentId"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_USelect, {
+                                    modelValue: unref(equipmentState).parentEquipmentId,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).parentEquipmentId = $event,
+                                    items: unref(parentItems),
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_UFormField, {
+                                label: "Tryb bridge za ONU",
+                                name: "bridgeMode"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_USwitch, {
+                                    modelValue: unref(equipmentState).bridgeMode,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).bridgeMode = $event
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                              createVNode(_component_UFormField, {
+                                label: "Port OLT",
+                                name: "onuPort"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_UInput, {
+                                    modelValue: unref(equipmentState).onuPort,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).onuPort = $event,
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_UFormField, {
+                                label: "ONU ID",
+                                name: "onuId"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_UInput, {
+                                    modelValue: unref(equipmentState).onuId,
+                                    "onUpdate:modelValue": ($event) => unref(equipmentState).onuId = $event,
+                                    class: "w-full"
+                                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            createVNode(_component_UFormField, {
+                              label: "Login URL",
+                              name: "loginUrl"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_UInput, {
+                                  modelValue: unref(equipmentState).loginUrl,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).loginUrl = $event,
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_UFormField, {
+                              label: "Notatki",
+                              name: "notes"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_UTextarea, {
+                                  modelValue: unref(equipmentState).notes,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).notes = $event,
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_UFormField, {
+                              label: "Status",
+                              name: "status"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_USelect, {
+                                  modelValue: unref(equipmentState).status,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).status = $event,
+                                  items: ["IN_USE", "SPARE", "FAILED", "DECOMMISSIONED"],
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_UButton, {
+                              type: "submit",
+                              label: "Zapisz",
+                              icon: "i-lucide-save"
+                            })
+                          ]),
+                          _: 1
+                        }, 8, ["schema", "state"])
+                      ]),
+                      default: withCtx(() => [
+                        createVNode(_component_UButton, {
+                          label: "Dodaj urządzenie",
+                          icon: "i-lucide-server-cog",
+                          onClick: openCreateEquipment
+                        })
+                      ]),
+                      _: 1
+                    }, 8, ["open", "onUpdate:open", "title"])
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+            _push2(ssrRenderComponent(_component_UDashboardToolbar, null, {
+              left: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(_component_USelect, {
+                    modelValue: unref(role),
+                    "onUpdate:modelValue": ($event) => isRef(role) ? role.value = $event : null,
+                    items: [
+                      { label: "Wszystkie", value: "all" },
+                      { label: "Szkielet", value: "BACKBONE" },
+                      { label: "CPE / PE", value: "CLIENT_PE" }
+                    ],
+                    class: "min-w-40"
+                  }, null, _parent3, _scopeId2));
+                } else {
+                  return [
+                    createVNode(_component_USelect, {
+                      modelValue: unref(role),
+                      "onUpdate:modelValue": ($event) => isRef(role) ? role.value = $event : null,
+                      items: [
+                        { label: "Wszystkie", value: "all" },
+                        { label: "Szkielet", value: "BACKBONE" },
+                        { label: "CPE / PE", value: "CLIENT_PE" }
+                      ],
+                      class: "min-w-40"
+                    }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+          } else {
+            return [
+              createVNode(_component_UDashboardNavbar, { title: "Urządzenia" }, {
+                leading: withCtx(() => [
+                  createVNode(_component_UDashboardSidebarCollapse)
+                ]),
+                right: withCtx(() => [
+                  createVNode(_component_USlideover, {
+                    open: unref(equipmentOpen),
+                    "onUpdate:open": ($event) => isRef(equipmentOpen) ? equipmentOpen.value = $event : null,
+                    title: unref(editingEquipmentId) ? "Edytuj urządzenie" : "Dodaj urządzenie"
+                  }, {
+                    body: withCtx(() => [
+                      createVNode(_component_UForm, {
+                        schema: unref(equipmentSchema),
+                        state: unref(equipmentState),
+                        class: "space-y-4",
+                        onSubmit: saveEquipment
+                      }, {
+                        default: withCtx(() => [
+                          createVNode(_component_UFormField, {
+                            label: "ID inwentarzowe",
+                            name: "inventoryId",
+                            required: ""
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_UInput, {
+                                modelValue: unref(equipmentState).inventoryId,
+                                "onUpdate:modelValue": ($event) => unref(equipmentState).inventoryId = $event,
+                                class: "w-full"
+                              }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                            ]),
+                            _: 1
+                          }),
+                          createVNode(_component_UFormField, {
+                            label: "Model",
+                            name: "modelId",
+                            required: ""
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_USelect, {
+                                modelValue: unref(equipmentState).modelId,
+                                "onUpdate:modelValue": ($event) => unref(equipmentState).modelId = $event,
+                                items: unref(modelItems),
+                                class: "w-full"
+                              }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                            ]),
+                            _: 1
+                          }),
+                          createVNode(_component_UFormField, {
+                            label: "Węzeł zasilający",
+                            name: "nodeId"
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_USelect, {
+                                modelValue: unref(equipmentState).nodeId,
+                                "onUpdate:modelValue": ($event) => unref(equipmentState).nodeId = $event,
+                                items: unref(nodeItems),
+                                class: "w-full"
+                              }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                            ]),
+                            _: 1
+                          }),
+                          createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                            createVNode(_component_UFormField, {
+                              label: "Profil dostępu",
+                              name: "accessProfileId"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_USelect, {
+                                  modelValue: unref(equipmentState).accessProfileId,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).accessProfileId = $event,
+                                  items: unref(profileItems),
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_UFormField, {
+                              label: "Driver backendu",
+                              name: "managementDriverId"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_USelect, {
+                                  modelValue: unref(equipmentState).managementDriverId,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).managementDriverId = $event,
+                                  items: unref(driverItems),
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                              ]),
+                              _: 1
+                            })
+                          ]),
+                          createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                            createVNode(_component_UFormField, {
+                              label: "Hostname",
+                              name: "hostname"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_UInput, {
+                                  modelValue: unref(equipmentState).hostname,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).hostname = $event,
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_UFormField, {
+                              label: "IP zarządzania",
+                              name: "managementIp"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_UInput, {
+                                  modelValue: unref(equipmentState).managementIp,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).managementIp = $event,
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_UFormField, {
+                              label: "Protokół",
+                              name: "managementProtocol"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_USelect, {
+                                  modelValue: unref(equipmentState).managementProtocol,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).managementProtocol = $event,
+                                  items: ["ssh", "snmp", "http", "https", "tr069", "netconf"],
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_UFormField, {
+                              label: "Port",
+                              name: "managementPort"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_UInputNumber, {
+                                  modelValue: unref(equipmentState).managementPort,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).managementPort = $event,
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            })
+                          ]),
+                          createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                            createVNode(_component_UFormField, {
+                              label: "MAC",
+                              name: "macAddress"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_UInput, {
+                                  modelValue: unref(equipmentState).macAddress,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).macAddress = $event,
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_UFormField, {
+                              label: "Numer seryjny",
+                              name: "serialNumber"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_UInput, {
+                                  modelValue: unref(equipmentState).serialNumber,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).serialNumber = $event,
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            })
+                          ]),
+                          createVNode(_component_UFormField, {
+                            label: "Rola",
+                            name: "equipmentRole"
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_USelect, {
+                                modelValue: unref(equipmentState).equipmentRole,
+                                "onUpdate:modelValue": ($event) => unref(equipmentState).equipmentRole = $event,
+                                items: ["BACKBONE", "CLIENT_PE"],
+                                class: "w-full"
+                              }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                            ]),
+                            _: 1
+                          }),
+                          createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                            createVNode(_component_UFormField, {
+                              label: "Urządzenie nadrzędne / ONU",
+                              name: "parentEquipmentId"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_USelect, {
+                                  modelValue: unref(equipmentState).parentEquipmentId,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).parentEquipmentId = $event,
+                                  items: unref(parentItems),
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue", "items"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_UFormField, {
+                              label: "Tryb bridge za ONU",
+                              name: "bridgeMode"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_USwitch, {
+                                  modelValue: unref(equipmentState).bridgeMode,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).bridgeMode = $event
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            })
+                          ]),
+                          createVNode("div", { class: "grid gap-4 md:grid-cols-2" }, [
+                            createVNode(_component_UFormField, {
+                              label: "Port OLT",
+                              name: "onuPort"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_UInput, {
+                                  modelValue: unref(equipmentState).onuPort,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).onuPort = $event,
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_UFormField, {
+                              label: "ONU ID",
+                              name: "onuId"
+                            }, {
+                              default: withCtx(() => [
+                                createVNode(_component_UInput, {
+                                  modelValue: unref(equipmentState).onuId,
+                                  "onUpdate:modelValue": ($event) => unref(equipmentState).onuId = $event,
+                                  class: "w-full"
+                                }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                              ]),
+                              _: 1
+                            })
+                          ]),
+                          createVNode(_component_UFormField, {
+                            label: "Login URL",
+                            name: "loginUrl"
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_UInput, {
+                                modelValue: unref(equipmentState).loginUrl,
+                                "onUpdate:modelValue": ($event) => unref(equipmentState).loginUrl = $event,
+                                class: "w-full"
+                              }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                            ]),
+                            _: 1
+                          }),
+                          createVNode(_component_UFormField, {
+                            label: "Notatki",
+                            name: "notes"
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_UTextarea, {
+                                modelValue: unref(equipmentState).notes,
+                                "onUpdate:modelValue": ($event) => unref(equipmentState).notes = $event,
+                                class: "w-full"
+                              }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                            ]),
+                            _: 1
+                          }),
+                          createVNode(_component_UFormField, {
+                            label: "Status",
+                            name: "status"
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_USelect, {
+                                modelValue: unref(equipmentState).status,
+                                "onUpdate:modelValue": ($event) => unref(equipmentState).status = $event,
+                                items: ["IN_USE", "SPARE", "FAILED", "DECOMMISSIONED"],
+                                class: "w-full"
+                              }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                            ]),
+                            _: 1
+                          }),
+                          createVNode(_component_UButton, {
+                            type: "submit",
+                            label: "Zapisz",
+                            icon: "i-lucide-save"
+                          })
+                        ]),
+                        _: 1
+                      }, 8, ["schema", "state"])
+                    ]),
+                    default: withCtx(() => [
+                      createVNode(_component_UButton, {
+                        label: "Dodaj urządzenie",
+                        icon: "i-lucide-server-cog",
+                        onClick: openCreateEquipment
+                      })
+                    ]),
+                    _: 1
+                  }, 8, ["open", "onUpdate:open", "title"])
+                ]),
+                _: 1
+              }),
+              createVNode(_component_UDashboardToolbar, null, {
+                left: withCtx(() => [
+                  createVNode(_component_USelect, {
+                    modelValue: unref(role),
+                    "onUpdate:modelValue": ($event) => isRef(role) ? role.value = $event : null,
+                    items: [
+                      { label: "Wszystkie", value: "all" },
+                      { label: "Szkielet", value: "BACKBONE" },
+                      { label: "CPE / PE", value: "CLIENT_PE" }
+                    ],
+                    class: "min-w-40"
+                  }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                ]),
+                _: 1
+              })
+            ];
+          }
+        }),
+        body: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(ssrRenderComponent(_component_AppDataTable, {
+              data: unref(data).data,
+              columns,
+              loading: unref(status) === "pending",
+              "context-items": rowContextItems
+            }, null, _parent2, _scopeId));
+            _push2(ssrRenderComponent(_component_AppRowDetailsSlideover, {
+              open: unref(detailsOpen),
+              "onUpdate:open": ($event) => isRef(detailsOpen) ? detailsOpen.value = $event : null,
+              title: "Szczegóły urządzenia",
+              subtitle: unref(selectedRow)?.inventoryId,
+              item: unref(selectedRow)
+            }, null, _parent2, _scopeId));
+            _push2(ssrRenderComponent(_component_USlideover, {
+              open: unref(diagnosticOpen),
+              "onUpdate:open": ($event) => isRef(diagnosticOpen) ? diagnosticOpen.value = $event : null,
+              title: "Diagnostyka urządzenia",
+              description: unref(selectedRow) ? `${unref(selectedRow).inventoryId} / ${unref(selectedRow).managementDriver?.code || "mock"}` : void 0
+            }, {
+              body: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(`<div class="space-y-4"${_scopeId2}><div class="grid gap-3 md:grid-cols-2"${_scopeId2}>`);
+                  _push3(ssrRenderComponent(_component_UFormField, { label: "MAC" }, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_UInput, {
+                          modelValue: unref(diagnosticMac),
+                          "onUpdate:modelValue": ($event) => isRef(diagnosticMac) ? diagnosticMac.value = $event : null,
+                          class: "w-full"
+                        }, null, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_UInput, {
+                            modelValue: unref(diagnosticMac),
+                            "onUpdate:modelValue": ($event) => isRef(diagnosticMac) ? diagnosticMac.value = $event : null,
+                            class: "w-full"
+                          }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(_component_UFormField, { label: "IP" }, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_UInput, {
+                          modelValue: unref(diagnosticIp),
+                          "onUpdate:modelValue": ($event) => isRef(diagnosticIp) ? diagnosticIp.value = $event : null,
+                          class: "w-full"
+                        }, null, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_UInput, {
+                            modelValue: unref(diagnosticIp),
+                            "onUpdate:modelValue": ($event) => isRef(diagnosticIp) ? diagnosticIp.value = $event : null,
+                            class: "w-full"
+                          }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(_component_UFormField, { label: "Port OLT" }, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_UInput, {
+                          modelValue: unref(diagnosticOltPort),
+                          "onUpdate:modelValue": ($event) => isRef(diagnosticOltPort) ? diagnosticOltPort.value = $event : null,
+                          class: "w-full"
+                        }, null, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_UInput, {
+                            modelValue: unref(diagnosticOltPort),
+                            "onUpdate:modelValue": ($event) => isRef(diagnosticOltPort) ? diagnosticOltPort.value = $event : null,
+                            class: "w-full"
+                          }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(_component_UFormField, { label: "ONU ID" }, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_UInput, {
+                          modelValue: unref(diagnosticOnuId),
+                          "onUpdate:modelValue": ($event) => isRef(diagnosticOnuId) ? diagnosticOnuId.value = $event : null,
+                          class: "w-full"
+                        }, null, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_UInput, {
+                            modelValue: unref(diagnosticOnuId),
+                            "onUpdate:modelValue": ($event) => isRef(diagnosticOnuId) ? diagnosticOnuId.value = $event : null,
+                            class: "w-full"
+                          }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(`</div><div class="grid gap-2 sm:grid-cols-2"${_scopeId2}>`);
+                  _push3(ssrRenderComponent(_component_UButton, {
+                    label: "MikroTik DHCP/Ping/ARP",
+                    icon: "i-lucide-radar",
+                    loading: unref(diagnosticLoading) === "mikrotik-check",
+                    onClick: ($event) => runEquipmentDiagnostic("mikrotik-check")
+                  }, null, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(_component_UButton, {
+                    label: "MAC lookup",
+                    icon: "i-lucide-search",
+                    variant: "subtle",
+                    loading: unref(diagnosticLoading) === "mac-check",
+                    onClick: ($event) => runEquipmentDiagnostic("mac-check")
+                  }, null, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(_component_UButton, {
+                    label: "ONU IP-host",
+                    icon: "i-lucide-router",
+                    variant: "subtle",
+                    loading: unref(diagnosticLoading) === "onu-ip-host",
+                    onClick: ($event) => runEquipmentDiagnostic("onu-ip-host")
+                  }, null, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(_component_UButton, {
+                    label: "Command tree",
+                    icon: "i-lucide-terminal",
+                    variant: "subtle",
+                    loading: unref(diagnosticLoading) === "command-tree",
+                    onClick: ($event) => runEquipmentDiagnostic("command-tree")
+                  }, null, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(_component_UButton, {
+                    label: "Włącz NetFlow",
+                    icon: "i-lucide-chart-network",
+                    variant: "subtle",
+                    loading: unref(diagnosticLoading) === "netflow-config",
+                    onClick: ($event) => runEquipmentDiagnostic("netflow-config")
+                  }, null, _parent3, _scopeId2));
+                  _push3(`</div>`);
+                  _push3(ssrRenderComponent(_component_AppDiagnosticResult, { result: unref(diagnosticResult) }, null, _parent3, _scopeId2));
+                  _push3(`</div>`);
+                } else {
+                  return [
+                    createVNode("div", { class: "space-y-4" }, [
+                      createVNode("div", { class: "grid gap-3 md:grid-cols-2" }, [
+                        createVNode(_component_UFormField, { label: "MAC" }, {
+                          default: withCtx(() => [
+                            createVNode(_component_UInput, {
+                              modelValue: unref(diagnosticMac),
+                              "onUpdate:modelValue": ($event) => isRef(diagnosticMac) ? diagnosticMac.value = $event : null,
+                              class: "w-full"
+                            }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(_component_UFormField, { label: "IP" }, {
+                          default: withCtx(() => [
+                            createVNode(_component_UInput, {
+                              modelValue: unref(diagnosticIp),
+                              "onUpdate:modelValue": ($event) => isRef(diagnosticIp) ? diagnosticIp.value = $event : null,
+                              class: "w-full"
+                            }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(_component_UFormField, { label: "Port OLT" }, {
+                          default: withCtx(() => [
+                            createVNode(_component_UInput, {
+                              modelValue: unref(diagnosticOltPort),
+                              "onUpdate:modelValue": ($event) => isRef(diagnosticOltPort) ? diagnosticOltPort.value = $event : null,
+                              class: "w-full"
+                            }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(_component_UFormField, { label: "ONU ID" }, {
+                          default: withCtx(() => [
+                            createVNode(_component_UInput, {
+                              modelValue: unref(diagnosticOnuId),
+                              "onUpdate:modelValue": ($event) => isRef(diagnosticOnuId) ? diagnosticOnuId.value = $event : null,
+                              class: "w-full"
+                            }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                          ]),
+                          _: 1
+                        })
+                      ]),
+                      createVNode("div", { class: "grid gap-2 sm:grid-cols-2" }, [
+                        createVNode(_component_UButton, {
+                          label: "MikroTik DHCP/Ping/ARP",
+                          icon: "i-lucide-radar",
+                          loading: unref(diagnosticLoading) === "mikrotik-check",
+                          onClick: ($event) => runEquipmentDiagnostic("mikrotik-check")
+                        }, null, 8, ["loading", "onClick"]),
+                        createVNode(_component_UButton, {
+                          label: "MAC lookup",
+                          icon: "i-lucide-search",
+                          variant: "subtle",
+                          loading: unref(diagnosticLoading) === "mac-check",
+                          onClick: ($event) => runEquipmentDiagnostic("mac-check")
+                        }, null, 8, ["loading", "onClick"]),
+                        createVNode(_component_UButton, {
+                          label: "ONU IP-host",
+                          icon: "i-lucide-router",
+                          variant: "subtle",
+                          loading: unref(diagnosticLoading) === "onu-ip-host",
+                          onClick: ($event) => runEquipmentDiagnostic("onu-ip-host")
+                        }, null, 8, ["loading", "onClick"]),
+                        createVNode(_component_UButton, {
+                          label: "Command tree",
+                          icon: "i-lucide-terminal",
+                          variant: "subtle",
+                          loading: unref(diagnosticLoading) === "command-tree",
+                          onClick: ($event) => runEquipmentDiagnostic("command-tree")
+                        }, null, 8, ["loading", "onClick"]),
+                        createVNode(_component_UButton, {
+                          label: "Włącz NetFlow",
+                          icon: "i-lucide-chart-network",
+                          variant: "subtle",
+                          loading: unref(diagnosticLoading) === "netflow-config",
+                          onClick: ($event) => runEquipmentDiagnostic("netflow-config")
+                        }, null, 8, ["loading", "onClick"])
+                      ]),
+                      createVNode(_component_AppDiagnosticResult, { result: unref(diagnosticResult) }, null, 8, ["result"])
+                    ])
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+          } else {
+            return [
+              createVNode(_component_AppDataTable, {
+                data: unref(data).data,
+                columns,
+                loading: unref(status) === "pending",
+                "context-items": rowContextItems
+              }, null, 8, ["data", "loading"]),
+              createVNode(_component_AppRowDetailsSlideover, {
+                open: unref(detailsOpen),
+                "onUpdate:open": ($event) => isRef(detailsOpen) ? detailsOpen.value = $event : null,
+                title: "Szczegóły urządzenia",
+                subtitle: unref(selectedRow)?.inventoryId,
+                item: unref(selectedRow)
+              }, null, 8, ["open", "onUpdate:open", "subtitle", "item"]),
+              createVNode(_component_USlideover, {
+                open: unref(diagnosticOpen),
+                "onUpdate:open": ($event) => isRef(diagnosticOpen) ? diagnosticOpen.value = $event : null,
+                title: "Diagnostyka urządzenia",
+                description: unref(selectedRow) ? `${unref(selectedRow).inventoryId} / ${unref(selectedRow).managementDriver?.code || "mock"}` : void 0
+              }, {
+                body: withCtx(() => [
+                  createVNode("div", { class: "space-y-4" }, [
+                    createVNode("div", { class: "grid gap-3 md:grid-cols-2" }, [
+                      createVNode(_component_UFormField, { label: "MAC" }, {
+                        default: withCtx(() => [
+                          createVNode(_component_UInput, {
+                            modelValue: unref(diagnosticMac),
+                            "onUpdate:modelValue": ($event) => isRef(diagnosticMac) ? diagnosticMac.value = $event : null,
+                            class: "w-full"
+                          }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(_component_UFormField, { label: "IP" }, {
+                        default: withCtx(() => [
+                          createVNode(_component_UInput, {
+                            modelValue: unref(diagnosticIp),
+                            "onUpdate:modelValue": ($event) => isRef(diagnosticIp) ? diagnosticIp.value = $event : null,
+                            class: "w-full"
+                          }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(_component_UFormField, { label: "Port OLT" }, {
+                        default: withCtx(() => [
+                          createVNode(_component_UInput, {
+                            modelValue: unref(diagnosticOltPort),
+                            "onUpdate:modelValue": ($event) => isRef(diagnosticOltPort) ? diagnosticOltPort.value = $event : null,
+                            class: "w-full"
+                          }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(_component_UFormField, { label: "ONU ID" }, {
+                        default: withCtx(() => [
+                          createVNode(_component_UInput, {
+                            modelValue: unref(diagnosticOnuId),
+                            "onUpdate:modelValue": ($event) => isRef(diagnosticOnuId) ? diagnosticOnuId.value = $event : null,
+                            class: "w-full"
+                          }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    createVNode("div", { class: "grid gap-2 sm:grid-cols-2" }, [
+                      createVNode(_component_UButton, {
+                        label: "MikroTik DHCP/Ping/ARP",
+                        icon: "i-lucide-radar",
+                        loading: unref(diagnosticLoading) === "mikrotik-check",
+                        onClick: ($event) => runEquipmentDiagnostic("mikrotik-check")
+                      }, null, 8, ["loading", "onClick"]),
+                      createVNode(_component_UButton, {
+                        label: "MAC lookup",
+                        icon: "i-lucide-search",
+                        variant: "subtle",
+                        loading: unref(diagnosticLoading) === "mac-check",
+                        onClick: ($event) => runEquipmentDiagnostic("mac-check")
+                      }, null, 8, ["loading", "onClick"]),
+                      createVNode(_component_UButton, {
+                        label: "ONU IP-host",
+                        icon: "i-lucide-router",
+                        variant: "subtle",
+                        loading: unref(diagnosticLoading) === "onu-ip-host",
+                        onClick: ($event) => runEquipmentDiagnostic("onu-ip-host")
+                      }, null, 8, ["loading", "onClick"]),
+                      createVNode(_component_UButton, {
+                        label: "Command tree",
+                        icon: "i-lucide-terminal",
+                        variant: "subtle",
+                        loading: unref(diagnosticLoading) === "command-tree",
+                        onClick: ($event) => runEquipmentDiagnostic("command-tree")
+                      }, null, 8, ["loading", "onClick"]),
+                      createVNode(_component_UButton, {
+                        label: "Włącz NetFlow",
+                        icon: "i-lucide-chart-network",
+                        variant: "subtle",
+                        loading: unref(diagnosticLoading) === "netflow-config",
+                        onClick: ($event) => runEquipmentDiagnostic("netflow-config")
+                      }, null, 8, ["loading", "onClick"])
+                    ]),
+                    createVNode(_component_AppDiagnosticResult, { result: unref(diagnosticResult) }, null, 8, ["result"])
+                  ])
+                ]),
+                _: 1
+              }, 8, ["open", "onUpdate:open", "description"])
+            ];
+          }
+        }),
+        _: 1
+      }, _parent));
+    };
+  }
+});
+const _sfc_setup = _sfc_main.setup;
+_sfc_main.setup = (props, ctx) => {
+  const ssrContext = useSSRContext();
+  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("pages/network/equipment.vue");
+  return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
+};
+
+export { _sfc_main as default };
