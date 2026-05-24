@@ -42,7 +42,6 @@ Project scripts live in `/home/sarna/netcoreops/scripts/bin` and are symlinked i
   - `netcoreops-netflow-collector rtk --port=2055` starts the local UDP NetFlow collector.
   - The collector parses NetFlow v5/v9 and IPFIX/v10 headers, aggregates packets per exporter/version, and writes `diagnostic_runs` rows with `run_type = netflow-received`.
   - This WSL collector is the only supported NetCoreOps NetFlow ingest path for this deployment.
-  - Do not route normal NetFlow ingest through Windows. Windows relay scripts are legacy artifacts and should not be used unless the user explicitly asks for a temporary fallback.
 - `/usr/bin/netcoreops-netflow-status -> /home/sarna/netcoreops/scripts/bin/netcoreops-netflow-status`
   - `netcoreops-netflow-status rtk` reads `/ip/traffic-flow`, `/ip/traffic-flow/target`, DHCP server interfaces, and default routes from active MikroTik equipment.
   - Optional inventory ids can be passed after the mode, for example `netcoreops-netflow-status rtk MT-10-0-222-86`.
@@ -55,11 +54,6 @@ Project scripts live in `/home/sarna/netcoreops/scripts/bin` and are symlinked i
 - `/usr/bin/netcoreops-repair-ftth-customer-links -> /home/sarna/netcoreops/scripts/bin/netcoreops-repair-ftth-customer-links`
   - Reconciles existing `ftth_transparent_links` rows back into `customer_devices.ftth_onu_id` and `customer_devices.onu_equipment_id`.
   - Use after changing FTTH import/linking logic or after importing MAC maps that created transparent links before customer devices were backfilled.
-- `/usr/bin/netcoreops-netflow-windows-relay -> /home/sarna/netcoreops/scripts/bin/netcoreops-netflow-windows-relay`
-  - Starts a Windows UDP receiver on `NETCOREOPS_NETFLOW_PORT` (default 2055), aggregates NetFlow packets, and posts them to `NETCOREOPS_NETFLOW_RELAY_INGEST_URL`.
-  - Legacy artifact only. In the normal current setup WSL uses mirrored networking and MikroTik `dst-nat` forwards `10.0.222.226:2055` directly to the current WSL address on UDP/2055, so the Windows relay must stay stopped.
-  - On this host `wsl.exe -d Ubuntu hostname -i` can return `127.0.1.1`; use `wsl.exe -d Ubuntu -- hostname -I` or `ip -4 -o addr show scope global` to get the real WSL address for the `dst-nat` rule.
-
 Recommended verification after code changes:
 
 ```bash
@@ -229,6 +223,7 @@ show onu ip-host OLT_ID ONU_ID
 ## Operational Notes
 
 - Use `apply_patch` for manual file edits.
+- Temporary scripts must be created only under system `/tmp` or under a clearly named local temporary workspace inside the repo. Do not leave ad hoc temporary scripts in normal project directories.
 - Avoid destructive git commands.
 - The repo may be in an unborn or dirty git state; do not revert user work.
 - Use the `netcoreops-memory` skill when the user asks to remember something or when durable NetCoreOps context should be preserved.
