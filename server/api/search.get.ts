@@ -9,6 +9,7 @@ import {
   subscriptions,
   tariffs
 } from '../db/schema'
+import { filterDashboardFunctionSearchItems } from '../utils/dashboard-search'
 import { db } from '../utils/db'
 
 export default defineEventHandler(async (event) => {
@@ -53,28 +54,10 @@ export default defineEventHandler(async (event) => {
     })
   ])
 
-  const functionItems = [{
-    label: '@ Definicje zmiennych automatyzacji',
-    suffix: 'Funkcja',
-    icon: 'i-lucide-braces',
-    to: '/automation/definitions'
-  }, {
-    label: '@ Skrypty automatyzacji',
-    suffix: 'Funkcja',
-    icon: 'i-lucide-file-terminal',
-    to: '/automation/scripts'
-  }, {
-    label: '@ Eksport PIT CSV',
-    suffix: 'Funkcja',
-    icon: 'i-lucide-download',
-    to: '/api/pit/export',
-    target: '_blank'
-  }].filter(item => item.label.toLowerCase().includes(term.toLowerCase()))
-
   return {
     success: true,
     data: [
-      ...functionItems,
+      ...filterDashboardFunctionSearchItems(rawTerm),
       ...customerRows.map(customer => ({
         label: `@ ${customer.fullName}`,
         suffix: customer.customerType === 'BUSINESS' ? 'CRM firma' : 'CRM klient',
