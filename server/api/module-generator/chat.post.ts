@@ -16,7 +16,7 @@ const bodySchema = z.object({
     title: z.string().min(1),
     category: z.enum(['module', 'route', 'integration', 'dictionary', 'automation'])
   })).max(20).optional(),
-  currentDefinition: z.record(z.string(), z.any()).optional()
+  currentDefinition: z.record(z.string(), z.any()).nullable().optional()
 })
 
 const ollamaResponseSchema = z.object({
@@ -106,7 +106,17 @@ export default defineEventHandler(async (event) => {
   }
 
   const payload = ollamaResponseSchema.parse(await response.json())
-  const aiPayload = aiPayloadSchema.parse(JSON.parse(payload.response))
+  const rawJson = JSON.parse(payload.response) as Record<string, unknown>
+  const parsedPayload = aiPayloadSchema.safeParse(rawJson)
+  const aiPayload = parsedPayload.success
+    ? parsedPayload.data
+    : {
+        assistantMessage: '',
+        nextQuestion: undefined,
+        readyForPlan: false,
+        suggestions: undefined,
+        definition: rawJson
+      }
   let definition: ModuleDefinition | null = null
 
   if (aiPayload.definition) {
@@ -127,7 +137,9 @@ export default defineEventHandler(async (event) => {
   return {
     success: true,
     data: {
-      assistantMessage: aiPayload.assistantMessage,
+      assistantMessage: aiPayload.assistantMessage || (definition
+        ? 'Przygotowalem draft definicji. Sprawdz propozycje i doprecyzuj, jesli trzeba.'
+        : 'Potrzebuje doprecyzowania. Odpowiedz na pytanie i sprobuje ponownie.'),
       nextQuestion: aiPayload.nextQuestion || null,
       readyForPlan: Boolean(aiPayload.readyForPlan && definition),
       suggestions,
