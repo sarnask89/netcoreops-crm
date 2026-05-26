@@ -7,6 +7,7 @@ const roleSchema = z.enum(['user', 'assistant'])
 
 const bodySchema = z.object({
   message: z.string().min(1),
+  model: z.string().min(1).max(128).optional(),
   conversation: z.array(z.object({
     role: roleSchema,
     text: z.string().min(1)
@@ -79,7 +80,7 @@ export default defineEventHandler(async (event) => {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      model: 'netcoreops-module-coder',
+      model: body.model || 'netcoreops-module-coder',
       prompt: buildPrompt(body),
       stream: false,
       format: 'json',

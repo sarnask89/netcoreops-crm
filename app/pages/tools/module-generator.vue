@@ -123,6 +123,10 @@ const previewFile = ref<GeneratedFile | null>(null)
 const activeFile = ref<GeneratedFile | null>(null)
 const chatInput = ref('')
 const chatLoading = ref(false)
+const chatModel = ref('netcoreops-module-coder')
+const chatModelOptions = ref<Array<{ label: string, value: string }>>([
+  { label: 'netcoreops-module-coder', value: 'netcoreops-module-coder' }
+])
 const chatReadyForPlan = ref(false)
 const chatDefinition = ref<ModuleDefinition | null>(null)
 const chatSuggestions = ref<ChatSuggestion[]>([])
@@ -347,6 +351,7 @@ async function sendChatPrompt(): Promise<void> {
       method: 'POST',
       body: {
         message,
+        model: chatModel.value,
         conversation: chatMessages.value.map(item => ({
           role: item.role,
           text: item.parts
@@ -389,6 +394,20 @@ async function sendChatPrompt(): Promise<void> {
   }
 }
 
+async function loadChatModels(): Promise<void> {
+  try {
+    const response = await $fetch<{ success: true, data: string[] }>('/api/module-generator/ollama-models')
+    if (!response.data.length) return
+
+    chatModelOptions.value = response.data.map(name => ({ label: name, value: name }))
+    if (!response.data.includes(chatModel.value)) {
+      chatModel.value = response.data[0] || 'netcoreops-module-coder'
+    }
+  } catch {
+    // keep default model silently
+  }
+}
+
 function applyChatDraftToSpec(): void {
   if (!chatDefinition.value) return
   parsedDefinition.value = chatDefinition.value
@@ -401,6 +420,10 @@ function applyChatDraftToSpec(): void {
     color: 'success'
   })
 }
+
+onMounted(() => {
+  loadChatModels()
+})
 </script>
 
 <template>
@@ -433,6 +456,14 @@ function applyChatDraftToSpec(): void {
             </div>
 
             <div class="space-y-4">
+              <UFormField label="Model Ollama" name="chatModel">
+                <USelect
+                  v-model="chatModel"
+                  :items="chatModelOptions"
+                  class="w-full"
+                />
+              </UFormField>
+
               <UAlert
                 color="neutral"
                 variant="soft"
