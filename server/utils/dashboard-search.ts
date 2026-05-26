@@ -87,7 +87,7 @@ export function filterDashboardFunctionSearchItems(rawTerm: string): DashboardSe
 
   return dashboardFunctionSearchItems
     .filter(item => [item.label, item.suffix, item.to, ...item.aliases]
-      .filter(Boolean)
+      .filter((value): value is string => typeof value === 'string' && value.length > 0)
       .some(value => value.toLowerCase().includes(term)))
     .map(item => ({
       label: item.label,
