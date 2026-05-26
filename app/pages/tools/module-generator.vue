@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ContextMenuItem } from '@nuxt/ui'
+import type { UIMessage } from 'ai'
 
 type SpecFormat = 'json' | 'xml'
 
@@ -43,9 +44,21 @@ interface ModuleGenerationPlan {
   validation: ValidationReport
 }
 
+interface ChatSuggestion {
+  id: string
+  title: string
+  reason: string
+  category: 'module' | 'route' | 'integration' | 'dictionary' | 'automation'
+}
+
 const toast = useToast()
 
 const tabs = [
+  {
+    label: 'Chat HITL',
+    icon: 'i-lucide-message-square',
+    slot: 'chat'
+  },
   {
     label: 'Spec',
     icon: 'i-lucide-file-code',
@@ -75,6 +88,7 @@ const formatOptions = [
 ]
 
 const specFormat = ref<SpecFormat>('json')
+const aiPrompt = ref('Modul GPON SLA dla NMS: status SLA, RX power dBm, snapshot diagnostyczny JSON, priorytet, wlaczony monitoring i data ostatniego sprawdzenia.')
 const specInput = ref(`{
   "module": "fiberTickets",
   "title": "Awaria FTTH",
@@ -107,6 +121,24 @@ const plan = ref<ModuleGenerationPlan | null>(null)
 const previewOpen = ref(false)
 const previewFile = ref<GeneratedFile | null>(null)
 const activeFile = ref<GeneratedFile | null>(null)
+const chatInput = ref('')
+const chatLoading = ref(false)
+const chatReadyForPlan = ref(false)
+const chatDefinition = ref<ModuleDefinition | null>(null)
+const chatSuggestions = ref<ChatSuggestion[]>([])
+const selectedSuggestionIds = ref<string[]>([])
+const chatMessages = ref<UIMessage[]>([
+  {
+    id: 'intro',
+    role: 'assistant',
+    parts: [
+      {
+        type: 'text',
+        text: 'Opisz modul, ktory chcesz utworzyc. Poprowadze pytaniami i zaproponuje powiazane elementy.'
+      }
+    ]
+  }
+])
 
 const fileColumns = [
   {
@@ -152,6 +184,37 @@ async function parseSpec(): Promise<void> {
     toast.add({
       title: 'Blad parsowania',
       description: error instanceof Error ? error.message : 'Nie udalo sie sparsowac spec',
+      color: 'error'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+async function draftSpec(): Promise<void> {
+  loading.value = true
+
+  try {
+    const response = await $fetch<{ success: true, data: ModuleDefinition }>('/api/module-generator/draft', {
+      method: 'POST',
+      body: {
+        prompt: aiPrompt.value
+      }
+    })
+
+    parsedDefinition.value = response.data
+    specFormat.value = 'json'
+    specInput.value = JSON.stringify(response.data, null, 2)
+
+    toast.add({
+      title: 'Spec wygenerowany',
+      description: response.data.module,
+      color: 'success'
+    })
+  } catch (error) {
+    toast.add({
+      title: 'Blad AI draft',
+      description: error instanceof Error ? error.message : 'Nie udalo sie wygenerowac spec',
       color: 'error'
     })
   } finally {
@@ -240,6 +303,103 @@ function fileContextItems(file?: GeneratedFile | null): ContextMenuItem[][] {
     ]
   ]
 }
+
+function toggleSuggestion(id: string, enabled: boolean | 'indeterminate'): void {
+  if (enabled === 'indeterminate') {
+    return
+  }
+
+  if (enabled) {
+    if (!selectedSuggestionIds.value.includes(id)) {
+      selectedSuggestionIds.value = [...selectedSuggestionIds.value, id]
+    }
+
+    return
+  }
+
+  selectedSuggestionIds.value = selectedSuggestionIds.value.filter(value => value !== id)
+}
+
+async function sendChatPrompt(): Promise<void> {
+  const message = chatInput.value.trim()
+  if (!message || chatLoading.value) return
+
+  chatMessages.value.push({
+    id: `user-${Date.now()}`,
+    role: 'user',
+    parts: [{ type: 'text', text: message }]
+  })
+  chatInput.value = ''
+  chatLoading.value = true
+
+  try {
+    const response = await $fetch<{
+      success: true
+      data: {
+        assistantMessage: string
+        nextQuestion: string | null
+        readyForPlan: boolean
+        suggestions: ChatSuggestion[]
+        definition: ModuleDefinition | null
+      }
+    }>('/api/module-generator/chat', {
+      method: 'POST',
+      body: {
+        message,
+        conversation: chatMessages.value.map(item => ({
+          role: item.role,
+          text: item.parts
+            .filter(part => part.type === 'text')
+            .map(part => part.text)
+            .join('\n')
+        })),
+        selectedSuggestions: chatSuggestions.value
+          .filter(item => selectedSuggestionIds.value.includes(item.id))
+          .map(item => ({ id: item.id, title: item.title, category: item.category })),
+        currentDefinition: chatDefinition.value
+      }
+    })
+
+    chatMessages.value.push({
+      id: `assistant-${Date.now()}`,
+      role: 'assistant',
+      parts: [
+        {
+          type: 'text',
+          text: response.data.nextQuestion
+            ? `${response.data.assistantMessage}\n\nPytanie: ${response.data.nextQuestion}`
+            : response.data.assistantMessage
+        }
+      ]
+    })
+
+    chatSuggestions.value = response.data.suggestions
+    selectedSuggestionIds.value = selectedSuggestionIds.value.filter(id => chatSuggestions.value.some(item => item.id === id))
+    chatReadyForPlan.value = response.data.readyForPlan
+    chatDefinition.value = response.data.definition
+  } catch (error) {
+    toast.add({
+      title: 'Blad chat',
+      description: error instanceof Error ? error.message : 'Nie udalo sie przetworzyc zapytania',
+      color: 'error'
+    })
+  } finally {
+    chatLoading.value = false
+  }
+}
+
+function applyChatDraftToSpec(): void {
+  if (!chatDefinition.value) return
+  parsedDefinition.value = chatDefinition.value
+  specFormat.value = 'json'
+  specInput.value = JSON.stringify(chatDefinition.value, null, 2)
+
+  toast.add({
+    title: 'Draft przeniesiony',
+    description: 'Masz gotowy draft. Potwierdz dalej w Plan.',
+    color: 'success'
+  })
+}
 </script>
 
 <template>
@@ -254,6 +414,60 @@ function fileContextItems(file?: GeneratedFile | null): ContextMenuItem[][] {
 
     <template #body>
       <UTabs :items="tabs" class="w-full">
+        <template #chat>
+          <div class="grid gap-4 lg:grid-cols-[1fr_320px]">
+            <div class="space-y-3">
+              <UChatMessages
+                :messages="chatMessages"
+                :status="chatLoading ? 'streaming' : 'ready'"
+                class="h-[520px] overflow-y-auto rounded-lg border border-default p-3"
+              />
+
+              <UChatPrompt
+                v-model="chatInput"
+                :loading="chatLoading"
+                placeholder="Np. Modul CRM do przypomnien, umow i automatyzacji..."
+                @submit.prevent="sendChatPrompt"
+              />
+            </div>
+
+            <div class="space-y-4">
+              <UAlert
+                color="neutral"
+                variant="soft"
+                title="Propozycje rozszerzen"
+                description="Zaznacz, co uwzglednic. Potem wyslij wiadomosc np. 'uwzglednij zaznaczone propozycje'."
+              />
+
+              <div class="space-y-3 rounded-lg border border-default p-3">
+                <div
+                  v-for="item in chatSuggestions"
+                  :key="item.id"
+                  class="space-y-1 rounded-md border border-default p-2"
+                >
+                  <UCheckbox
+                    :model-value="selectedSuggestionIds.includes(item.id)"
+                    :label="item.title"
+                    @update:model-value="(value) => toggleSuggestion(item.id, value)"
+                  />
+                  <div class="text-xs text-muted">
+                    {{ item.category }} • {{ item.reason }}
+                  </div>
+                </div>
+              </div>
+
+              <UButton
+                block
+                icon="i-lucide-check-check"
+                :disabled="!chatReadyForPlan || !chatDefinition"
+                @click="applyChatDraftToSpec"
+              >
+                Ready plan: potwierdz draft
+              </UButton>
+            </div>
+          </div>
+        </template>
+
         <template #spec>
           <div class="grid gap-4 lg:grid-cols-[1fr_260px]">
             <div class="space-y-4">
@@ -268,6 +482,24 @@ function fileContextItems(file?: GeneratedFile | null): ContextMenuItem[][] {
             </div>
 
             <div class="space-y-4">
+              <UFormField label="AI request" name="aiPrompt">
+                <UTextarea
+                  v-model="aiPrompt"
+                  :rows="5"
+                  class="w-full"
+                  placeholder="Opisz modul, pola i ekran"
+                />
+              </UFormField>
+
+              <UButton
+                block
+                icon="i-lucide-sparkles"
+                :loading="loading"
+                @click="draftSpec"
+              >
+                AI draft
+              </UButton>
+
               <UFormField label="Format" name="specFormat">
                 <USelect
                   v-model="specFormat"
