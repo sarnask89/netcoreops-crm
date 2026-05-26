@@ -45,6 +45,56 @@ function sanitizeId(value: string) {
     .slice(0, 64) || 'suggestion'
 }
 
+function fallbackSuggestions(definition: ModuleDefinition | null, message: string) {
+  if (!definition) return []
+
+  const base: Array<{
+    id: string
+    title: string
+    reason: string
+    category: 'module' | 'route' | 'integration' | 'dictionary' | 'automation'
+  }> = [
+    {
+      id: sanitizeId(`${definition.module}-list-route`),
+      title: `Dodaj route listy dla ${definition.title}`,
+      reason: 'Ulatwia szybkie przejscie z wyszukiwarki dashboard do listy rekordow.',
+      category: 'route'
+    },
+    {
+      id: sanitizeId(`${definition.module}-details-route`),
+      title: `Dodaj route szczegolow dla ${definition.title}`,
+      reason: 'Przydaje sie do nawigacji z wynikow wyszukiwania i linkowania z innych modulow.',
+      category: 'route'
+    },
+    {
+      id: sanitizeId(`${definition.module}-automation-template`),
+      title: `Dodaj szablon automatyzacji dla ${definition.title}`,
+      reason: 'Pozwoli renderowac komendy/skrypty z danych tego modulu.',
+      category: 'automation'
+    }
+  ]
+
+  if (/crm|customer|klient|umow|contract/i.test(message)) {
+    base.push({
+      id: sanitizeId(`${definition.module}-customer-link`),
+      title: 'Powiaz modul z klientem CRM',
+      reason: 'Daje spojny widok klient -> uslugi -> rekordy modulu.',
+      category: 'integration'
+    })
+  }
+
+  if (/network|nms|gpon|onu|olt|ftth/i.test(message)) {
+    base.push({
+      id: sanitizeId(`${definition.module}-equipment-link`),
+      title: 'Powiaz modul z urzadzeniem/equipment',
+      reason: 'Umozliwia nawigacje i diagnostyke z poziomu NMS.',
+      category: 'integration'
+    })
+  }
+
+  return base.slice(0, 8)
+}
+
 function buildPrompt(input: z.infer<typeof bodySchema>) {
   return JSON.stringify({
     task: 'You are a NetCoreOps module generator copilot. Ask focused questions one-by-one, propose related modules/routes/integrations, and produce a valid ModuleDefinition JSON when enough information exists.',
@@ -128,12 +178,13 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const suggestions = (aiPayload.suggestions || []).slice(0, 10).map((item, index) => ({
+  const suggestionsFromAi = (aiPayload.suggestions || []).slice(0, 10).map((item, index) => ({
     id: sanitizeId(item.id || `${item.category}-${item.title}-${index}`),
     title: item.title.trim(),
     reason: item.reason.trim(),
     category: item.category
   }))
+  const suggestions = suggestionsFromAi.length > 0 ? suggestionsFromAi : fallbackSuggestions(definition, body.message)
 
   return {
     success: true,

@@ -400,8 +400,13 @@ async function loadChatModels(): Promise<void> {
     if (!response.data.length) return
 
     chatModelOptions.value = response.data.map(name => ({ label: name, value: name }))
-    if (!response.data.includes(chatModel.value)) {
-      chatModel.value = response.data[0] || 'netcoreops-module-coder'
+    const preferred = response.data.find(name => name === 'deepseek-r1')
+      || response.data.find(name => name.startsWith('qwen3'))
+      || response.data.find(name => name === 'netcoreops-module-coder')
+      || response.data[0]
+
+    if (preferred) {
+      chatModel.value = preferred
     }
   } catch {
     // keep default model silently
