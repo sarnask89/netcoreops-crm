@@ -139,6 +139,7 @@ const chatMessages = ref<UIMessage[]>([
     ]
   }
 ])
+const chatDefinitionJson = computed(() => chatDefinition.value ? JSON.stringify(chatDefinition.value, null, 2) : '')
 
 const fileColumns = [
   {
@@ -454,6 +455,21 @@ function applyChatDraftToSpec(): void {
                     {{ item.category }} • {{ item.reason }}
                   </div>
                 </div>
+              </div>
+
+              <div v-if="chatDefinition" class="space-y-3 rounded-lg border border-default p-3">
+                <div class="text-sm font-medium">
+                  Draft do zatwierdzenia
+                </div>
+                <div class="text-xs text-muted">
+                  {{ chatDefinition.module }} | {{ chatDefinition.tableName }} | {{ chatDefinition.route }} | pola: {{ chatDefinition.fields.length }}
+                </div>
+                <UTextarea
+                  :model-value="chatDefinitionJson"
+                  :rows="14"
+                  readonly
+                  class="w-full font-mono text-xs"
+                />
               </div>
 
               <UButton
