@@ -48,6 +48,9 @@ importers:
       fast-xml-parser:
         specifier: ^5.8.0
         version: 5.8.0
+      h3:
+        specifier: 1.15.11
+        version: 1.15.11
       node-routeros:
         specifier: ^1.6.9
         version: 1.6.9
