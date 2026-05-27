@@ -3,7 +3,8 @@ import { Pool } from 'pg'
 import * as relations from '../db/relations'
 import * as schema from '../db/schema'
 
-const connectionString = process.env.DATABASE_URL
+const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_URL_NON_POOLING
+const isVercelRuntime = Boolean(process.env.VERCEL)
 
 if (!connectionString) {
   console.warn('DATABASE_URL is not set. Database-backed API routes will fail until it is configured.')
@@ -11,10 +12,8 @@ if (!connectionString) {
 
 export const pool = new Pool({
   connectionString,
-  // Increase pool size for handling concurrent requests
-  max: 20,
-  // Keep minimum connections warm
-  min: 5,
+  max: isVercelRuntime ? 1 : 20,
+  min: isVercelRuntime ? 0 : 5,
   // Timeout waiting for a connection from the pool
   connectionTimeoutMillis: 2000,
   // Timeout for idle connections before closing
