@@ -1,7 +1,12 @@
 import 'dotenv/config'
 import { defineConfig } from 'drizzle-kit'
 
-const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_URL_NON_POOLING
+const databaseUrl = process.env.DATABASE_URL
+  || process.env.POSTGRES_URL
+  || process.env.POSTGRES_URL_NON_POOLING
+  || process.env.pgdb_DATABASE_URL
+  || process.env.pgdb_POSTGRES_URL
+  || process.env.pgdb_POSTGRES_URL_NON_POOLING
 
 export default defineConfig({
   dialect: 'postgresql',

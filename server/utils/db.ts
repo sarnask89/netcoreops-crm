@@ -3,7 +3,12 @@ import { Pool } from 'pg'
 import * as relations from '../db/relations'
 import * as schema from '../db/schema'
 
-const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_URL_NON_POOLING
+const connectionString = process.env.DATABASE_URL
+  || process.env.POSTGRES_URL
+  || process.env.POSTGRES_URL_NON_POOLING
+  || process.env.pgdb_DATABASE_URL
+  || process.env.pgdb_POSTGRES_URL
+  || process.env.pgdb_POSTGRES_URL_NON_POOLING
 const isVercelRuntime = Boolean(process.env.VERCEL)
 
 if (!connectionString) {
