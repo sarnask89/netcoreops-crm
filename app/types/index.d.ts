@@ -131,6 +131,31 @@ export interface DashboardTopUserPoint {
   flows: number
 }
 
+export interface SnmpQueuePoint {
+  timestamp: string
+  equipmentId: string
+  queueName: string
+  bytesIn: number
+  bytesOut: number
+  packetsIn: number
+  packetsOut: number
+  droppedIn: number
+  droppedOut: number
+  pcqQueuesIn: number
+  pcqQueuesOut: number
+}
+
+export interface SnmpSystemPoint {
+  timestamp: string
+  equipmentId: string
+  cpuLoad: number | null
+  temperature: number | null
+  totalMemory: number | null
+  freeMemory: number | null
+  boardName: string | null
+  version: string | null
+}
+
 export interface DashboardSummary {
   counters: {
     customers: number
@@ -148,6 +173,8 @@ export interface DashboardSummary {
   activeUsers: DashboardActiveUsersPoint[]
   collectorHealth: DashboardCollectorHealthPoint[]
   topUsers: DashboardTopUserPoint[]
+  snmpQueues: SnmpQueuePoint[]
+  snmpSystem: SnmpSystemPoint[]
 }
 
 export type Period = 'daily' | 'weekly' | 'monthly'

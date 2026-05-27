@@ -39,6 +39,7 @@ export default apiHandler(async () => {
     onuCount,
     activeOnuCount,
     diagnosticRows,
+    snmpPollRows,
     netflowConfigRows,
     netflowRows,
     activeUserRows,
@@ -57,6 +58,11 @@ export default apiHandler(async () => {
     db.select({ count: sql<number>`count(*)::int` }).from(ftthOnus).then(rows => rows[0]?.count || 0),
     db.select({ count: sql<number>`count(*)::int` }).from(ftthOnus).where(sql`${ftthOnus.status} = 'Active'`).then(rows => rows[0]?.count || 0),
     db.query.diagnosticRuns.findMany({
+      orderBy: (table, { desc }) => [desc(table.createdAt)],
+      limit: 500
+    }),
+    db.query.diagnosticRuns.findMany({
+      where: (table, { eq }) => eq(table.runType, 'snmp-poll'),
       orderBy: (table, { desc }) => [desc(table.createdAt)],
       limit: 500
     }),
@@ -254,6 +260,89 @@ export default apiHandler(async () => {
     if (!latestHealthByExporter.has(key)) latestHealthByExporter.set(key, row)
   }
 
+  const snmpQueuePoints: Array<{
+    timestamp: string
+    equipmentId: string
+    queueName: string
+    bytesIn: number
+    bytesOut: number
+    packetsIn: number
+    packetsOut: number
+    droppedIn: number
+    droppedOut: number
+    pcqQueuesIn: number
+    pcqQueuesOut: number
+  }> = []
+
+  const snmpSystemPoints: Array<{
+    timestamp: string
+    equipmentId: string
+    cpuLoad: number | null
+    temperature: number | null
+    totalMemory: number | null
+    freeMemory: number | null
+    boardName: string | null
+    version: string | null
+  }> = []
+
+  for (const run of snmpPollRows) {
+    const result = run.result as {
+      queues?: Array<{
+        name: string
+        bytesIn: number
+        bytesOut: number
+        packetsIn: number
+        packetsOut: number
+        droppedIn: number
+        droppedOut: number
+        pcqQueuesIn: number
+        pcqQueuesOut: number
+      }>
+      system?: {
+        cpuLoad: number | null
+        temperature: number | null
+        totalMemory: number | null
+        freeMemory: number | null
+        boardName: string | null
+        version: string | null
+      }
+    }
+
+    const timestamp = run.createdAt.toISOString()
+    const equipmentId = run.equipmentId || ''
+
+    if (result.queues) {
+      for (const q of result.queues) {
+        snmpQueuePoints.push({
+          timestamp,
+          equipmentId,
+          queueName: q.name,
+          bytesIn: toNumber(q.bytesIn),
+          bytesOut: toNumber(q.bytesOut),
+          packetsIn: toNumber(q.packetsIn),
+          packetsOut: toNumber(q.packetsOut),
+          droppedIn: toNumber(q.droppedIn),
+          droppedOut: toNumber(q.droppedOut),
+          pcqQueuesIn: toNumber(q.pcqQueuesIn),
+          pcqQueuesOut: toNumber(q.pcqQueuesOut)
+        })
+      }
+    }
+
+    if (result.system) {
+      snmpSystemPoints.push({
+        timestamp,
+        equipmentId,
+        cpuLoad: result.system.cpuLoad,
+        temperature: result.system.temperature,
+        totalMemory: result.system.totalMemory,
+        freeMemory: result.system.freeMemory,
+        boardName: result.system.boardName,
+        version: result.system.version
+      })
+    }
+  }
+
   return {
     success: true,
     data: {
@@ -320,7 +409,13 @@ export default apiHandler(async () => {
       })),
       topUsers: Array.from(topUsersByKey.values())
         .sort((a, b) => (b.downloadBps + b.uploadBps) - (a.downloadBps + a.uploadBps))
-        .slice(0, 12)
+        .slice(0, 12),
+      snmpQueues: snmpQueuePoints
+        .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+        .slice(-2000),
+      snmpSystem: snmpSystemPoints
+        .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+        .slice(-500)
     }
   }
 })

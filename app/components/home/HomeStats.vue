@@ -26,7 +26,9 @@ const { data: summary } = await useFetch<{ success: boolean, data: DashboardSumm
       netflowInterfaces: [],
       activeUsers: [],
       collectorHealth: [],
-      topUsers: []
+      topUsers: [],
+      snmpQueues: [],
+      snmpSystem: []
     }
   })
 })

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
 import { VisXYContainer, VisLine, VisAxis, VisArea, VisCrosshair, VisTooltip } from '@unovis/vue'
-import type { DashboardNetflowInterfacePoint, DashboardSummary, DashboardTelemetryPoint, Period, Range } from '~/types'
+import type { DashboardNetflowInterfacePoint, DashboardSummary, DashboardTelemetryPoint, SnmpQueuePoint, SnmpSystemPoint, Period, Range } from '~/types'
 
 const cardRef = useTemplateRef<HTMLElement | null>('cardRef')
 
@@ -31,7 +31,9 @@ const { data: summary } = await useFetch<{ success: boolean, data: DashboardSumm
       netflowInterfaces: [],
       activeUsers: [],
       collectorHealth: [],
-      topUsers: []
+      topUsers: [],
+      snmpQueues: [],
+      snmpSystem: []
     }
   })
 })
@@ -85,6 +87,8 @@ const netflowInterfaces = computed(() => summary.value.data.netflowInterfaces ||
 const activeUsers = computed(() => summary.value.data.activeUsers || [])
 const collectorHealth = computed(() => summary.value.data.collectorHealth || [])
 const topUsers = computed(() => summary.value.data.topUsers || [])
+const snmpQueues = computed(() => summary.value.data.snmpQueues || [])
+const snmpSystem = computed(() => summary.value.data.snmpSystem || [])
 const activeUserScope = ref<'total' | 'equipment' | 'dhcp-server' | 'interface'>('total')
 const activeUserTarget = ref('all')
 
@@ -189,6 +193,123 @@ const interfaceSections = computed(() => [
     charts: interfaceCharts.value.filter(chart => chart.role === 'dhcp')
   }
 ])
+
+// ── SNMP Queue charts ───────────────────────────────────────────────────
+
+interface QueueChart {
+  key: string
+  equipmentId: string
+  queueName: string
+  rows: SnmpQueuePoint[]
+  totalBytesIn: number
+  totalBytesOut: number
+  totalDroppedIn: number
+  totalDroppedOut: number
+}
+
+const queueCharts = computed<QueueChart[]>(() => {
+  const map = new Map<string, SnmpQueuePoint[]>()
+  for (const point of snmpQueues.value) {
+    const key = `${point.equipmentId}|${point.queueName}`
+    if (!map.has(key)) map.set(key, [])
+    map.get(key)!.push(point)
+  }
+  return Array.from(map.entries())
+    .map(([key, rows]) => {
+      const sep = key.indexOf('|')
+      const equipmentId = sep >= 0 ? key.slice(0, sep) : ''
+      const queueName = sep >= 0 ? key.slice(sep + 1) : key
+      const sorted = rows.sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+      return {
+        key,
+        equipmentId,
+        queueName,
+        rows: sorted,
+        totalBytesIn: sorted.reduce((s, r) => s + r.bytesIn, 0),
+        totalBytesOut: sorted.reduce((s, r) => s + r.bytesOut, 0),
+        totalDroppedIn: sorted.reduce((s, r) => s + r.droppedIn, 0),
+        totalDroppedOut: sorted.reduce((s, r) => s + r.droppedOut, 0)
+      }
+    })
+    .sort((a, b) => a.queueName.localeCompare(b.queueName))
+})
+
+const queueX = (_: SnmpQueuePoint, i: number) => i
+const queueBytesInY = (row: SnmpQueuePoint) => row.bytesIn
+const queueBytesOutY = (row: SnmpQueuePoint) => row.bytesOut
+const queueDroppedInY = (row: SnmpQueuePoint) => row.droppedIn
+const queueDroppedOutY = (row: SnmpQueuePoint) => row.droppedOut
+
+function queueTicks(rows: SnmpQueuePoint[], i: number) {
+  const row = rows[i]
+  if (!row || (i !== 0 && i !== rows.length - 1 && i % 3 !== 0)) return ''
+  return format(new Date(row.timestamp), 'dd.MM HH:mm')
+}
+
+function queueTemplate(chart: QueueChart, row: SnmpQueuePoint) {
+  return [
+    format(new Date(row.timestamp), 'dd.MM HH:mm'),
+    `DL: ${formatBytes(row.bytesIn)} (rzucone ${formatBytes(row.droppedIn)})`,
+    `UL: ${formatBytes(row.bytesOut)} (rzucone ${formatBytes(row.droppedOut)})`
+  ].join('<br>')
+}
+
+// ── SNMP System resources ───────────────────────────────────────────────
+
+interface SystemChartRow {
+  timestamp: string
+  cpuLoad: number | null
+  temperature: number | null
+}
+
+interface SystemResourceChart {
+  equipmentId: string
+  boardName: string | null
+  version: string | null
+  cpuRows: SystemChartRow[]
+}
+
+const systemCharts = computed<SystemResourceChart[]>(() => {
+  const byEquipment = new Map<string, SnmpSystemPoint[]>()
+  for (const point of snmpSystem.value) {
+    if (!byEquipment.has(point.equipmentId)) byEquipment.set(point.equipmentId, [])
+    byEquipment.get(point.equipmentId)!.push(point)
+  }
+  return Array.from(byEquipment.entries())
+    .map(([equipmentId, points]) => {
+      const sorted = points.sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+      const first = sorted[0]
+      return {
+        equipmentId,
+        boardName: first?.boardName || null,
+        version: first?.version || null,
+        cpuRows: sorted.map(p => ({
+          timestamp: p.timestamp,
+          cpuLoad: p.cpuLoad,
+          temperature: p.temperature
+        }))
+      }
+    })
+    .sort((a, b) => (a.boardName || '').localeCompare(b.boardName || ''))
+})
+
+const systemX = (_: SystemChartRow, i: number) => i
+const systemCpuY = (row: SystemChartRow) => row.cpuLoad ?? 0
+const systemTempY = (row: SystemChartRow) => row.temperature ?? 0
+
+function systemTicks(rows: SystemChartRow[], i: number) {
+  const row = rows[i]
+  if (!row || (i !== 0 && i !== rows.length - 1 && i % 3 !== 0)) return ''
+  return format(new Date(row.timestamp), 'dd.MM HH:mm')
+}
+
+function systemTemplate(chart: SystemResourceChart, row: SystemChartRow) {
+  return [
+    format(new Date(row.timestamp), 'dd.MM HH:mm'),
+    row.cpuLoad != null ? `CPU: ${row.cpuLoad}%` : '',
+    row.temperature != null ? `Temp: ${row.temperature}°C` : ''
+  ].filter(Boolean).join('<br>')
+}
 
 const interfaceX = (_: InterfaceChartRow, i: number) => i
 const interfaceRxY = (chart: InterfaceChart) => (row: InterfaceChartRow) =>
@@ -598,6 +719,158 @@ const activeUsersTemplate = (row: ActiveUsersChartRow) =>
       </UCard>
     </div>
   </section>
+
+  <!-- ── SNMP Queue charts ────────────────────────────────────────── -->
+  <section v-if="queueCharts.length" class="space-y-3">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="text-xs text-muted uppercase mb-1">
+          Kolejki SNMP z urządzeń MikroTik
+        </p>
+        <h2 class="text-lg text-highlighted font-semibold">
+          Kolejki proste
+        </h2>
+      </div>
+      <UBadge color="neutral" variant="subtle">
+        {{ queueCharts.length }} kolejek
+      </UBadge>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <UCard
+        v-for="chart in queueCharts"
+        :key="chart.key"
+        :ui="{ root: 'overflow-visible', body: 'px-0! pt-0! pb-3!' }"
+      >
+        <template #header>
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="min-w-0">
+              <p class="text-xs text-muted uppercase mb-1.5">
+                {{ chart.equipmentId || 'SNMP' }}
+              </p>
+              <p class="text-lg text-highlighted font-semibold break-words">
+                {{ chart.queueName }}
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <UBadge color="primary" variant="subtle">
+                DL {{ formatBytes(chart.totalBytesIn) }}
+              </UBadge>
+              <UBadge color="info" variant="subtle">
+                UL {{ formatBytes(chart.totalBytesOut) }}
+              </UBadge>
+            </div>
+          </div>
+        </template>
+
+        <div class="px-6 pb-2 flex flex-wrap gap-3 text-xs text-muted">
+          <span>pobrano</span>
+          <span>wysłano</span>
+          <span>rzucone DL {{ formatBytes(chart.totalDroppedIn) }}</span>
+          <span>rzucone UL {{ formatBytes(chart.totalDroppedOut) }}</span>
+        </div>
+
+        <VisXYContainer
+          :data="chart.rows"
+          :padding="{ top: 18, left: 42, right: 16, bottom: 22 }"
+          class="h-56"
+        >
+          <VisLine :x="queueX" :y="queueBytesInY" color="var(--ui-primary)" />
+          <VisLine :x="queueX" :y="queueBytesOutY" color="var(--ui-info)" />
+          <VisArea
+            :x="queueX"
+            :y="queueDroppedInY"
+            color="var(--ui-error)"
+            :opacity="0.12"
+          />
+          <VisArea
+            :x="queueX"
+            :y="queueDroppedOutY"
+            color="var(--ui-warning)"
+            :opacity="0.12"
+          />
+          <VisAxis type="x" :x="queueX" :tick-format="(i: number) => queueTicks(chart.rows, i)" />
+          <VisAxis type="y" :tick-format="formatBps" />
+          <VisCrosshair color="var(--ui-primary)" :template="(row: SnmpQueuePoint) => queueTemplate(chart, row)" />
+          <VisTooltip />
+        </VisXYContainer>
+      </UCard>
+    </div>
+  </section>
+
+  <div v-else class="py-2">
+    <UAlert
+      color="neutral"
+      variant="subtle"
+      icon="i-lucide-chart-no-axes-combined"
+      title="Brak danych kolejek SNMP"
+      description="Po wykonaniu diagnostyki SNMP na urządzeniu MikroTik wykresy kolejek pojawią się automatycznie."
+    />
+  </div>
+
+  <!-- ── SNMP System resources ────────────────────────────────────── -->
+  <section v-if="systemCharts.length" class="space-y-3">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="text-xs text-muted uppercase mb-1">
+          Zasoby systemowe z SNMP
+        </p>
+        <h2 class="text-lg text-highlighted font-semibold">
+          CPU / temperatura
+        </h2>
+      </div>
+      <UBadge color="neutral" variant="subtle">
+        {{ systemCharts.length }} urządzeń
+      </UBadge>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <UCard
+        v-for="chart in systemCharts"
+        :key="chart.equipmentId"
+        :ui="{ root: 'overflow-visible', body: 'px-0! pt-0! pb-3!' }"
+      >
+        <template #header>
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="min-w-0">
+              <p class="text-xs text-muted uppercase mb-1.5">
+                {{ chart.boardName || chart.equipmentId || 'SNMP' }}
+              </p>
+              <p class="text-lg text-highlighted font-semibold">
+                CPU i temperatura
+              </p>
+            </div>
+            <UBadge v-if="chart.version" color="neutral" variant="subtle">
+              v{{ chart.version }}
+            </UBadge>
+          </div>
+        </template>
+
+        <VisXYContainer
+          :data="chart.cpuRows"
+          :padding="{ top: 18, left: 42, right: 16, bottom: 22 }"
+          class="h-56"
+        >
+          <VisLine :x="systemX" :y="systemCpuY" color="var(--ui-primary)" />
+          <VisLine :x="systemX" :y="systemTempY" color="var(--ui-warning)" />
+          <VisAxis type="x" :x="systemX" :tick-format="(i: number) => systemTicks(chart.cpuRows, i)" />
+          <VisAxis type="y" />
+          <VisCrosshair color="var(--ui-primary)" :template="(row: SystemChartRow) => systemTemplate(chart, row)" />
+          <VisTooltip />
+        </VisXYContainer>
+      </UCard>
+    </div>
+  </section>
+
+  <div v-else class="py-2">
+    <UAlert
+      color="neutral"
+      variant="subtle"
+      icon="i-lucide-chart-no-axes-combined"
+      title="Brak danych zasobów SNMP"
+      description="Po wykonaniu diagnostyki SNMP na urządzeniu MikroTik wykresy CPU/temperatury pojawią się automatycznie."
+    />
+  </div>
 </template>
 
 <style scoped>
