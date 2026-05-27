@@ -1,18 +1,22 @@
 import { z } from 'zod'
+import {
+  addressReferenceSchema,
+  createCustomerSchema,
+  sevenDigitCodeSchema,
+  updateCustomerSchema
+} from '../../shared/schemas/customers'
 
-export const sevenDigitCodeSchema = z.string().regex(/^[0-9]{7}$/, 'Kod musi mieć dokładnie 7 cyfr')
+export {
+  addressReferenceSchema,
+  createCustomerSchema,
+  sevenDigitCodeSchema,
+  updateCustomerSchema
+}
+
 const emptyToNull = (value: unknown) => value === '' ? null : value
 const optionalText = z.preprocess(emptyToNull, z.string().trim().max(255).optional().nullable())
 const optionalManagementIp = z.preprocess(emptyToNull, z.string().trim().max(45).regex(/^[0-9a-fA-F:.]+$/, 'Niepoprawny adres IP').optional().nullable())
 const optionalHostname = z.preprocess(emptyToNull, z.string().trim().max(255).regex(/^[a-zA-Z0-9](?:[a-zA-Z0-9.-]*[a-zA-Z0-9])?$/, 'Niepoprawny hostname').optional().nullable())
-
-export const addressReferenceSchema = z.object({
-  terytCode: sevenDigitCodeSchema,
-  simcCode: sevenDigitCodeSchema,
-  ulicCode: z.string().regex(/^[0-9]{5,7}$/).nullable().optional(),
-  buildingNumber: z.string().max(30).nullable().optional(),
-  apartmentNumber: z.string().max(30).nullable().optional()
-})
 
 export const createNodeSchema = z.object({
   inventoryId: z.string().min(1).max(100),
@@ -55,42 +59,6 @@ export const createEquipmentSchema = z.object({
   onuId: optionalText,
   notes: z.preprocess(emptyToNull, z.string().nullable().optional()),
   status: z.enum(['IN_USE', 'SPARE', 'FAILED', 'DECOMMISSIONED']).default('IN_USE')
-})
-
-const customerBaseSchema = z.object({
-  customerType: z.enum(['INDIVIDUAL', 'BUSINESS']),
-  fullName: z.string().max(255).nullable().optional(),
-  firstName: optionalText,
-  lastName: optionalText,
-  pesel: z.preprocess(emptyToNull, z.string().regex(/^[0-9]{11}$/, 'PESEL musi mieć 11 cyfr').nullable().optional()),
-  identityDocumentNumber: optionalText,
-  companyName: optionalText,
-  taxId: z.preprocess(emptyToNull, z.string().max(50).nullable().optional()),
-  regon: z.preprocess(emptyToNull, z.string().regex(/^[0-9]{9,14}$/, 'REGON musi mieć 9 albo 14 cyfr').nullable().optional()),
-  krs: z.preprocess(emptyToNull, z.string().max(20).nullable().optional()),
-  representativeName: optionalText,
-  contactEmail: z.preprocess(emptyToNull, z.string().email().nullable().optional()),
-  contactPhone: z.preprocess(emptyToNull, z.string().max(50).nullable().optional()),
-  billingAddressRef: addressReferenceSchema.nullable().optional(),
-  billingAddress: z.preprocess(emptyToNull, z.string().nullable().optional())
-})
-
-export const createCustomerSchema = customerBaseSchema.superRefine((value, ctx) => {
-  if (value.customerType === 'INDIVIDUAL' && (!value.firstName || !value.lastName)) {
-    ctx.addIssue({
-      code: 'custom',
-      path: ['firstName'],
-      message: 'Klient indywidualny wymaga imienia i nazwiska'
-    })
-  }
-
-  if (value.customerType === 'BUSINESS' && !value.companyName) {
-    ctx.addIssue({
-      code: 'custom',
-      path: ['companyName'],
-      message: 'Firma wymaga nazwy'
-    })
-  }
 })
 
 export const createServiceSchema = z.object({
@@ -161,7 +129,6 @@ export const archiveSchema = z.object({
   archiveReason: z.preprocess(emptyToNull, z.string().max(500).nullable().optional())
 })
 
-export const updateCustomerSchema = customerBaseSchema.partial()
 export const updateCustomerDeviceSchema = createCustomerDeviceSchema.partial()
 export const updateServiceSchema = createServiceSchema.partial()
 export const updateNodeSchema = z.object({
