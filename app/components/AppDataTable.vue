@@ -55,7 +55,7 @@ function onContextmenu(event: MouseEvent) {
     return
   }
 
-  const index = Array.from(body.children).indexOf(row)
+  const index = row instanceof HTMLTableRowElement ? row.sectionRowIndex : -1
   currentRow.value = pagedData.value[index] || null
 }
 </script>

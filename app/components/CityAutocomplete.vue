@@ -16,28 +16,42 @@ const emit = defineEmits<{
 const listId = `city-${useId()}`
 const suggestions = ref<CitySuggestion[]>([])
 let currentRequest = 0
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
-watch(model, async (value) => {
+watch(model, (value) => {
   const term = value.trim()
   const request = ++currentRequest
+
+  if (searchTimer) {
+    clearTimeout(searchTimer)
+    searchTimer = null
+  }
 
   if (term.length < 2) {
     suggestions.value = []
     return
   }
 
-  try {
-    const response = await $fetch<{ success: boolean, data: CitySuggestion[] }>('/api/addresses/cities/search', {
-      query: { q: term }
-    })
+  searchTimer = setTimeout(async () => {
+    try {
+      const response = await $fetch<{ success: boolean, data: CitySuggestion[] }>('/api/addresses/cities/search', {
+        query: { q: term }
+      })
 
-    if (request === currentRequest) {
-      suggestions.value = response.data
+      if (request === currentRequest) {
+        suggestions.value = response.data
+      }
+    } catch {
+      if (request === currentRequest) {
+        suggestions.value = []
+      }
     }
-  } catch {
-    if (request === currentRequest) {
-      suggestions.value = []
-    }
+  }, 150)
+})
+
+onBeforeUnmount(() => {
+  if (searchTimer) {
+    clearTimeout(searchTimer)
   }
 })
 

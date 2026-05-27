@@ -251,17 +251,34 @@ watch(searchTerm, (value) => {
     return
   }
 
+  const term = value
+
   searchTimer = setTimeout(async () => {
-    const response = await $fetch<{ success: boolean, data: SearchItem[] }>('/api/search', {
-      query: { q: value }
-    })
-    databaseSearchItems.value = response.data.map(item => ({
-      ...item,
-      onSelect: () => {
-        open.value = false
+    try {
+      const response = await $fetch<{ success: boolean, data: SearchItem[] }>('/api/search', {
+        query: { q: term }
+      })
+
+      if (term !== searchTerm.value) {
+        return
       }
-    }))
+
+      databaseSearchItems.value = response.data.map(item => ({
+        ...item,
+        onSelect: () => {
+          open.value = false
+        }
+      }))
+    } catch {
+      if (term === searchTerm.value) {
+        databaseSearchItems.value = []
+      }
+    }
   }, 150)
+})
+
+onBeforeUnmount(() => {
+  if (searchTimer) clearTimeout(searchTimer)
 })
 
 function flattenNavigationItems(items: NavigationMenuItem[]): SearchItem[] {
