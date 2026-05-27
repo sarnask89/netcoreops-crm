@@ -42,6 +42,10 @@ function onuLabel(oltPort: string, onuId: string) {
   return `${oltPort}/${onuId}`
 }
 
+function onuKey(oltPort: string, onuId: string) {
+  return `${oltPort}:${onuId}`
+}
+
 function numericPart(value: string) {
   const parsed = Number.parseInt(value, 10)
   return Number.isFinite(parsed) ? parsed : Number.MAX_SAFE_INTEGER
@@ -136,16 +140,24 @@ export async function runDasanMacMapImport(options: DasanImportRunnerOptions): P
 
   options.onProgress?.({ ...progress })
 
+  const selectedKeys = new Set(onus.map(onu => onuKey(onu.oltPort, onu.onuId)))
+  const onusByPort = new Map<string, typeof onus>()
+
   for (const onu of onus) {
-    progress.currentOnu = onuLabel(onu.oltPort, onu.onuId)
+    const portOnus = onusByPort.get(onu.oltPort) || []
+    portOnus.push(onu)
+    onusByPort.set(onu.oltPort, portOnus)
+  }
+
+  for (const [oltPort, portOnus] of onusByPort) {
+    progress.currentOnu = `PON ${oltPort}`
     options.onProgress?.({ ...progress })
 
-    if (onu.oltPort && onu.onuId) {
-      macTables.push(...await options.driver.getOnuMacTable(onu.oltPort, onu.onuId))
-      progress.macRows = macTables.length
-    }
+    const portRows = await options.driver.getOltMacTable(oltPort)
+    macTables.push(...portRows.filter(row => row.oltPort && row.onuId && selectedKeys.has(onuKey(row.oltPort, row.onuId))))
+    progress.macRows = macTables.length
 
-    progress.processedOnus += 1
+    progress.processedOnus += portOnus.length
     options.onProgress?.({ ...progress })
   }
 
