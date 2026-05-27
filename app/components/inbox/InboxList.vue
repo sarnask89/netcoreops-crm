@@ -46,7 +46,7 @@ defineShortcuts({
   <div class="overflow-y-auto divide-y divide-default">
     <div
       v-for="(mail, index) in mails"
-      :key="index"
+      :key="mail.id ?? index"
       :ref="(el) => { mailsRefs[mail.id] = el as Element | null }"
     >
       <div

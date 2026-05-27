@@ -19,7 +19,6 @@ interface SearchGroup {
 const open = ref(false)
 const searchTerm = ref('')
 const databaseSearchItems = ref<SearchItem[]>([])
-let searchTimer: ReturnType<typeof setTimeout> | undefined
 
 const links = [[{
   label: 'Pulpit',
@@ -243,42 +242,36 @@ const groups = computed<SearchGroup[]>(() => {
   }, ...baseGroups]
 })
 
-watch(searchTerm, (value) => {
-  if (searchTimer) clearTimeout(searchTimer)
+const debouncedSearch = useDebounceFn(async (term: string) => {
+  try {
+    const response = await $fetch<{ success: boolean, data: SearchItem[] }>('/api/search', {
+      query: { q: term }
+    })
 
+    if (term !== searchTerm.value) {
+      return
+    }
+
+    databaseSearchItems.value = response.data.map(item => ({
+      ...item,
+      onSelect: () => {
+        open.value = false
+      }
+    }))
+  } catch {
+    if (term === searchTerm.value) {
+      databaseSearchItems.value = []
+    }
+  }
+}, 150)
+
+watch(searchTerm, (value) => {
   if (!value.startsWith('@') || value.length < 2) {
     databaseSearchItems.value = []
     return
   }
 
-  const term = value
-
-  searchTimer = setTimeout(async () => {
-    try {
-      const response = await $fetch<{ success: boolean, data: SearchItem[] }>('/api/search', {
-        query: { q: term }
-      })
-
-      if (term !== searchTerm.value) {
-        return
-      }
-
-      databaseSearchItems.value = response.data.map(item => ({
-        ...item,
-        onSelect: () => {
-          open.value = false
-        }
-      }))
-    } catch {
-      if (term === searchTerm.value) {
-        databaseSearchItems.value = []
-      }
-    }
-  }, 150)
-})
-
-onBeforeUnmount(() => {
-  if (searchTimer) clearTimeout(searchTimer)
+  debouncedSearch(value)
 })
 
 function flattenNavigationItems(items: NavigationMenuItem[]): SearchItem[] {

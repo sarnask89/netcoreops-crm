@@ -32,14 +32,14 @@ watchEffect(() => {
   profile.bio = account.value.data.role
 })
 
-async function onSubmit(event: FormSubmitEvent<ProfileSchema>) {
+async function onSubmit(_event: FormSubmitEvent<ProfileSchema>) {
   toast.add({
     title: 'Zapisano ustawienia',
     description: 'Profil lokalny został zaktualizowany w bieżącej sesji.',
     icon: 'i-lucide-check',
     color: 'success'
   })
-  console.log(event.data)
+  // TODO: persist profile changes via API
 }
 
 function onFileChange(e: Event) {

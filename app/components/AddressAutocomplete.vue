@@ -18,50 +18,41 @@ const emit = defineEmits<{
 const listId = `address-${useId()}`
 const suggestions = ref<AddressSuggestion[]>([])
 let currentRequest = 0
-let searchTimer: ReturnType<typeof setTimeout> | null = null
+
+const debouncedSearch = useDebounceFn(async (term: string) => {
+  const request = ++currentRequest
+
+  try {
+    const response = await $fetch<{ success: boolean, data: AddressSuggestion[] }>('/api/addresses/search', {
+      query: { q: term }
+    })
+
+    if (request !== currentRequest) {
+      return
+    }
+
+    suggestions.value = response.data
+
+    const selected = suggestions.value.find(item => item.label === term)
+    if (selected) {
+      emit('select', selected)
+    }
+  } catch {
+    if (request === currentRequest) {
+      suggestions.value = []
+    }
+  }
+}, 150)
 
 watch(model, (value) => {
   const term = value.trim()
-  const request = ++currentRequest
-
-  if (searchTimer) {
-    clearTimeout(searchTimer)
-    searchTimer = null
-  }
 
   if (term.length < 2) {
     suggestions.value = []
     return
   }
 
-  searchTimer = setTimeout(async () => {
-    try {
-      const response = await $fetch<{ success: boolean, data: AddressSuggestion[] }>('/api/addresses/search', {
-        query: { q: term }
-      })
-
-      if (request !== currentRequest) {
-        return
-      }
-
-      suggestions.value = response.data
-
-      const selected = suggestions.value.find(item => item.label === value)
-      if (selected) {
-        emit('select', selected)
-      }
-    } catch {
-      if (request === currentRequest) {
-        suggestions.value = []
-      }
-    }
-  }, 150)
-})
-
-onBeforeUnmount(() => {
-  if (searchTimer) {
-    clearTimeout(searchTimer)
-  }
+  debouncedSearch(term)
 })
 </script>
 
@@ -77,7 +68,7 @@ onBeforeUnmount(() => {
     <datalist :id="listId">
       <option
         v-for="suggestion in suggestions"
-        :key="suggestion.value"
+        :key="suggestion.label"
         :value="suggestion.label"
       />
     </datalist>

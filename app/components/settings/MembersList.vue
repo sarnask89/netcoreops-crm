@@ -6,13 +6,29 @@ defineProps<{
   members: Member[]
 }>()
 
+const toast = useToast()
+
 const items = [{
   label: 'Edit member',
-  onSelect: () => console.log('Edit member')
+  onSelect: () => {
+    toast.add({
+      title: 'Edycja członka',
+      description: 'Zarządzanie członkami zespołu będzie dostępne w kolejnej wersji.',
+      icon: 'i-lucide-pencil',
+      color: 'neutral'
+    })
+  }
 }, {
   label: 'Remove member',
   color: 'error' as const,
-  onSelect: () => console.log('Remove member')
+  onSelect: () => {
+    toast.add({
+      title: 'Usuwanie członka',
+      description: 'Zarządzanie członkami zespołu będzie dostępne w kolejnej wersji.',
+      icon: 'i-lucide-trash-2',
+      color: 'neutral'
+    })
+  }
 }] satisfies DropdownMenuItem[]
 </script>
 

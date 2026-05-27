@@ -37,7 +37,7 @@ function isSimpleArray(arr: unknown[]): boolean {
           <div class="bg-elevated/70 px-3 py-1.5 text-xs font-medium text-muted uppercase tracking-wide border-b border-default">
             Element {{ idx + 1 }}
           </div>
-          <AppObjectView v-if="subItem && typeof subItem === 'object' && !Array.isArray(subItem)" :value="subItem as Record<string, unknown>" />
+          <LazyAppObjectView v-if="subItem && typeof subItem === 'object' && !Array.isArray(subItem)" :value="subItem as Record<string, unknown>" />
           <div v-else class="px-3 py-2 text-sm text-default">
             {{ subItem === null || subItem === undefined ? '—' : String(subItem) }}
           </div>
@@ -51,7 +51,7 @@ function isSimpleArray(arr: unknown[]): boolean {
 
       <!-- Object key-value view -->
       <div v-else-if="typeof item === 'object' && item !== null" class="max-h-[calc(100svh-16rem)] overflow-auto">
-        <AppObjectView :value="item as Record<string, unknown>" />
+        <LazyAppObjectView :value="item as Record<string, unknown>" />
       </div>
 
       <!-- Primitive value -->
