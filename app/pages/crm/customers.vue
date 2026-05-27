@@ -3,6 +3,12 @@ import * as z from 'zod'
 import type { ContextMenuItem, FormSubmitEvent, TableColumn } from '@nuxt/ui'
 import { customerFormSchema, type CustomerFormSchema } from '#shared/schemas/customers'
 
+interface PortalAccessData {
+  login: string
+  password: string
+  message: string
+}
+
 interface CustomerRow {
   id: string
   fullName: string
@@ -25,6 +31,7 @@ interface CustomerRow {
   billingBuildingNumber?: string | null
   billingApartmentNumber?: string | null
   importIssues?: string[]
+  portalUser?: { id: string, login: string, isActive: boolean, lastLoginAt: string | null } | null
   services: Array<{
     id?: string
     status: string
@@ -54,6 +61,9 @@ const archiveOpen = ref(false)
 const selectedRow = ref<CustomerRow | null>(null)
 const editingCustomerId = ref<string | null>(null)
 const archiveReason = ref('')
+const portalAccessOpen = ref(false)
+const portalAccessLoading = ref(false)
+const portalAccessData = ref<PortalAccessData | null>(null)
 const query = ref('')
 const issueFilter = ref<'all' | 'issues'>('all')
 const billingAddressInput = ref('')
@@ -159,6 +169,16 @@ const columns: TableColumn<CustomerRow>[] = [
     id: 'importIssues',
     header: 'Braki',
     cell: ({ row }) => row.original.importIssues?.length ? row.original.importIssues.join(', ') : 'Brak'
+  },
+  {
+    id: 'portalAccess',
+    header: 'Portal',
+    cell: ({ row }) => {
+      const pu = row.original.portalUser
+      if (!pu) return 'Brak'
+      if (!pu.isActive) return 'Nieaktywny'
+      return pu.lastLoginAt ? 'Aktywny' : 'Wygenerowany'
+    }
   }
 ]
 
@@ -317,8 +337,32 @@ function showDetails(row: CustomerRow) {
   detailsOpen.value = true
 }
 
+function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text)
+  toast.add({ title: 'Skopiowano do schowka', color: 'success' })
+}
+
+async function generatePortalAccess(row: CustomerRow) {
+  portalAccessLoading.value = true
+  portalAccessData.value = null
+  portalAccessOpen.value = true
+  try {
+    const res = await $fetch<{ success: boolean, data: PortalAccessData }>(
+      `/api/crm/customers/${row.id}/portal-access`,
+      { method: 'POST' }
+    )
+    portalAccessData.value = res.data
+  } catch {
+    portalAccessOpen.value = false
+    toast.add({ title: 'Nie udało się wygenerować dostępu do portalu', color: 'error' })
+  } finally {
+    portalAccessLoading.value = false
+    await refresh()
+  }
+}
+
 function rowContextItems(row: CustomerRow): ContextMenuItem[][] {
-  return [[
+  const items: ContextMenuItem[][] = [[
     { label: 'Edytuj', icon: 'i-lucide-pencil', onSelect: () => openEditCustomer(row) },
     { label: 'Szczegóły klienta', icon: 'i-lucide-panel-right-open', onSelect: () => showDetails(row) },
     {
@@ -330,9 +374,21 @@ function rowContextItems(row: CustomerRow): ContextMenuItem[][] {
       }
     }
   ], [
+    {
+      label: row.portalUser
+        ? 'Resetuj dostęp do portalu'
+        : 'Generuj dostęp do portalu',
+      icon: 'i-lucide-globe',
+      onSelect: () => generatePortalAccess(row)
+    }
+  ]]
+
+  items.push([
     { label: 'Archiwizuj', icon: 'i-lucide-archive', color: 'error', onSelect: () => openArchiveCustomer(row) },
     { label: 'Odśwież', icon: 'i-lucide-refresh-cw', onSelect: () => refresh() }
-  ]]
+  ])
+
+  return items
 }
 </script>
 
@@ -544,6 +600,60 @@ function rowContextItems(row: CustomerRow): ContextMenuItem[][] {
             color="error"
             icon="i-lucide-archive"
             @click="archiveCustomer"
+          />
+        </template>
+      </UModal>
+
+      <UModal v-model:open="portalAccessOpen" title="Dostęp do portalu klienta">
+        <template #body>
+          <div class="space-y-4">
+            <div v-if="portalAccessLoading" class="flex items-center justify-center py-8">
+              <UIcon name="i-lucide-loader-circle" class="animate-spin size-8 text-muted" />
+            </div>
+            <template v-else-if="portalAccessData">
+              <UAlert
+                color="warning"
+                variant="subtle"
+                icon="i-lucide-alert-triangle"
+                :title="portalAccessData.message"
+              />
+              <div class="space-y-3">
+                <UFormField label="Login">
+                  <UInput :model-value="portalAccessData.login" readonly class="w-full">
+                    <template #trailing>
+                      <UButton
+                        icon="i-lucide-copy"
+                        color="neutral"
+                        variant="ghost"
+                        size="xs"
+                        @click="copyToClipboard(portalAccessData.login)"
+                      />
+                    </template>
+                  </UInput>
+                </UFormField>
+                <UFormField label="Hasło">
+                  <UInput :model-value="portalAccessData.password" readonly class="w-full">
+                    <template #trailing>
+                      <UButton
+                        icon="i-lucide-copy"
+                        color="neutral"
+                        variant="ghost"
+                        size="xs"
+                        @click="copyToClipboard(portalAccessData.password)"
+                      />
+                    </template>
+                  </UInput>
+                </UFormField>
+              </div>
+            </template>
+          </div>
+        </template>
+        <template #footer>
+          <UButton
+            label="Zamknij"
+            color="neutral"
+            variant="subtle"
+            @click="portalAccessOpen = false"
           />
         </template>
       </UModal>

@@ -36,6 +36,14 @@ export default apiHandler(async (event) => {
             }
           }
         }
+      },
+      portalUser: {
+        columns: {
+          id: true,
+          login: true,
+          isActive: true,
+          lastLoginAt: true
+        }
       }
     },
     orderBy: (table, { desc }) => [desc(table.createdAt)]
