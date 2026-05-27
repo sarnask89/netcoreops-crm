@@ -51,7 +51,13 @@ async function loadInterfaceRolesAndEquipment(exporterAddress: string): Promise<
     db.query.networkEquipment.findFirst({
       where: eq(networkEquipment.managementIp, exporterAddress)
     }),
-    db.query.networkEquipment.findMany(),
+    db.query.networkEquipment.findMany({
+      columns: {
+        id: true,
+        managementIp: true,
+        hostname: true
+      }
+    }),
     db.query.diagnosticRuns.findMany({
       where: (table, { eq }) => eq(table.runType, 'netflow-config'),
       orderBy: (table, { desc }) => [desc(table.createdAt)],

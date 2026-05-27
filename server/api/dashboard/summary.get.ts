@@ -84,8 +84,19 @@ export default apiHandler(async () => {
       orderBy: (table, { desc }) => [desc(table.updatedAt)],
       limit: 200
     }),
-    db.query.customerDevices.findMany(),
-    db.query.networkEquipment.findMany(),
+    db.query.customerDevices.findMany({
+      columns: {
+        id: true,
+        hostname: true
+      }
+    }),
+    db.query.networkEquipment.findMany({
+      columns: {
+        id: true,
+        managementIp: true,
+        hostname: true
+      }
+    }),
     loadRecentGponRxAlerts(12)
   ])
 
