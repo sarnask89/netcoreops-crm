@@ -168,6 +168,7 @@ export interface NetworkManagementDriver {
   getNetworks(): Promise<DriverNetwork[]>
   getOnus(options?: DriverOnuScanOptions): Promise<DriverOnu[]>
   getOnuInfo(oltPort: string, onuId: string): Promise<DriverCheckResult>
+  getOltMacTable(oltPort: string): Promise<DriverMacTableEntry[]>
   getOnuMacTable(oltPort: string, onuId: string): Promise<DriverMacTableEntry[]>
   getOnuIpHosts(oltPort: string, onuId: string): Promise<DriverOnuIpHost[]>
   upsertDhcpLease(payload: UpsertLeasePayload): Promise<DriverCheckResult>

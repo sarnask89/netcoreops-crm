@@ -93,6 +93,10 @@ export class MockNetworkDriver implements NetworkManagementDriver {
     ]
   }
 
+  async getOltMacTable(oltPort: string): Promise<DriverMacTableEntry[]> {
+    return this.getOnuMacTable(oltPort, '5')
+  }
+
   async getOnuIpHosts(oltPort: string, onuId: string): Promise<DriverOnuIpHost[]> {
     return [{
       oltPort,

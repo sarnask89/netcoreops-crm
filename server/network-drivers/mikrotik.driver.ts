@@ -220,6 +220,10 @@ export class MikrotikDriver implements NetworkManagementDriver {
     return []
   }
 
+  async getOltMacTable() {
+    return []
+  }
+
   async getOnuIpHosts() {
     return []
   }

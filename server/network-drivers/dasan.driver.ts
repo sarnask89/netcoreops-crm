@@ -244,6 +244,11 @@ export class DasanDriver implements NetworkManagementDriver {
     return parseDasanMacTable(output.join('\n'))
   }
 
+  async getOltMacTable(oltPort: string): Promise<DriverMacTableEntry[]> {
+    const output = await this.runCommands(['terminal length 0', 'enable', `show olt mac ${oltPort}`])
+    return parseDasanMacTable(output.join('\n'))
+  }
+
   async getOnuIpHosts(oltPort: string, onuId: string): Promise<DriverOnuIpHost[]> {
     const output = await this.runCommands(['terminal length 0', `show onu ip-host ${oltPort} ${onuId}`])
     return parseDasanOnuIpHosts(output.join('\n'))
