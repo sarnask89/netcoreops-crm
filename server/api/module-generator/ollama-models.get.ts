@@ -1,4 +1,6 @@
-export default defineEventHandler(async () => {
+import { apiHandler } from '../../utils/api-handler'
+
+export default apiHandler(async () => {
   const response = await fetch('http://127.0.0.1:11434/api/tags').catch(() => null)
   if (!response || !response.ok) {
     return {

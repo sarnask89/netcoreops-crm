@@ -1,3 +1,4 @@
+import { apiHandler } from '../../../../utils/api-handler'
 import { eq } from 'drizzle-orm'
 import { getRouterParam, readBody } from 'h3'
 import { z } from 'zod'
@@ -8,7 +9,7 @@ const bodySchema = z.object({
   customerDeviceId: z.string().uuid().nullable()
 })
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Brak id ONU' })
 

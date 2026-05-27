@@ -1,3 +1,4 @@
+import { apiHandler } from '../../utils/api-handler'
 import { z } from 'zod'
 import { generateModulePlan } from '../../../scripts/codegen/module-generator'
 
@@ -6,7 +7,7 @@ const BodySchema = z.object({
   force: z.boolean().optional()
 })
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const body = BodySchema.safeParse(await readBody(event))
 
   if (!body.success) {

@@ -201,6 +201,13 @@ const links = [[{
   onSelect: () => {
     open.value = false
   }
+}, {
+  label: 'Katalog wyszukiwarki',
+  icon: 'i-lucide-search',
+  to: '/system/search-catalog',
+  onSelect: () => {
+    open.value = false
+  }
 }], [{
   label: 'Eksport CSV',
   icon: 'i-lucide-download',

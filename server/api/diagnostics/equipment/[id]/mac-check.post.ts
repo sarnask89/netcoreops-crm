@@ -1,3 +1,4 @@
+import { apiHandler } from '../../../../utils/api-handler'
 import { getRouterParam, readBody } from 'h3'
 import { z } from 'zod'
 import { withDiagnosticPresentation } from '../../../../utils/diagnostic-presentation'
@@ -7,7 +8,7 @@ const bodySchema = z.object({
   macAddress: z.string().min(1).max(17)
 })
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Brak id urządzenia' })
 

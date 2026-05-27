@@ -1,6 +1,7 @@
+import { apiHandler } from '../../utils/api-handler'
 import { db } from '../../utils/db'
 
-export default defineEventHandler(async () => {
+export default apiHandler(async () => {
   const equipment = await db.query.networkEquipment.findMany({
     columns: {
       id: true,

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Informacje podstawowe:
+ Nazwa katalogu: TERC, 
+ Zawartość: część, 
+ Czas utworzenia: 26.05.2026 6:49:05. 
+-->
+<TERC>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>02</GMI>
+    <RODZ>2</RODZ>
+    <NAZWA>Dwikozy</NAZWA>
+    <NAZWA_DOD>gmina wiejska</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>03</GMI>
+    <RODZ>3</RODZ>
+    <NAZWA>Klimontów</NAZWA>
+    <NAZWA_DOD>gmina miejsko-wiejska</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>03</GMI>
+    <RODZ>4</RODZ>
+    <NAZWA>Klimontów</NAZWA>
+    <NAZWA_DOD>miasto</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>03</GMI>
+    <RODZ>5</RODZ>
+    <NAZWA>Klimontów</NAZWA>
+    <NAZWA_DOD>obszar wiejski</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>04</GMI>
+    <RODZ>3</RODZ>
+    <NAZWA>Koprzywnica</NAZWA>
+    <NAZWA_DOD>gmina miejsko-wiejska</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>04</GMI>
+    <RODZ>4</RODZ>
+    <NAZWA>Koprzywnica</NAZWA>
+    <NAZWA_DOD>miasto</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>04</GMI>
+    <RODZ>5</RODZ>
+    <NAZWA>Koprzywnica</NAZWA>
+    <NAZWA_DOD>obszar wiejski</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>05</GMI>
+    <RODZ>2</RODZ>
+    <NAZWA>Łoniów</NAZWA>
+    <NAZWA_DOD>gmina wiejska</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>06</GMI>
+    <RODZ>2</RODZ>
+    <NAZWA>Obrazów</NAZWA>
+    <NAZWA_DOD>gmina wiejska</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>07</GMI>
+    <RODZ>2</RODZ>
+    <NAZWA>Samborzec</NAZWA>
+    <NAZWA_DOD>gmina wiejska</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>01</GMI>
+    <RODZ>1</RODZ>
+    <NAZWA>Sandomierz</NAZWA>
+    <NAZWA_DOD>gmina miejska</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>08</GMI>
+    <RODZ>2</RODZ>
+    <NAZWA>Wilczyce</NAZWA>
+    <NAZWA_DOD>gmina wiejska</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>09</GMI>
+    <RODZ>3</RODZ>
+    <NAZWA>Zawichost</NAZWA>
+    <NAZWA_DOD>gmina miejsko-wiejska</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>09</GMI>
+    <RODZ>4</RODZ>
+    <NAZWA>Zawichost</NAZWA>
+    <NAZWA_DOD>miasto</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+  <row>
+    <WOJ>26</WOJ>
+    <POW>09</POW>
+    <GMI>09</GMI>
+    <RODZ>5</RODZ>
+    <NAZWA>Zawichost</NAZWA>
+    <NAZWA_DOD>obszar wiejski</NAZWA_DOD>
+    <STAN_NA>2026-01-01</STAN_NA>
+  </row>
+</TERC>

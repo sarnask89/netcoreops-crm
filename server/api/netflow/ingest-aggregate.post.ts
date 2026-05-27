@@ -1,3 +1,4 @@
+import { apiHandler } from '../../utils/api-handler'
 import { createError, getHeader, getRequestIP, readBody } from 'h3'
 import { eq } from 'drizzle-orm'
 import { diagnosticRuns, netflowInterfaceSamples, networkEquipment } from '../../db/schema'
@@ -64,7 +65,7 @@ async function loadInterfaceRolesAndEquipment(exporterAddress: string): Promise<
   }
 }
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const requestIp = getRequestIP(event, { xForwardedFor: false }) || ''
   const ingestToken = process.env.NETCOREOPS_NETFLOW_INGEST_TOKEN
   const requestToken = getHeader(event, 'x-netcoreops-netflow-token')

@@ -1,9 +1,10 @@
+import { apiHandler } from '../../../utils/api-handler'
 import { eq } from 'drizzle-orm'
 import { getQuery } from 'h3'
 import { networkNodes } from '../../../db/schema'
 import { db } from '../../../utils/db'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const query = getQuery(event)
   const type = typeof query.type === 'string' ? query.type : undefined
 

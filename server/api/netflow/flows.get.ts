@@ -1,3 +1,4 @@
+import { apiHandler } from '../../utils/api-handler'
 import { getQuery } from 'h3'
 import { db } from '../../utils/db'
 
@@ -7,7 +8,7 @@ function limitFromQuery(value: unknown) {
   return Math.min(Math.max(limit, 1), 1000)
 }
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const query = getQuery(event)
   const limit = limitFromQuery(query.limit)
   const rows = await db.query.netflowRawFlows.findMany({

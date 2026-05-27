@@ -1,3 +1,4 @@
+import { apiHandler } from '../../utils/api-handler'
 import { readBody } from 'h3'
 import { z } from 'zod'
 import type { ModuleDefinition } from '../../../scripts/codegen/module-generator'
@@ -123,7 +124,7 @@ function buildPrompt(input: z.infer<typeof bodySchema>) {
   })
 }
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const body = bodySchema.parse(await readBody(event))
 
   const response = await fetch('http://127.0.0.1:11434/api/generate', {

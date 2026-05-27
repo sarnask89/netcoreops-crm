@@ -1,8 +1,9 @@
+import { apiHandler } from '../../utils/api-handler'
 import { setHeader } from 'h3'
 import { db } from '../../utils/db'
 import { toCsv } from '../../utils/csv'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const rows = await db.query.customerServices.findMany({
     with: {
       customer: true,

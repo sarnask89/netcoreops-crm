@@ -14,10 +14,9 @@ export default defineNuxtConfig({
     },
     // Cache API responses for dashboard summary (5 minutes)
     '/api/dashboard/**': { cache: { maxAge: 60 * 5 } },
-    // Cache system options (1 hour)
-    '/api/system/**': { cache: { maxAge: 60 * 60 } },
-    // Cache CRM customer lists (2 minutes)
-    '/api/crm/**': { cache: { maxAge: 60 * 2 } },
+    // Cache system dictionaries options (1 hour, GET only)
+    '/api/system/options': { cache: { maxAge: 60 * 60 } },
+
     // Cache static pages
     '/login': { cache: { maxAge: 60 * 60 } },
     '/settings/**': { cache: { maxAge: 60 * 60 } }

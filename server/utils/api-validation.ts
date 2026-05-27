@@ -330,3 +330,16 @@ export const updateAutomationVariableDefinitionSchema = automationVariableDefini
 export const renderAutomationScriptSchema = z.object({
   variables: z.record(z.string(), z.string()).optional().default({})
 })
+
+export const createSearchCatalogSchema = z.object({
+  label: z.string().trim().min(1).max(255),
+  suffix: optionalText,
+  icon: z.preprocess(emptyToNull, z.string().trim().max(100).nullable().optional()),
+  to: z.string().trim().min(1).max(255),
+  target: z.preprocess(emptyToNull, z.string().trim().max(20).nullable().optional()),
+  aliases: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  isActive: z.boolean().default(true),
+  sortOrder: z.number().int().default(0)
+})
+
+export const updateSearchCatalogSchema = createSearchCatalogSchema.partial()

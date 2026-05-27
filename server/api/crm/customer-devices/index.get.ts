@@ -1,9 +1,10 @@
+import { apiHandler } from '../../../utils/api-handler'
 import { isNull } from 'drizzle-orm'
 import { getQuery } from 'h3'
 import { customerDevices } from '../../../db/schema'
 import { db } from '../../../utils/db'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const query = getQuery(event)
   const includeArchived = query.includeArchived === 'true'
   const devices = await db.query.customerDevices.findMany({

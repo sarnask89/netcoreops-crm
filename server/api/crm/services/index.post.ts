@@ -1,10 +1,11 @@
+import { apiHandler } from '../../../utils/api-handler'
 import { readBody } from 'h3'
 import { customerServices } from '../../../db/schema'
 import { createServiceSchema } from '../../../utils/api-validation'
 import { resolveAddressIds } from '../../../utils/dictionaries'
 import { db } from '../../../utils/db'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const payload = createServiceSchema.parse(await readBody(event))
   const addressIds = await resolveAddressIds(payload.address)
 

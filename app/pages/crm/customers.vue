@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import * as z from 'zod'
 import type { ContextMenuItem, FormSubmitEvent, TableColumn } from '@nuxt/ui'
+import { customerFormSchema, type CustomerFormSchema } from '#shared/schemas/customers'
 
 interface CustomerRow {
   id: string
@@ -59,37 +60,10 @@ const billingAddressInput = ref('')
 const addressInput = ref('')
 const selectedBillingAddress = ref<{ terytCode: string, simcCode: string, ulicCode?: string | null } | null>(null)
 const selectedAddress = ref<{ terytCode: string, simcCode: string, ulicCode: string } | null>(null)
+const cityInput = ref('')
+const selectedCity = ref<{ source: string, name: string } | null>(null)
 
-const optionalEmail = z.string().email().optional().or(z.literal(''))
-const customerSchema = z.object({
-  customerType: z.enum(['INDIVIDUAL', 'BUSINESS']),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-  pesel: z.string().optional(),
-  identityDocumentNumber: z.string().optional(),
-  companyName: z.string().optional(),
-  taxId: z.string().optional(),
-  regon: z.string().optional(),
-  krs: z.string().optional(),
-  representativeName: z.string().optional(),
-  contactEmail: optionalEmail,
-  contactPhone: z.string().optional(),
-  billingBuildingNumber: z.string().optional(),
-  billingApartmentNumber: z.string().optional(),
-  billingAddress: z.string().optional()
-}).superRefine((value, ctx) => {
-  if (value.customerType === 'INDIVIDUAL') {
-    if (!value.firstName) {
-      ctx.addIssue({ code: 'custom', path: ['firstName'], message: 'Podaj imię' })
-    }
-    if (!value.lastName) {
-      ctx.addIssue({ code: 'custom', path: ['lastName'], message: 'Podaj nazwisko' })
-    }
-  }
-  if (value.customerType === 'BUSINESS' && !value.companyName) {
-    ctx.addIssue({ code: 'custom', path: ['companyName'], message: 'Podaj nazwę firmy' })
-  }
-})
+const customerSchema = customerFormSchema
 
 const serviceSchema = z.object({
   customerId: z.string().uuid(),
@@ -100,10 +74,9 @@ const serviceSchema = z.object({
   status: z.enum(['PENDING', 'ACTIVE'])
 })
 
-type CustomerSchema = z.output<typeof customerSchema>
 type ServiceSchema = z.output<typeof serviceSchema>
 
-const customerState = reactive<Partial<CustomerSchema>>({
+const customerState = reactive<Partial<CustomerFormSchema>>({
   customerType: 'BUSINESS'
 })
 const serviceState = reactive<Partial<ServiceSchema>>({
@@ -210,11 +183,19 @@ function resetCustomerForm() {
   })
   billingAddressInput.value = ''
   selectedBillingAddress.value = null
+  cityInput.value = ''
+  selectedCity.value = null
 }
 
 function openCreateCustomer() {
   resetCustomerForm()
   customerOpen.value = true
+}
+
+function handleCityInput(value: string | number) {
+  const city = String(value || '')
+  selectedCity.value = null
+  customerState.billingAddress = city || undefined
 }
 
 function openEditCustomer(row: CustomerRow) {
@@ -238,6 +219,8 @@ function openEditCustomer(row: CustomerRow) {
     billingAddress: row.billingAddress || undefined
   })
   billingAddressInput.value = formatAddress(row) || row.billingAddress || ''
+  cityInput.value = row.billingSimcLocality?.name || row.billingAddress || ''
+  selectedCity.value = null
   selectedBillingAddress.value = row.billingTerytArea && row.billingSimcLocality
     ? {
         terytCode: row.billingTerytArea.terytCode,
@@ -248,7 +231,7 @@ function openEditCustomer(row: CustomerRow) {
   customerOpen.value = true
 }
 
-async function saveCustomer(event: FormSubmitEvent<CustomerSchema>) {
+async function saveCustomer(event: FormSubmitEvent<CustomerFormSchema>) {
   if (billingAddressInput.value && !selectedBillingAddress.value) {
     if (!editingCustomerId.value) {
       toast.add({ title: 'Wybierz adres klienta z autosugestii', color: 'warning' })
@@ -445,6 +428,16 @@ function rowContextItems(row: CustomerRow): ContextMenuItem[][] {
                     <UInput v-model="customerState.contactPhone" class="w-full" />
                   </UFormField>
                 </div>
+                <UFormField
+                  label="Miasto (opis adresu)"
+                  help="Pole opisowe. Strukturalny adres wybierz poniżej z definicji."
+                >
+                  <CityAutocomplete
+                    v-model="cityInput"
+                    @update:model-value="handleCityInput"
+                    @select="selectedCity = $event; customerState.billingAddress = $event.name"
+                  />
+                </UFormField>
                 <UFormField label="Adres klienta z definicji">
                   <AddressAutocomplete
                     v-model="billingAddressInput"

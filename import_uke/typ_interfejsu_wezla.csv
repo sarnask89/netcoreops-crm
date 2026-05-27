@@ -1,0 +1,10 @@
+Opis interfejsu,Kod interfejsu
+Ethernet 100Mb/s,"01"
+Ethernet 1 Gb/s,"02"
+Ethernet 10 Gb/s,"03"
+Ethernet 25 Gb/s,"04"
+Ethernet 40 Gb/s,"05"
+Ethernet 100 Gb/s,"06"
+Ethernet 200 Gb/s,"07"
+Ethernet 400 Gb/s,"08"
+Ethernet 800 Gb/s,"09"

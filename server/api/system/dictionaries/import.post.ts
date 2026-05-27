@@ -1,3 +1,4 @@
+import { apiHandler } from '../../../utils/api-handler'
 import { readBody } from 'h3'
 import {
   simcLocalities,
@@ -20,7 +21,7 @@ function text(row: Record<string, unknown>, ...keys: string[]) {
   return ''
 }
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const payload = importDictionariesSchema.parse(await readBody(event))
   let imported = 0
 

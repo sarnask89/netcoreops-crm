@@ -1,3 +1,4 @@
+import { apiHandler } from '../../../../utils/api-handler'
 import { getRouterParam, readBody } from 'h3'
 import { ipNetworks } from '../../../../db/schema'
 import { importModeSchema } from '../../../../utils/api-validation'
@@ -5,7 +6,7 @@ import { recordImportRun } from '../../../../utils/import-actions'
 import { db } from '../../../../utils/db'
 import { getDriverForEquipment } from '../../../../utils/network-driver-context'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const equipmentId = getRouterParam(event, 'equipmentId')
   if (!equipmentId) throw createError({ statusCode: 400, statusMessage: 'Brak equipmentId' })
 

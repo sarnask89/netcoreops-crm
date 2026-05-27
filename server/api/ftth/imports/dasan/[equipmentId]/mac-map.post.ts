@@ -1,9 +1,10 @@
+import { apiHandler } from '../../../../../utils/api-handler'
 import { getRouterParam, readBody } from 'h3'
 import { runDasanMacMapImport } from '../../../../../ftth/dasan-import-runner'
 import { importModeSchema } from '../../../../../utils/api-validation'
 import { getDriverForEquipment } from '../../../../../utils/network-driver-context'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const equipmentId = getRouterParam(event, 'equipmentId')
   if (!equipmentId) throw createError({ statusCode: 400, statusMessage: 'Brak equipmentId' })
 

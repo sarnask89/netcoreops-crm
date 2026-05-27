@@ -1,10 +1,11 @@
+import { apiHandler } from '../../../utils/api-handler'
 import { readBody } from 'h3'
 import { customers } from '../../../db/schema'
 import { createCustomerSchema } from '../../../utils/api-validation'
 import { db } from '../../../utils/db'
 import { resolveAddressIds } from '../../../utils/dictionaries'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const body = await readBody(event)
   const payload = createCustomerSchema.parse(body)
   const { billingAddressRef, ...customerPayload } = payload

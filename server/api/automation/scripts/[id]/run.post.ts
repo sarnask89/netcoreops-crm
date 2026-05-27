@@ -1,10 +1,11 @@
+import { apiHandler } from '../../../../utils/api-handler'
 import { eq } from 'drizzle-orm'
 import { getRouterParam } from 'h3'
 import { automationScripts } from '../../../../db/schema'
 import { db } from '../../../../utils/db'
 import { executeAutomationScript } from '../../../../utils/automation-script-runner'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
   if (!Number.isInteger(id)) throw createError({ statusCode: 400, statusMessage: 'Brak id skryptu' })
 

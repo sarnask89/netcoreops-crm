@@ -623,6 +623,27 @@ export const customerServices = pgTable('customer_services', {
   archiveReason: text('archive_reason')
 })
 
+export const operatorCities = pgTable('operator_cities', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+})
+
+export const searchCatalog = pgTable('search_catalog', {
+  id: serial('id').primaryKey(),
+  label: varchar('label', { length: 255 }).notNull(),
+  suffix: varchar('suffix', { length: 100 }),
+  icon: varchar('icon', { length: 100 }),
+  to: varchar('to', { length: 255 }).notNull(),
+  target: varchar('target', { length: 20 }),
+  aliases: text('aliases'),
+  isActive: boolean('is_active').default(true).notNull(),
+  sortOrder: integer('sort_order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
 export type TerytArea = typeof terytAreas.$inferSelect
 export type SimcLocality = typeof simcLocalities.$inferSelect
 export type UlicStreet = typeof ulicStreets.$inferSelect
@@ -653,3 +674,5 @@ export type NetflowRawFlow = typeof netflowRawFlows.$inferSelect
 export type NetflowFlowRollup = typeof netflowFlowRollups.$inferSelect
 export type NetflowCollectorTemplate = typeof netflowCollectorTemplates.$inferSelect
 export type NetflowExporterHealth = typeof netflowExporterHealth.$inferSelect
+export type OperatorCity = typeof operatorCities.$inferSelect
+export type SearchCatalog = typeof searchCatalog.$inferSelect

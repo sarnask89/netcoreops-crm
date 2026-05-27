@@ -1,3 +1,4 @@
+import { apiHandler } from '../../utils/api-handler'
 import { sql } from 'drizzle-orm'
 import {
   customerDevices,
@@ -28,7 +29,7 @@ function toOptionalNumber(value: unknown) {
   return Number.isFinite(number) && number > 0 ? number : undefined
 }
 
-export default defineEventHandler(async () => {
+export default apiHandler(async () => {
   const [
     customerCount,
     customerDeviceCount,

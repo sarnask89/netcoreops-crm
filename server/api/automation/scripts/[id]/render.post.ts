@@ -1,8 +1,9 @@
+import { apiHandler } from '../../../../utils/api-handler'
 import { createError, getRouterParam, readBody } from 'h3'
 import { renderAutomationScriptSchema } from '../../../../utils/api-validation'
 import { renderAutomationScript } from '../../../../utils/automation-render'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const scriptId = Number(getRouterParam(event, 'id'))
 
   if (!Number.isInteger(scriptId) || scriptId <= 0) {

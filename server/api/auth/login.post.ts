@@ -1,5 +1,7 @@
+import { apiHandler } from '../../utils/api-handler'
 import { readBody, setCookie } from 'h3'
 import { z } from 'zod'
+import { checkRateLimit } from '../../utils/rate-limiter'
 import {
   AUTH_COOKIE_NAME,
   AUTH_MAX_AGE_SECONDS,
@@ -13,7 +15,8 @@ const loginSchema = z.object({
   password: z.string().min(1)
 })
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
+  checkRateLimit(event)
   const config = getAuthConfig()
   const body = loginSchema.parse(await readBody(event))
 

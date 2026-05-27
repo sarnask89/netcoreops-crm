@@ -1,9 +1,11 @@
+import { apiHandler } from '../../utils/api-handler'
 import { mkdtemp, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { readBody } from 'h3'
 import { z } from 'zod'
 import { parseModuleDefinitionFile } from '../../../scripts/codegen/module-generator'
+import { parseAiModuleJson } from '../../utils/module-generator-ai'
 
 const bodySchema = z.object({
   input: z.string().min(1),
@@ -18,14 +20,37 @@ const ollamaResponseSchema = z.object({
 
 function buildPrompt(input: string, format: 'json' | 'xml', validationErrors: string[]) {
   return JSON.stringify({
-    task: 'Repair this NetCoreOps module definition. Return only one valid JSON ModuleDefinition object.',
+    task: 'Repair this NetCoreOps module definition. Return only one valid JSON ModuleDefinition object. The definition will generate Nuxt 4, Nuxt UI, Drizzle/PostgreSQL, Zod validation, REST API handlers, and an AppDataTable CRUD page.',
+    codeGenerationContract: {
+      automaticFields: ['id', 'createdAt', 'updatedAt'],
+      forbiddenFieldNames: ['id', 'createdAt', 'updatedAt'],
+      supportedTypes: ['uuid', 'text', 'varchar', 'integer', 'number', 'boolean', 'timestamp', 'date', 'json', 'enum'],
+      typeAliases: {
+        decimal: 'number',
+        double: 'number',
+        float: 'number',
+        string: 'varchar',
+        object: 'json'
+      }
+    },
+    repairInstructions: [
+      'Fix module to camelCase.',
+      'Fix tableName to snake_case.',
+      'Fix route and page to safe kebab-case path segments.',
+      'Remove path traversal, empty segments, backslashes, and absolute paths.',
+      'Remove id, createdAt, and updatedAt fields because generated code creates them automatically.',
+      'Remove or merge duplicate fields.',
+      'Convert unsupported field types using typeAliases.',
+      'Add values to enum fields.',
+      'Return the smallest valid correction that preserves user intent.'
+    ],
     inputFormat: format,
     validationErrors,
     input
   })
 }
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const body = bodySchema.parse(await readBody(event))
   const attempts = body.maxAttempts || 3
   let lastError = 'Ollama repair did not return a valid module definition'
@@ -40,7 +65,11 @@ export default defineEventHandler(async (event) => {
         stream: false,
         format: 'json',
         options: {
-          temperature: 0.1
+          temperature: 0,
+          top_p: 0.5,
+          num_ctx: 2048,
+          num_predict: 768,
+          num_gpu: 999
         }
       })
     }).catch((error: unknown) => {
@@ -57,9 +86,10 @@ export default defineEventHandler(async (event) => {
     const payload = ollamaResponseSchema.parse(await response.json())
     const directory = await mkdtemp(join(tmpdir(), 'netcoreops-module-generator-repair-'))
     const repairedPath = join(directory, `repair-${attempt}.json`)
-    await writeFile(repairedPath, payload.response, 'utf8')
-
     try {
+      const repaired = parseAiModuleJson(payload.response)
+      await writeFile(repairedPath, JSON.stringify(repaired), 'utf8')
+
       const definition = await parseModuleDefinitionFile(repairedPath)
       return {
         success: true,

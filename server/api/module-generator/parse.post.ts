@@ -1,3 +1,4 @@
+import { apiHandler } from '../../utils/api-handler'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
@@ -9,7 +10,7 @@ const BodySchema = z.object({
   format: z.enum(['json', 'xml'])
 })
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const body = BodySchema.safeParse(await readBody(event))
 
   if (!body.success) {

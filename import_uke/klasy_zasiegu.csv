@@ -1,0 +1,5 @@
+3G;4G;5G SA oraz 5G NSA;Kod zasiegu
+ponizej -105dBm;ponizej -115dBm;ponizej -115dBm;0
+miedzy -105dBm a -95dBm;miedzy -115dBm a -110dBm;miedzy -115dBm a -110dBm;1
+miedzy -95dBm a -85dBm;miedzy -110dBm a -95dBm;miedzy -110dBm a -95dBm;2
+wiecej niz -85dBm;wiecej niz -95dBm;wiecej niz -95dBm;3

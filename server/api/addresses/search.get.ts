@@ -1,7 +1,8 @@
+import { apiHandler } from '../../utils/api-handler'
 import { getQuery } from 'h3'
 import { searchAddresses } from '../../utils/dictionaries'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const query = getQuery(event)
   const term = typeof query.q === 'string' ? query.q.trim() : ''
 

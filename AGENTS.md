@@ -225,6 +225,34 @@ show mac | exclude WORD
 show onu ip-host OLT_ID ONU_ID
 ```
 
+## API Error Handling Pattern
+
+- All API endpoints use `apiHandler` (from `server/utils/api-handler.ts`) instead of raw `defineEventHandler`.
+- `apiHandler` wraps every handler in try/catch, formats Zod validation errors as 400, re-throws `createError` as-is, and wraps unknown errors as 500.
+- Usage:
+  ```ts
+  import { apiHandler } from '../../utils/api-handler'
+
+  export default apiHandler(async (event) => {
+    const body = await readBody(event)
+    // ... business logic
+    return { success: true, data: result }
+  })
+  ```
+- The handler can be sync or async. It must return `{ success, data }` or `{ success }`, or throw `createError` for expected failures.
+- Do NOT wrap `apiHandler` with `defineEventHandler` – `apiHandler` already calls it internally.
+- When writing new endpoints, always use `apiHandler`.
+
+## Rate Limiting
+
+- Login endpoint (`/api/auth/login`) is rate-limited via `server/utils/rate-limiter.ts`.
+- The rate limiter uses an in-memory sliding window, keyed by client IP (respects `x-forwarded-for`).
+- On rate limit hit: responds 429 with `Retry-After` and `X-RateLimit-*` headers.
+- Configuration via environment variables:
+  - `NETCOREOPS_RATE_LIMIT_MAX` – max attempts per window (default: `5`)
+  - `NETCOREOPS_RATE_LIMIT_WINDOW_MS` – window duration in ms (default: `60000`)
+- Use `checkRateLimit(event)` at the top of any sensitive endpoint handler.
+
 ## Operational Notes
 
 - Use `apply_patch` for manual file edits.

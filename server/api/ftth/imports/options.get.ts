@@ -1,8 +1,9 @@
+import { apiHandler } from '../../../utils/api-handler'
 import { asc, eq } from 'drizzle-orm'
 import { ftthOlts, ftthOnus, ftthPonPorts, networkEquipment } from '../../../db/schema'
 import { db } from '../../../utils/db'
 
-export default defineEventHandler(async () => {
+export default apiHandler(async () => {
   const onus = await db
     .select({
       status: ftthOnus.status,

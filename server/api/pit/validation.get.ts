@@ -1,8 +1,9 @@
+import { apiHandler } from '../../utils/api-handler'
 import { customerServices, networkEquipment, networkLines, networkNodes } from '../../db/schema'
 import { db } from '../../utils/db'
 import { formatPitValidationReport, validatePitReadiness } from '../../utils/pit-validation'
 
-export default defineEventHandler(async () => {
+export default apiHandler(async () => {
   const [nodes, lines, equipment, services] = await Promise.all([
     db.select().from(networkNodes),
     db.select().from(networkLines),

@@ -1,0 +1,8 @@
+Rodzaj modulacji;Kod rodzaju modulacji
+QPSK;01
+16QAM;02
+64QAM;03
+256QAM;04
+512QAM;05
+1024QAM;06
+OFDM;07

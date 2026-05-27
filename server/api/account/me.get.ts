@@ -1,6 +1,7 @@
+import { apiHandler } from '../../utils/api-handler'
 import { userInfo } from 'node:os'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const user = userInfo()
   const username = event.context.auth?.username || process.env.NETCOREOPS_OPERATOR_USERNAME || user.username || 'admin'
   const name = process.env.NETCOREOPS_OPERATOR_NAME || (username === 'root' ? 'Administrator' : username)

@@ -1,4 +1,5 @@
-import { ilike, or } from 'drizzle-orm'
+import { apiHandler } from '../utils/api-handler'
+import { and, eq, ilike, or } from 'drizzle-orm'
 import { getQuery } from 'h3'
 import {
   accessProfiles,
@@ -6,13 +7,13 @@ import {
   customerDevices,
   customers,
   networkEquipment,
+  searchCatalog,
   subscriptions,
   tariffs
 } from '../db/schema'
-import { filterDashboardFunctionSearchItems } from '../utils/dashboard-search'
 import { db } from '../utils/db'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const query = getQuery(event)
   const rawTerm = typeof query.q === 'string' ? query.q.trim() : ''
   const term = rawTerm.startsWith('@') ? rawTerm.slice(1).trim() : rawTerm
@@ -22,7 +23,22 @@ export default defineEventHandler(async (event) => {
   }
 
   const pattern = `%${term}%`
-  const [customerRows, equipmentRows, customerDeviceRows, tariffRows, subscriptionRows, profileRows, scriptRows] = await Promise.all([
+
+  const [catalogItems, customerRows, equipmentRows, customerDeviceRows, tariffRows, subscriptionRows, profileRows, scriptRows] = await Promise.all([
+    // Search catalog entries from DB instead of hardcoded array
+    db.query.searchCatalog.findMany({
+      where: and(
+        eq(searchCatalog.isActive, true),
+        or(
+          ilike(searchCatalog.label, pattern),
+          ilike(searchCatalog.suffix, pattern),
+          ilike(searchCatalog.to, pattern),
+          ilike(searchCatalog.aliases, pattern)
+        )
+      ),
+      orderBy: (table, { asc }) => [asc(table.sortOrder), asc(table.label)],
+      limit: 12
+    }),
     db.query.customers.findMany({
       where: or(ilike(customers.fullName, pattern), ilike(customers.taxId, pattern), ilike(customers.contactEmail, pattern)),
       limit: 8
@@ -57,7 +73,14 @@ export default defineEventHandler(async (event) => {
   return {
     success: true,
     data: [
-      ...filterDashboardFunctionSearchItems(rawTerm),
+      // Catalog entries (previously hardcoded function search items)
+      ...catalogItems.map(item => ({
+        label: item.label,
+        suffix: item.suffix || undefined,
+        icon: item.icon || undefined,
+        to: item.to,
+        target: item.target || undefined
+      })),
       ...customerRows.map(customer => ({
         label: `@ ${customer.fullName}`,
         suffix: customer.customerType === 'BUSINESS' ? 'CRM firma' : 'CRM klient',

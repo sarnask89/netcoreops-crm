@@ -1,7 +1,8 @@
+import { apiHandler } from '../../../../utils/api-handler'
 import { getRouterParam } from 'h3'
 import { getFtthImportJob } from '../../../../ftth/import-jobs'
 
-export default defineEventHandler((event) => {
+export default apiHandler((event) => {
   const jobId = getRouterParam(event, 'jobId')
   if (!jobId) throw createError({ statusCode: 400, statusMessage: 'Brak jobId' })
 

@@ -1,10 +1,11 @@
+import { apiHandler } from '../../../../utils/api-handler'
 import { getRouterParam } from 'h3'
 import { diagnosticRuns } from '../../../../db/schema'
 import { db } from '../../../../utils/db'
 import { withDiagnosticPresentation } from '../../../../utils/diagnostic-presentation'
 import { getDriverForEquipment } from '../../../../utils/network-driver-context'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Brak id urządzenia klienta' })
 

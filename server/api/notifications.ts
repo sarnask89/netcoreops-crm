@@ -1,6 +1,7 @@
+import { apiHandler } from '../utils/api-handler'
 import { loadRecentGponRxAlerts } from '../ftth/gpon-rx-monitor'
 
-export default eventHandler(async () => {
+export default apiHandler(async () => {
   const alerts = await loadRecentGponRxAlerts(25)
 
   return alerts.map((alert, index) => ({

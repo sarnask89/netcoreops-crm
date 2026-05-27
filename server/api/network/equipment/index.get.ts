@@ -1,9 +1,10 @@
+import { apiHandler } from '../../../utils/api-handler'
 import { eq } from 'drizzle-orm'
 import { getQuery } from 'h3'
 import { networkEquipment } from '../../../db/schema'
 import { db } from '../../../utils/db'
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const query = getQuery(event)
   const role = typeof query.role === 'string' ? query.role : undefined
 

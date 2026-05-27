@@ -1,0 +1,15 @@
+Technologia dostepowa;Generacja sieci ruchomych;Kod technologii
+GSM (w tym GPRS oraz EDGE);2G;101
+CDMA2000;3G;202
+UMTS;3G;203
+HSPA;3G;204
+HSPA+;3G;205
+DC-HSPA;3G;206
+DC-HSPA+;3G;207
+MC-HSPA;3G;208
+MC-HSPA+;3G;209
+LTE;4G;310
+LTE-A;4G;311
+LTE-Pro;4G;312
+NR SA;5G SA;413
+NR NSA;5G NSA;414

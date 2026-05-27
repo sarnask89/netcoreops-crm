@@ -1,6 +1,7 @@
 import { relations } from 'drizzle-orm'
 import {
   accessProfiles,
+  operatorCities,
   accessProfileDeviceBindings,
   automationScripts,
   customerDevices,
@@ -421,3 +422,5 @@ export const macAddressesRelations = relations(macAddresses, ({ one }) => ({
     references: [importRuns.id]
   })
 }))
+
+export const operatorCitiesRelations = relations(operatorCities, () => ({}))

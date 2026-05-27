@@ -1,0 +1,10 @@
+Pasmo radiowe;Zakres czestotliwosci;Kod pasma
+420 MHz;410 - 430 MHz;01
+700 MHz;694 - 790 MHz;02
+800 MHz;791 - 821 MHz oraz 832 - 862 MHz;03
+900 MHz;880 - 915 MHz oraz 925 - 960 MHz;04
+1800 MHz;1710 - 1785 MHz oraz 1805 - 1880 MHz;05
+2100 MHz;1920 - 1980 MHz oraz 2110 - 2170 MHz;06
+2600 MHz;2500 - 2690 MHz;07
+3600 MHz;3400 - 3800 MHz;08
+26000 MHz;24250 - 27500 MHz;09

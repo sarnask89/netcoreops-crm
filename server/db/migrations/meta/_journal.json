@@ -64,6 +64,27 @@
       "when": 1779534000000,
       "tag": "0008_netflow_flows",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1779535000000,
+      "tag": "0009_auth_rbac",
+      "breakpoints": false
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1779600000000,
+      "tag": "0010_search_catalog",
+      "breakpoints": false
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1779837410311,
+      "tag": "0011_operator_cities",
+      "breakpoints": true
     }
   ]
 }

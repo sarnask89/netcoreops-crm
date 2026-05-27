@@ -1,3 +1,4 @@
+import { apiHandler } from '../../../../utils/api-handler'
 import { getRouterParam, readBody } from 'h3'
 import { z } from 'zod'
 import { diagnosticRuns } from '../../../../db/schema'
@@ -9,7 +10,7 @@ const bodySchema = z.object({
   collector: z.string().optional()
 })
 
-export default defineEventHandler(async (event) => {
+export default apiHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Brak id urządzenia' })
 
