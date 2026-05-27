@@ -9,7 +9,7 @@ export default apiHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Brak id urządzenia klienta' })
 
-  const payload = archiveSchema.parse(await readBody(event).catch(() => ({})))
+  const payload = archiveSchema.parse(await readBody(event))
   const [device] = await db.update(customerDevices)
     .set({
       status: 'INACTIVE',

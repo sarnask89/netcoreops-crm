@@ -7,7 +7,7 @@ export default apiHandler(async (event) => {
   const equipmentId = getRouterParam(event, 'equipmentId')
   if (!equipmentId) throw createError({ statusCode: 400, statusMessage: 'Brak equipmentId' })
 
-  const body = await readBody(event).catch(() => ({}))
+  const body = await readBody(event)
   const parsed = importModeSchema.parse(body || {})
   const kind = (body as { kind?: string })?.kind
   if (kind !== 'ip-hosts' && kind !== 'mac-map') {

@@ -9,7 +9,7 @@ export default apiHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Brak id uslugi' })
 
-  const payload = archiveSchema.parse(await readBody(event).catch(() => ({})))
+  const payload = archiveSchema.parse(await readBody(event))
   const [service] = await db.update(customerServices)
     .set({
       status: 'TERMINATED',

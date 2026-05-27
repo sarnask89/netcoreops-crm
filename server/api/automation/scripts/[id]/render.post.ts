@@ -13,7 +13,7 @@ export default apiHandler(async (event) => {
     })
   }
 
-  const body = await readBody(event).catch(() => ({}))
+  const body = await readBody(event)
   const payload = renderAutomationScriptSchema.parse(body || {})
   const rendered = await renderAutomationScript(scriptId, payload.variables)
 

@@ -8,7 +8,7 @@ export default apiHandler(async (event) => {
   const equipmentId = getRouterParam(event, 'equipmentId')
   if (!equipmentId) throw createError({ statusCode: 400, statusMessage: 'Brak equipmentId' })
 
-  const body = await readBody(event).catch(() => ({}))
+  const body = await readBody(event)
   const { mode } = importModeSchema.parse(body || {})
   const effectiveMode = mode === 'dryRun' ? 'preview' : mode
   const { driverCode } = await getDriverForEquipment(equipmentId)

@@ -13,7 +13,7 @@ export default apiHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Brak id urządzenia' })
 
-  const body = bodySchema.parse(await readBody(event).catch(() => ({})))
+  const body = bodySchema.parse(await readBody(event))
   const { driver, driverCode, equipment } = await getDriverForEquipment(id)
   const leases = await driver.getLeases()
   const sample = body.macAddress || body.ipAddress

@@ -9,7 +9,7 @@ export default apiHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Brak id klienta' })
 
-  const payload = archiveSchema.parse(await readBody(event).catch(() => ({})))
+  const payload = archiveSchema.parse(await readBody(event))
   const [customer] = await db.update(customers)
     .set({
       archivedAt: new Date(),
