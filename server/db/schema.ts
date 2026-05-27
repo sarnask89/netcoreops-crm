@@ -644,6 +644,17 @@ export const searchCatalog = pgTable('search_catalog', {
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 })
 
+export const portalUsers = pgTable('portal_users', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  customerId: uuid('customer_id').references(() => customers.id, { onDelete: 'cascade' }).notNull().unique(),
+  login: varchar('login', { length: 120 }).notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  lastLoginAt: timestamp('last_login_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
 export type TerytArea = typeof terytAreas.$inferSelect
 export type SimcLocality = typeof simcLocalities.$inferSelect
 export type UlicStreet = typeof ulicStreets.$inferSelect
@@ -676,3 +687,4 @@ export type NetflowCollectorTemplate = typeof netflowCollectorTemplates.$inferSe
 export type NetflowExporterHealth = typeof netflowExporterHealth.$inferSelect
 export type OperatorCity = typeof operatorCities.$inferSelect
 export type SearchCatalog = typeof searchCatalog.$inferSelect
+export type PortalUser = typeof portalUsers.$inferSelect

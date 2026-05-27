@@ -30,7 +30,8 @@ import {
   ukeTechnologyTypes,
   ulicStreets,
   subscriptions,
-  tariffs
+  tariffs,
+  portalUsers
 } from './schema'
 
 export const ukeMediumTypesRelations = relations(ukeMediumTypes, ({ many }) => ({
@@ -281,6 +282,10 @@ export const customersRelations = relations(customers, ({ one, many }) => ({
   billingStreet: one(ulicStreets, {
     fields: [customers.billingStreetId],
     references: [ulicStreets.id]
+  }),
+  portalUser: one(portalUsers, {
+    fields: [customers.id],
+    references: [portalUsers.customerId]
   })
 }))
 
@@ -420,6 +425,13 @@ export const macAddressesRelations = relations(macAddresses, ({ one }) => ({
   importRun: one(importRuns, {
     fields: [macAddresses.importRunId],
     references: [importRuns.id]
+  })
+}))
+
+export const portalUsersRelations = relations(portalUsers, ({ one }) => ({
+  customer: one(customers, {
+    fields: [portalUsers.customerId],
+    references: [customers.id]
   })
 }))
 
