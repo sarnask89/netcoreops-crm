@@ -270,3 +270,19 @@ show onu ip-host OLT_ID ONU_ID
 ```bash
 sudo swapon /swapfile-netcoreops || true
 ```
+
+- `NODE_OPTIONS=--max-old-space-size` must stay within WSL's 4GB RAM limit. Use `2048` or `3072`, never `4096`.
+- Builds are handled by Vercel. Do not run `netcoreops-build` locally unless explicitly asked. Lint + typecheck + test locally, then push.
+- `@nuxtjs/fontaine` module is installed for font metric fallback overrides (reduces Cumulative Layout Shift / CLS). It auto-detects `@font-face` rules and generates fallback CSS — no manual configuration needed.
+
+## Portal Auth
+
+Phase 1 implementation (live on `nms` branch):
+
+- Portal users are stored in `portal_users` table (FK→customers with unique constraint, login unique, scrypt password hash).
+- Portal session uses a separate HMAC-signed cookie (`portal_session`, 12h expiry, separate from admin `netcoreops_session`).
+- Admin server middleware (`server/middleware/auth.ts`) ignores `/portal/` and `/api/portal/` paths.
+- Portal server middleware (`server/middleware/portal-auth.ts`) protects `/portal/*` and `/api/portal/*` routes.
+- CRM customers page has "Generuj/Resetuj dostęp do portalu" in the right-click context menu; generates login slug and random 16-char password, shows them once in a modal.
+- Portal login at `/portal/login`, dashboard at `/portal/`.
+- API endpoints under `/api/portal/auth/` (login, logout, session) and `/api/portal/account/me` (full customer profile with services, subscriptions, and devices).
