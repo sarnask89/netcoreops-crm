@@ -11,7 +11,9 @@ const publicPathPrefixes = [
   '/api/auth/',
   '/api/netflow/ingest-aggregate',
   '/favicon.ico',
-  '/robots.txt'
+  '/robots.txt',
+  '/portal/',
+  '/api/portal/'
 ]
 
 function isPublicPath(pathname: string) {
