@@ -138,12 +138,16 @@ export async function syncDasanOnusToFtth(equipmentId: string, onus: DriverOnu[]
 export async function syncDasanOnuIpHostsToFtth(equipmentId: string, ipHosts: DriverOnuIpHost[], mode: ImportMode): Promise<ImportAction[]> {
   const knownOnus = await loadKnownFtthOnus(equipmentId)
   const knownByKey = new Map(knownOnus.map(onu => [`${onu.oltPort}:${onu.onuId}`, onu]))
+  const hostsByFtthOnuId = new Map<string, DriverOnuIpHost[]>()
   const actions = buildFtthIpHostPlan(ipHosts, knownOnus)
   if (mode !== 'apply') return actions
 
   for (const host of ipHosts) {
     const onu = knownByKey.get(`${host.oltPort}:${host.onuId}`)
     if (!onu) continue
+    const onuHosts = hostsByFtthOnuId.get(onu.id) || []
+    onuHosts.push(host)
+    hostsByFtthOnuId.set(onu.id, onuHosts)
 
     const values = {
       ipOption: host.ipOption || null,
@@ -169,6 +173,22 @@ export async function syncDasanOnuIpHostsToFtth(equipmentId: string, ipHosts: Dr
         ...values
       })
     }
+  }
+
+  for (const [onuId, hosts] of hostsByFtthOnuId) {
+    const onu = await db.query.ftthOnus.findFirst({ where: eq(ftthOnus.id, onuId) })
+    if (!onu?.networkEquipmentId) continue
+
+    const equipment = await db.query.networkEquipment.findFirst({ where: eq(networkEquipment.id, onu.networkEquipmentId) })
+    if (!equipment) continue
+
+    const managementIp = await safeManagementIp(hosts, equipment.id)
+    if (!managementIp) continue
+
+    await db.update(networkEquipment).set({
+      managementIp,
+      managementProtocol: equipment.managementProtocol || 'http'
+    }).where(eq(networkEquipment.id, equipment.id))
   }
 
   return actions
@@ -199,15 +219,50 @@ async function loadKnownMacs(): Promise<TransparentOnuKnownMac[]> {
 }
 
 async function loadManagementMacs(equipmentId: string) {
+  const hostsByOnuId = await loadOnuIpHostsById(equipmentId)
+  return [...hostsByOnuId.values()].flatMap(hosts => hosts.flatMap(host => host.macAddress ? [host.macAddress] : []))
+}
+
+async function loadOnuIpHostsById(equipmentId: string) {
   const knownOnus = await loadKnownFtthOnus(equipmentId)
-  const managementMacs: string[] = []
+  const hostsByOnuId = new Map<string, Array<typeof ftthOnuIpHosts.$inferSelect>>()
 
   for (const onu of knownOnus) {
-    const hosts = await db.query.ftthOnuIpHosts.findMany({ where: eq(ftthOnuIpHosts.onuId, onu.id) })
-    managementMacs.push(...hosts.flatMap(host => host.macAddress ? [host.macAddress] : []))
+    hostsByOnuId.set(onu.id, await db.query.ftthOnuIpHosts.findMany({ where: eq(ftthOnuIpHosts.onuId, onu.id) }))
   }
 
-  return managementMacs
+  return hostsByOnuId
+}
+
+function isUsableManagementIp(value?: string | null) {
+  return Boolean(value && value !== '0.0.0.0' && value !== '::')
+}
+
+function managementHostRank(host: { hostId: string, hostName?: string | null, currentIp?: string | null }) {
+  if (!isUsableManagementIp(host.currentIp)) return Number.MAX_SAFE_INTEGER
+  const name = (host.hostName || '').toUpperCase()
+  if (host.hostId === '1' || /IPHOST|WWW|XML|TR069/.test(name)) return 0
+  if (/VEIP|WAN/.test(name)) return 2
+  return 1
+}
+
+function selectManagementIpHost(hosts: Array<{ hostId: string, hostName?: string | null, currentIp?: string | null }>) {
+  return [...hosts]
+    .filter(host => isUsableManagementIp(host.currentIp))
+    .sort((left, right) => {
+      const rankDiff = managementHostRank(left) - managementHostRank(right)
+      if (rankDiff) return rankDiff
+      return Number.parseInt(left.hostId, 10) - Number.parseInt(right.hostId, 10)
+    })[0]?.currentIp || null
+}
+
+async function safeManagementIp(hosts: Array<{ hostId: string, hostName?: string | null, currentIp?: string | null }>, equipmentId?: string | null) {
+  const managementIp = selectManagementIpHost(hosts)
+  if (!managementIp) return null
+
+  const owner = await db.query.networkEquipment.findFirst({ where: eq(networkEquipment.managementIp, managementIp) })
+  if (owner && owner.id !== equipmentId) return null
+  return managementIp
 }
 
 async function linkCustomerDeviceToTransparentOnu(ftthOnuId: string, customerDeviceId: string) {
@@ -229,6 +284,7 @@ export async function syncDasanMacMapToFtth(equipmentId: string, rows: DriverMac
   const knownById = new Map(knownOnus.map(onu => [onu.id, onu]))
   const knownMacs = await loadKnownMacs()
   const managementMacs = await loadManagementMacs(equipmentId)
+  const managementIpHosts = await loadOnuIpHostsById(equipmentId)
   const actions = buildFtthMacMapPlan(rows, knownOnus, knownMacs, managementMacs, '400', equipment.inventoryId)
   if (mode !== 'apply') return actions
 
@@ -269,11 +325,15 @@ export async function syncDasanMacMapToFtth(equipmentId: string, rows: DriverMac
       const knownOnu = knownById.get(ftthOnuId)
       if (knownOnu) {
         const inventoryId = `${equipment.inventoryId}-ONU-${knownOnu.oltPort}-${knownOnu.onuId}`
+        const existingEquipment = await db.query.networkEquipment.findFirst({ where: eq(networkEquipment.inventoryId, inventoryId) })
+        const managementIp = await safeManagementIp(managementIpHosts.get(ftthOnuId) || [], existingEquipment?.id)
         const equipmentValues = {
           inventoryId,
           modelId,
           parentEquipmentId: equipmentId,
           hostname: inventoryId.toLowerCase(),
+          managementIp: managementIp || existingEquipment?.managementIp || null,
+          managementProtocol: managementIp ? existingEquipment?.managementProtocol || 'http' : existingEquipment?.managementProtocol || null,
           serialNumber: knownOnu.serialNumber || null,
           equipmentRole: 'CLIENT_PE',
           bridgeMode: true,
@@ -283,7 +343,6 @@ export async function syncDasanMacMapToFtth(equipmentId: string, rows: DriverMac
           status: 'IN_USE',
           notes: `ONU zweryfikowana jako transparent bridge w OLT ${equipment.inventoryId}.`
         }
-        const existingEquipment = await db.query.networkEquipment.findFirst({ where: eq(networkEquipment.inventoryId, inventoryId) })
         const storedEquipment = existingEquipment
           ? await db.update(networkEquipment).set(equipmentValues).where(eq(networkEquipment.id, existingEquipment.id)).returning().then(rows => rows[0] || existingEquipment)
           : await db.insert(networkEquipment).values(equipmentValues).returning().then(rows => rows[0] || null)
