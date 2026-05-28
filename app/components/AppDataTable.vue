@@ -1,13 +1,14 @@
 <script setup lang="ts" generic="T extends object">
 import type { ContextMenuItem, TableColumn } from '@nuxt/ui'
 
-type MenuItems = ContextMenuItem[][]
+type MenuItems = ContextMenuItem[] | ContextMenuItem[][]
 
 const props = withDefaults(defineProps<{
   data: T[]
   columns: TableColumn<T>[]
   loading?: boolean
   contextItems?: (row: T) => MenuItems
+  rowContextItems?: (row: T) => MenuItems
   emptyLabel?: string
   pageSize?: number
 }>(), {
@@ -30,15 +31,16 @@ watch(() => [props.data, props.pageSize] as const, () => {
 })
 
 const items = computed<MenuItems>(() => {
-  if (!currentRow.value || !props.contextItems) {
-    return [[{
+  const contextItems = props.contextItems ?? props.rowContextItems
+  if (!currentRow.value || !contextItems) {
+    return [{
       label: 'Brak akcji dla tego miejsca',
       icon: 'i-lucide-ban',
       disabled: true
-    }]]
+    }]
   }
 
-  return props.contextItems(currentRow.value)
+  return contextItems(currentRow.value)
 })
 
 function onContextmenu(event: MouseEvent) {
@@ -85,6 +87,9 @@ function onContextmenu(event: MouseEvent) {
           <div class="py-10 text-center text-sm text-muted">
             {{ emptyLabel }}
           </div>
+        </template>
+        <template v-for="(_, name) in $slots" :key="name" #[name]="slotProps">
+          <slot :name="name" v-bind="slotProps || {}" />
         </template>
       </UTable>
       <div

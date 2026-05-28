@@ -1,0 +1,29 @@
+- generic [active] [ref=e1]:
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e6]:
+        - heading "NetCoreOps" [level=1] [ref=e7]
+        - paragraph [ref=e8]: Logowanie lokalnego operatora
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - generic [ref=e14]: Login
+          - textbox "Login" [ref=e17]: admin
+        - generic [ref=e18]:
+          - generic [ref=e21]: Hasło
+          - textbox "Hasło" [ref=e24]: admin
+        - button "Zaloguj" [disabled] [ref=e25]:
+          - generic [ref=e27]: Zaloguj
+  - region "Notifications (F8)":
+    - list
+  - generic:
+    - img
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - button "Toggle Nuxt DevTools":
+            - img
+          - generic "Page load time":
+            - generic: "-"
+          - button "Toggle Component Inspector":
+            - img

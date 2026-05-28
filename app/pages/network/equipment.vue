@@ -49,6 +49,12 @@ const diagnosticIp = ref('')
 const diagnosticOltPort = ref('1')
 const diagnosticOnuId = ref('')
 
+function confirmRestart() {
+  if (!selectedRow.value) return
+  if (!window.confirm(`Czy na pewno zrestartować urządzenie ${selectedRow.value.inventoryId}?\nTo spowoduje przerwanie usług dla klientów na tym urządzeniu.`)) return
+  runEquipmentDiagnostic('restart')
+}
+
 const equipmentSchema = z.object({
   inventoryId: z.string().min(1),
   modelId: z.number().int().positive(),
@@ -254,7 +260,7 @@ function showDiagnostics(row: EquipmentRow) {
   diagnosticOpen.value = true
 }
 
-async function runEquipmentDiagnostic(action: 'mikrotik-check' | 'mac-check' | 'command-tree' | 'onu-ip-host' | 'netflow-config') {
+async function runEquipmentDiagnostic(action: 'mikrotik-check' | 'mac-check' | 'command-tree' | 'onu-ip-host' | 'netflow-config' | 'restart') {
   if (!selectedRow.value) return
   if (action === 'mac-check' && !diagnosticMac.value) {
     toast.add({ title: 'Podaj MAC', color: 'warning' })
@@ -485,6 +491,14 @@ function rowContextItems(row: EquipmentRow): ContextMenuItem[][] {
                 variant="subtle"
                 :loading="diagnosticLoading === 'netflow-config'"
                 @click="runEquipmentDiagnostic('netflow-config')"
+              />
+              <UButton
+                label="Restart"
+                icon="i-lucide-power"
+                color="error"
+                variant="subtle"
+                :loading="diagnosticLoading === 'restart'"
+                @click="confirmRestart"
               />
             </div>
             <AppDiagnosticResult :result="diagnosticResult" />

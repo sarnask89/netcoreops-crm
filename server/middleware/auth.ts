@@ -8,6 +8,8 @@ import {
 const publicPathPrefixes = [
   '/_nuxt/',
   '/__nuxt',
+  '/3d_models/',
+  '/api/_nuxt_icon/',
   '/api/auth/',
   '/api/netflow/ingest-aggregate',
   '/favicon.ico',

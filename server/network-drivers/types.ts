@@ -174,6 +174,7 @@ export interface NetworkManagementDriver {
   upsertDhcpLease(payload: UpsertLeasePayload): Promise<DriverCheckResult>
   configureNetflow(config: DriverNetflowConfig): Promise<DriverCheckResult>
   getCommandTree(): Promise<DriverCheckResult>
+  restart(): Promise<DriverCheckResult>
 }
 
 export function unsupportedCheck(name: string): DriverCheckResult {

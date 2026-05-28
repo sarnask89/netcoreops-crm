@@ -78,6 +78,22 @@ setsid -f netcoreops-dev rtk 3000 >/tmp/netcoreops-dev.log 2>&1
 
 NetCoreOps is a local Nuxt 4 + Nuxt UI + Drizzle/PostgreSQL CRM/PIT system for network operators.
 
+Architecture responsibility rule:
+
+- Database owns relationships and data integrity.
+- Backend/API owns business logic, validation, and authorization.
+- Nuxt owns routing, UI, forms, and data fetching.
+
+Nuxt reference and best practices:
+
+- Local Nuxt LLM references are stored in `docs/nuxt-llms.txt` (concise index, keep in active context for Nuxt work) and `docs/nuxt-llms-full.txt` (full offline bundle, consult relevant sections when implementing Nuxt 4 patterns).
+- For Nuxt work, follow the current Nuxt 4 docs for performance and hydration:
+  - https://nuxt.com/docs/4.x/guide/best-practices/performance
+  - https://nuxt.com/docs/4.x/guide/best-practices/hydration
+- Avoid hydration mismatches: do not render browser-only state, random values, current time, or viewport-dependent output during SSR unless the server/client value is stable; guard browser APIs with client-only lifecycle or `<ClientOnly>`.
+- Prefer Nuxt data APIs (`useFetch`, `useAsyncData`, server routes) for SSR-safe data loading instead of client-only fetch-on-mount for initial page data.
+- Keep pages lightweight: lazy-load heavy/client-only visualization libraries, avoid unnecessary client plugins, and prefer code-splitting for rarely used admin surfaces.
+
 UI action model:
 
 - Row actions in portal tables must be exposed through the right-click context menu.

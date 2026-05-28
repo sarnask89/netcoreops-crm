@@ -10,6 +10,15 @@ import {
   diagnosticRuns,
   deviceModels,
   deviceTypes,
+  documentItems,
+  documents,
+  ticketCategories,
+  ticketMessages,
+  tickets,
+  smtpConfigs,
+  emailTemplates,
+  notificationRules,
+  emailLogs,
   ftthOlts,
   ftthOnuIpHosts,
   ftthOnuMacs,
@@ -24,6 +33,15 @@ import {
   networkEquipment,
   networkLines,
   networkNodes,
+  numberPlans,
+  payments,
+  netflowRawFlows,
+  netflowFlowRollups,
+  netflowInterfaceSamples,
+  dhcpActiveUserSnapshots,
+  dhcpActiveUserScopeCounts,
+  authGroups,
+  authUsers,
   simcLocalities,
   terytAreas,
   ukeMediumTypes,
@@ -173,6 +191,8 @@ export const networkEquipmentRelations = relations(networkEquipment, ({ one, man
   automationScripts: many(automationScripts),
   diagnosticRuns: many(diagnosticRuns),
   importRuns: many(importRuns),
+  netflowInterfaceSamples: many(netflowInterfaceSamples),
+  dhcpActiveUserSnapshots: many(dhcpActiveUserSnapshots),
   ownedIpNetworks: many(ipNetworks),
   ipAddresses: many(ipAddresses),
   macAddresses: many(macAddresses),
@@ -271,6 +291,10 @@ export const customersRelations = relations(customers, ({ one, many }) => ({
   services: many(customerServices),
   customerDevices: many(customerDevices),
   subscriptions: many(subscriptions),
+  documents: many(documents),
+  payments: many(payments),
+  netflowRawFlows: many(netflowRawFlows),
+  netflowFlowRollups: many(netflowFlowRollups),
   billingTerytArea: one(terytAreas, {
     fields: [customers.billingTerytAreaId],
     references: [terytAreas.id]
@@ -310,6 +334,8 @@ export const customerDevicesRelations = relations(customerDevices, ({ one, many 
   }),
   subscriptions: many(subscriptions),
   diagnosticRuns: many(diagnosticRuns),
+  netflowRawFlows: many(netflowRawFlows),
+  netflowFlowRollups: many(netflowFlowRollups),
   ipAddresses: many(ipAddresses),
   macAddresses: many(macAddresses),
   transparentLinks: many(ftthTransparentLinks)
@@ -330,11 +356,68 @@ export const ftthTransparentLinksRelations = relations(ftthTransparentLinks, ({ 
   })
 }))
 
-export const tariffsRelations = relations(tariffs, ({ many }) => ({
-  subscriptions: many(subscriptions)
+export const netflowRawFlowsRelations = relations(netflowRawFlows, ({ one }) => ({
+  customerDevice: one(customerDevices, {
+    fields: [netflowRawFlows.customerDeviceId],
+    references: [customerDevices.id]
+  }),
+  customer: one(customers, {
+    fields: [netflowRawFlows.customerId],
+    references: [customers.id]
+  })
 }))
 
-export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+export const netflowFlowRollupsRelations = relations(netflowFlowRollups, ({ one }) => ({
+  customerDevice: one(customerDevices, {
+    fields: [netflowFlowRollups.customerDeviceId],
+    references: [customerDevices.id]
+  }),
+  customer: one(customers, {
+    fields: [netflowFlowRollups.customerId],
+    references: [customers.id]
+  })
+}))
+
+export const netflowInterfaceSamplesRelations = relations(netflowInterfaceSamples, ({ one }) => ({
+  equipment: one(networkEquipment, {
+    fields: [netflowInterfaceSamples.equipmentId],
+    references: [networkEquipment.id]
+  })
+}))
+
+export const dhcpActiveUserSnapshotsRelations = relations(dhcpActiveUserSnapshots, ({ one, many }) => ({
+  equipment: one(networkEquipment, {
+    fields: [dhcpActiveUserSnapshots.equipmentId],
+    references: [networkEquipment.id]
+  }),
+  scopeCounts: many(dhcpActiveUserScopeCounts)
+}))
+
+export const dhcpActiveUserScopeCountsRelations = relations(dhcpActiveUserScopeCounts, ({ one }) => ({
+  snapshot: one(dhcpActiveUserSnapshots, {
+    fields: [dhcpActiveUserScopeCounts.snapshotId],
+    references: [dhcpActiveUserSnapshots.id]
+  })
+}))
+
+export const authGroupsRelations = relations(authGroups, ({ many }) => ({
+  users: many(authUsers)
+}))
+
+export const authUsersRelations = relations(authUsers, ({ one }) => ({
+  group: one(authGroups, {
+    fields: [authUsers.groupId],
+    references: [authGroups.id]
+  })
+}))
+
+export const tariffsRelations = relations(tariffs, ({ many }) => ({
+  subscriptions: many(subscriptions),
+  documentItems: many(documentItems)
+}))
+
+export const subscriptionsRelations = relations(subscriptions, ({ one, many }) => ({
+  documentItems: many(documentItems),
   customer: one(customers, {
     fields: [subscriptions.customerId],
     references: [customers.id]
@@ -436,3 +519,102 @@ export const portalUsersRelations = relations(portalUsers, ({ one }) => ({
 }))
 
 export const operatorCitiesRelations = relations(operatorCities, () => ({}))
+
+export const numberPlansRelations = relations(numberPlans, ({ many }) => ({
+  documents: many(documents)
+}))
+
+export const documentsRelations = relations(documents, ({ one, many }) => ({
+  numberPlan: one(numberPlans, {
+    fields: [documents.numberPlanId],
+    references: [numberPlans.id]
+  }),
+  customer: one(customers, {
+    fields: [documents.customerId],
+    references: [customers.id]
+  }),
+  referenceDocument: one(documents, {
+    fields: [documents.referenceDocumentId],
+    references: [documents.id],
+    relationName: 'documentReference'
+  }),
+  referencedBy: many(documents, { relationName: 'documentReference' }),
+  items: many(documentItems),
+  payments: many(payments)
+}))
+
+export const documentItemsRelations = relations(documentItems, ({ one }) => ({
+  document: one(documents, {
+    fields: [documentItems.documentId],
+    references: [documents.id]
+  }),
+  subscription: one(subscriptions, {
+    fields: [documentItems.subscriptionId],
+    references: [subscriptions.id]
+  }),
+  tariff: one(tariffs, {
+    fields: [documentItems.tariffId],
+    references: [tariffs.id]
+  })
+}))
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  customer: one(customers, {
+    fields: [payments.customerId],
+    references: [customers.id]
+  }),
+  document: one(documents, {
+    fields: [payments.documentId],
+    references: [documents.id]
+  })
+}))
+
+export const ticketCategoriesRelations = relations(ticketCategories, ({ many }) => ({
+  tickets: many(tickets)
+}))
+
+export const ticketsRelations = relations(tickets, ({ one, many }) => ({
+  customer: one(customers, {
+    fields: [tickets.customerId],
+    references: [customers.id]
+  }),
+  category: one(ticketCategories, {
+    fields: [tickets.categoryId],
+    references: [ticketCategories.id]
+  }),
+  messages: many(ticketMessages)
+}))
+
+export const ticketMessagesRelations = relations(ticketMessages, ({ one }) => ({
+  ticket: one(tickets, {
+    fields: [ticketMessages.ticketId],
+    references: [tickets.id]
+  })
+}))
+
+export const smtpConfigsRelations = relations(smtpConfigs, ({ many }) => ({
+  templates: many(emailTemplates)
+}))
+
+export const emailTemplatesRelations = relations(emailTemplates, ({ one, many }) => ({
+  smtpConfig: one(smtpConfigs, {
+    fields: [emailTemplates.smtpConfigId],
+    references: [smtpConfigs.id]
+  }),
+  notificationRules: many(notificationRules),
+  emailLogs: many(emailLogs)
+}))
+
+export const notificationRulesRelations = relations(notificationRules, ({ one }) => ({
+  template: one(emailTemplates, {
+    fields: [notificationRules.templateId],
+    references: [emailTemplates.id]
+  })
+}))
+
+export const emailLogsRelations = relations(emailLogs, ({ one }) => ({
+  template: one(emailTemplates, {
+    fields: [emailLogs.templateId],
+    references: [emailTemplates.id]
+  })
+}))

@@ -275,6 +275,13 @@ export class DasanDriver implements NetworkManagementDriver {
     return unsupportedCheck('netflow-config')
   }
 
+  async restart(): Promise<DriverCheckResult> {
+    return this.safeCheck('restart', async () => {
+      await this.runCommands(['terminal length 0', 'enable', 'reload'])
+      return { action: 'reload', message: 'Polecenie restartu wysłane do urządzenia Dasan' }
+    })
+  }
+
   async getCommandTree(): Promise<DriverCheckResult> {
     return this.safeCheck('command-tree', async () => {
       const cliOutput = await this.runCommands(['terminal length 0', 'show cli', 'show list'])

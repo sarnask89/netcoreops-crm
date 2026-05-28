@@ -410,6 +410,13 @@ export class MikrotikDriver implements NetworkManagementDriver {
     })
   }
 
+  async restart(): Promise<DriverCheckResult> {
+    return this.withApi(async api => {
+      await api.write('/system/reboot')
+      return { name: 'restart', status: 'ok', message: 'Polecenie restartu wysłane', data: { action: 'reboot' } }
+    })
+  }
+
   async getCommandTree(): Promise<DriverCheckResult> {
     return unsupportedCheck('command-tree')
   }

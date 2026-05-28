@@ -3,7 +3,9 @@
  *
  * Provides promisified walk/get helpers with consistent error handling.
  */
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
 const snmp = require('net-snmp') as SnmpModule
 
 interface SnmpVarbindRaw {

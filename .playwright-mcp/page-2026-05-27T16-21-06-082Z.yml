@@ -1,0 +1,29 @@
+- generic [ref=e1]:
+  - button " EN" [ref=e4] [cursor=pointer]:
+    - generic [ref=e5]: 
+    - text: EN
+  - generic [ref=e7]:
+    - generic [ref=e8]:
+      - img "INTRUX FiQs" [ref=e9]
+      - heading "INTRUX FiQs" [level=1] [ref=e10]
+      - text: INTRUX FiQs Administration Panel
+    - generic [ref=e11]:
+      - alert [ref=e12]: "Login: admin, Password: demo"
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e15]:
+            - generic [ref=e16]: 
+            - text: Username
+          - textbox " Username" [active] [ref=e17]
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - generic [ref=e20]: 
+            - text: Password
+          - textbox " Password" [ref=e21]
+        - button " Login" [ref=e22] [cursor=pointer]:
+          - generic [ref=e23]: 
+          - text: Login
+  - generic [ref=e24]:
+    - separator [ref=e25]
+    - text: INTRUX Firewall & QoS v 15.0
+    - text: Copyright © by ININOUT LTD, All Rights Reserved

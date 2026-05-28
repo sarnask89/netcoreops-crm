@@ -655,6 +655,252 @@ export const portalUsers = pgTable('portal_users', {
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 })
 
+export const ticketCategories = pgTable('ticket_categories', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 128 }).notNull().unique(),
+  description: text('description'),
+  color: varchar('color', { length: 20 }),
+  sortOrder: integer('sort_order').default(0).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+})
+
+export const tickets = pgTable('tickets', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  subject: varchar('subject', { length: 255 }).notNull(),
+  status: varchar('status', { length: 30 }).default('open').notNull(),
+  priority: varchar('priority', { length: 20 }).default('normal').notNull(),
+  customerId: uuid('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+  categoryId: integer('category_id').references(() => ticketCategories.id, { onDelete: 'set null' }),
+  assignedTo: varchar('assigned_to', { length: 255 }),
+  source: varchar('source', { length: 30 }).default('admin').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
+export const ticketMessages = pgTable('ticket_messages', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  ticketId: uuid('ticket_id').references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  author: varchar('author', { length: 255 }).notNull(),
+  content: text('content').notNull(),
+  isInternal: boolean('is_internal').default(false).notNull(),
+  attachments: jsonb('attachments').$type<Array<{ filename: string, url: string }>>().default([]),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+})
+
+export const smtpConfigs = pgTable('smtp_configs', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 128 }).notNull(),
+  host: varchar('host', { length: 255 }).notNull(),
+  port: integer('port').default(587).notNull(),
+  username: varchar('username', { length: 255 }).notNull(),
+  password: varchar('password', { length: 512 }).notNull(),
+  fromName: varchar('from_name', { length: 255 }),
+  fromEmail: varchar('from_email', { length: 255 }).notNull(),
+  encryption: varchar('encryption', { length: 20 }).default('tls').notNull(),
+  isDefault: boolean('is_default').default(false).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
+export const emailTemplates = pgTable('email_templates', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 128 }).notNull().unique(),
+  code: varchar('code', { length: 64 }).notNull().unique(),
+  subject: varchar('subject', { length: 255 }).notNull(),
+  bodyHtml: text('body_html').notNull(),
+  variables: jsonb('variables').$type<Array<{ name: string, label: string }>>().default([]),
+  smtpConfigId: integer('smtp_config_id').references(() => smtpConfigs.id, { onDelete: 'set null' }),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
+export const notificationRules = pgTable('notification_rules', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 128 }).notNull(),
+  eventType: varchar('event_type', { length: 64 }).notNull(),
+  templateId: integer('template_id').references(() => emailTemplates.id, { onDelete: 'set null' }),
+  recipients: jsonb('recipients').$type<Array<{ type: 'customer' | 'admin' | 'email', value?: string }>>().default([]).notNull(),
+  conditions: jsonb('conditions').$type<Record<string, unknown>>().default({}),
+  enabled: boolean('enabled').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
+export const emailLogs = pgTable('email_logs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  to: varchar('to', { length: 255 }).notNull(),
+  fromEmail: varchar('from_email', { length: 255 }).notNull(),
+  subject: varchar('subject', { length: 255 }).notNull(),
+  bodyExcerpt: varchar('body_excerpt', { length: 500 }),
+  templateId: integer('template_id').references(() => emailTemplates.id, { onDelete: 'set null' }),
+  status: varchar('status', { length: 20 }).default('pending').notNull(),
+  error: text('error'),
+  relatedEntityType: varchar('related_entity_type', { length: 50 }),
+  relatedEntityId: varchar('related_entity_id', { length: 64 }),
+  sentAt: timestamp('sent_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+})
+
+export const numberPlans = pgTable('number_plans', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 128 }).notNull(),
+  template: varchar('template', { length: 255 }).notNull(),
+  period: varchar('period', { length: 20 }).default('yearly').notNull(),
+  doctype: varchar('doctype', { length: 50 }).notNull(),
+  isDefault: boolean('is_default').default(false).notNull(),
+  nextNumber: integer('next_number').default(1).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
+export const documents = pgTable('documents', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  type: varchar('type', { length: 50 }).notNull(),
+  fullNumber: varchar('full_number', { length: 255 }).notNull(),
+  numberPlanId: integer('number_plan_id').references(() => numberPlans.id, { onDelete: 'set null' }),
+  customerId: uuid('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+  issueDate: date('issue_date').notNull(),
+  saleDate: date('sale_date').notNull(),
+  dueDate: date('due_date'),
+  paymentMethod: varchar('payment_method', { length: 50 }).default('transfer').notNull(),
+  paymentStatus: varchar('payment_status', { length: 20 }).default('unpaid').notNull(),
+  totalNet: numeric('total_net', { precision: 12, scale: 2 }).notNull(),
+  totalVat: numeric('total_vat', { precision: 12, scale: 2 }).notNull(),
+  totalGross: numeric('total_gross', { precision: 12, scale: 2 }).notNull(),
+  notes: text('notes'),
+  customerName: varchar('customer_name', { length: 255 }),
+  customerAddress: text('customer_address'),
+  customerTaxId: varchar('customer_tax_id', { length: 50 }),
+  issuerName: varchar('issuer_name', { length: 255 }),
+  issuerAddress: text('issuer_address'),
+  issuerTaxId: varchar('issuer_tax_id', { length: 50 }),
+  issuerBankName: varchar('issuer_bank_name', { length: 255 }),
+  issuerBankAccount: varchar('issuer_bank_account', { length: 48 }),
+  referenceDocumentId: uuid('reference_document_id').references((): AnyPgColumn => documents.id, { onDelete: 'set null' }),
+  isCancelled: boolean('is_cancelled').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
+export const documentItems = pgTable('document_items', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  documentId: uuid('document_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(),
+  ordinal: integer('ordinal').notNull(),
+  description: text('description').notNull(),
+  quantity: numeric('quantity', { precision: 10, scale: 3 }).default('1').notNull(),
+  unitNetPrice: numeric('unit_net_price', { precision: 12, scale: 2 }).notNull(),
+  vatRate: numeric('vat_rate', { precision: 5, scale: 2 }).notNull(),
+  netAmount: numeric('net_amount', { precision: 12, scale: 2 }).notNull(),
+  vatAmount: numeric('vat_amount', { precision: 12, scale: 2 }).notNull(),
+  grossAmount: numeric('gross_amount', { precision: 12, scale: 2 }).notNull(),
+  subscriptionId: uuid('subscription_id').references(() => subscriptions.id, { onDelete: 'set null' }),
+  tariffId: integer('tariff_id').references(() => tariffs.id, { onDelete: 'set null' })
+})
+
+export const payments = pgTable('payments', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  customerId: uuid('customer_id').references(() => customers.id, { onDelete: 'cascade' }).notNull(),
+  documentId: uuid('document_id').references(() => documents.id, { onDelete: 'set null' }),
+  amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
+  paymentDate: date('payment_date').notNull(),
+  paymentMethod: varchar('payment_method', { length: 50 }),
+  reference: varchar('reference', { length: 255 }),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+})
+
+export const auditLogs = pgTable('audit_logs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id'),
+  username: varchar('username', { length: 160 }).notNull(),
+  action: varchar('action', { length: 20 }).notNull(),
+  entity: varchar('entity', { length: 100 }).notNull(),
+  entityId: varchar('entity_id', { length: 64 }),
+  changes: jsonb('changes'),
+  ip: varchar('ip', { length: 45 }),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+})
+
+export const equipmentConfigBackups = pgTable('equipment_config_backups', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  equipmentId: uuid('equipment_id').references(() => networkEquipment.id, { onDelete: 'set null' }),
+  configText: text('config_text').notNull(),
+  configSize: integer('config_size'),
+  triggerType: varchar('trigger_type', { length: 30 }).default('manual').notNull(),
+  status: varchar('status', { length: 30 }).default('success').notNull(),
+  backupHash: varchar('backup_hash', { length: 64 }),
+  equipmentSnapshot: jsonb('equipment_snapshot'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+})
+
+export const scheduledTasks = pgTable('scheduled_tasks', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  taskType: varchar('task_type', { length: 60 }).notNull(),
+  targetEntity: varchar('target_entity', { length: 60 }),
+  targetEntityId: varchar('target_entity_id', { length: 64 }),
+  config: jsonb('config'),
+  cronExpression: varchar('cron_expression', { length: 100 }),
+  scheduledAt: timestamp('scheduled_at'),
+  completedAt: timestamp('completed_at'),
+  status: varchar('status', { length: 30 }).default('pending').notNull(),
+  assignedTo: varchar('assigned_to', { length: 120 }),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
+export const customerGroups = pgTable('customer_groups', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 128 }).notNull().unique(),
+  description: text('description'),
+  color: varchar('color', { length: 20 }),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+})
+
+export const customerGroupMembers = pgTable('customer_group_members', {
+  id: serial('id').primaryKey(),
+  groupId: integer('group_id').references(() => customerGroups.id, { onDelete: 'cascade' }).notNull(),
+  customerId: uuid('customer_id').references(() => customers.id, { onDelete: 'cascade' }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+}, table => [
+  uniqueIndex('customer_group_members_group_customer_idx').on(table.groupId, table.customerId)
+])
+
+export const customerNotes = pgTable('customer_notes', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  customerId: uuid('customer_id').references(() => customers.id, { onDelete: 'cascade' }).notNull(),
+  author: varchar('author', { length: 160 }).notNull(),
+  content: text('content').notNull(),
+  isInternal: boolean('is_internal').default(true).notNull(),
+  category: varchar('category', { length: 60 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
+export const syslogEntries = pgTable('syslog_entries', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  facility: integer('facility'),
+  severity: integer('severity'),
+  timestamp: timestamp('timestamp'),
+  hostname: varchar('hostname', { length: 255 }),
+  appName: varchar('app_name', { length: 128 }),
+  procId: varchar('proc_id', { length: 128 }),
+  msgId: varchar('msg_id', { length: 128 }),
+  message: text('message').notNull(),
+  structuredData: jsonb('structured_data'),
+  raw: text('raw'),
+  receivedAt: timestamp('received_at').defaultNow().notNull()
+})
+
 export type TerytArea = typeof terytAreas.$inferSelect
 export type SimcLocality = typeof simcLocalities.$inferSelect
 export type UlicStreet = typeof ulicStreets.$inferSelect
@@ -688,3 +934,21 @@ export type NetflowExporterHealth = typeof netflowExporterHealth.$inferSelect
 export type OperatorCity = typeof operatorCities.$inferSelect
 export type SearchCatalog = typeof searchCatalog.$inferSelect
 export type PortalUser = typeof portalUsers.$inferSelect
+export type Document = typeof documents.$inferSelect
+export type DocumentItem = typeof documentItems.$inferSelect
+export type Payment = typeof payments.$inferSelect
+export type NumberPlan = typeof numberPlans.$inferSelect
+export type TicketCategory = typeof ticketCategories.$inferSelect
+export type Ticket = typeof tickets.$inferSelect
+export type TicketMessage = typeof ticketMessages.$inferSelect
+export type SmtpConfig = typeof smtpConfigs.$inferSelect
+export type EmailTemplate = typeof emailTemplates.$inferSelect
+export type NotificationRule = typeof notificationRules.$inferSelect
+export type EmailLog = typeof emailLogs.$inferSelect
+export type AuditLog = typeof auditLogs.$inferSelect
+export type EquipmentConfigBackup = typeof equipmentConfigBackups.$inferSelect
+export type ScheduledTask = typeof scheduledTasks.$inferSelect
+export type CustomerGroup = typeof customerGroups.$inferSelect
+export type CustomerGroupMember = typeof customerGroupMembers.$inferSelect
+export type CustomerNote = typeof customerNotes.$inferSelect
+export type SyslogEntry = typeof syslogEntries.$inferSelect

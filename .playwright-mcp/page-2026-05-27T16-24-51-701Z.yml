@@ -1,0 +1,13 @@
+- generic [ref=e5]:
+  - heading [level=3] [ref=e7]:
+    - img [ref=e8]
+  - form [ref=e18]:
+    - textbox "Username" [active] [ref=e21]
+    - textbox "Password" [ref=e24]
+    - generic [ref=e28] [cursor=pointer]:
+      - checkbox "Remember Me" [ref=e29]
+      - text: Remember Me
+    - button " Login" [ref=e32] [cursor=pointer]:
+      - generic [ref=e33]: 
+      - text: Login
+  - generic [ref=e35]: Unauthorised access or use shall render the user liable to criminal and/or civil prosecution.

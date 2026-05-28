@@ -9,8 +9,8 @@ interface CustomerDeviceRow {
   status: string
   importIssues?: string[]
   customer: { fullName: string }
-  equipment?: { inventoryId: string } | null
-  onuEquipment?: { inventoryId: string } | null
+  equipment?: { inventoryId: string, node?: { id: string, name: string } | null } | null
+  onuEquipment?: { inventoryId: string, node?: { id: string, name: string } | null } | null
   subscriptions?: Array<{ tariff: { name: string } }>
 }
 
@@ -119,9 +119,11 @@ async function archiveDevice() {
 }
 
 function rowContextItems(row: CustomerDeviceRow): ContextMenuItem[][] {
+  const topologyNodeId = row.equipment?.node?.id || row.onuEquipment?.node?.id
   return [[
     { label: 'Edytuj', icon: 'i-lucide-pencil', onSelect: () => openEdit(row) },
     { label: 'Panel diagnostyczny', icon: 'i-lucide-activity', onSelect: () => openDiagnostics(row) },
+    ...(topologyNodeId ? [{ label: 'Pokaż w topologii', icon: 'i-lucide-network', onSelect: () => navigateTo(`/network/topology/${topologyNodeId}`) }] : []),
     { label: 'Ping / ARP / DHCP', icon: 'i-lucide-radar', onSelect: () => openDiagnostics(row, 'check') },
     { label: 'OLT lookup', icon: 'i-lucide-git-branch', onSelect: () => openDiagnostics(row, 'olt-lookup') },
     { label: 'Sync lease', icon: 'i-lucide-refresh-cw', onSelect: () => openDiagnostics(row, 'sync-lease') }

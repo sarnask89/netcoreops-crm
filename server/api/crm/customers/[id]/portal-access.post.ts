@@ -29,8 +29,9 @@ export default apiHandler(async (event) => {
         .replace(/^\.|\.$/g, '')
         .slice(0, 60)) || 'customer'
 
-  let login = loginBase
+  let login = customer.portalUser?.login || loginBase
   for (let suffix = 0; ; suffix++) {
+    if (customer.portalUser && login === customer.portalUser.login) break
     const existing = await db.query.portalUsers.findFirst({
       where: eq(portalUsers.login, login)
     })

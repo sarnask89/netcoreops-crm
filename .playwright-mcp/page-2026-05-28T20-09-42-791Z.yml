@@ -1,0 +1,91 @@
+- generic [active]:
+  - generic:
+    - generic [ref=e1]:
+      - generic [ref=e2]:
+        - button "NetCoreOps" [ref=e4]:
+          - generic [ref=e6]: NetCoreOps
+        - generic [ref=e7]:
+          - navigation [ref=e8]:
+            - list [ref=e9]:
+              - listitem [ref=e10]:
+                - link "Pulpit" [ref=e11] [cursor=pointer]:
+                  - /url: /
+              - listitem [ref=e14]:
+                - button "Sieć" [expanded] [ref=e15]
+                - region "Sieć" [ref=e20]
+              - listitem [ref=e78]:
+                - button "CRM" [ref=e79]
+              - listitem [ref=e84]:
+                - button "Billing" [ref=e85]
+              - listitem [ref=e90]:
+                - button "Finanse" [ref=e91]
+              - listitem [ref=e96]:
+                - button "Helpdesk" [ref=e97]
+              - listitem [ref=e102]:
+                - button "Powiadomienia" [ref=e103]
+              - listitem [ref=e108]:
+                - button "Automatyzacja" [ref=e109]
+              - listitem [ref=e114]:
+                - button "Narzędzia" [ref=e115]
+              - listitem [ref=e120]:
+                - link "Słowniki UKE" [ref=e121] [cursor=pointer]:
+                  - /url: /system/dictionaries
+              - listitem [ref=e124]:
+                - link "Walidacja PIT" [ref=e125] [cursor=pointer]:
+                  - /url: /pit/validation
+              - listitem [ref=e128]:
+                - link "Katalog wyszukiwarki" [ref=e129] [cursor=pointer]:
+                  - /url: /system/search-catalog
+          - navigation [ref=e132]:
+            - list [ref=e133]:
+              - listitem [ref=e134]:
+                - link "Eksport CSV" [ref=e135] [cursor=pointer]:
+                  - /url: /api/pit/export
+              - listitem [ref=e139]:
+                - link "BIP UKE art. 20" [ref=e140] [cursor=pointer]:
+                  - /url: https://bip.uke.gov.pl/sprawozdania/obowiazek-sprawozdawczy-z-art-20-pke/
+        - button "a admin Administrator lokalny" [ref=e145]:
+          - generic [ref=e147]: a
+          - generic [ref=e148]:
+            - generic [ref=e149]: admin
+            - generic [ref=e150]: Administrator lokalny
+      - separator
+      - generic [ref=e152]:
+        - generic [ref=e153]:
+          - button "Search… Ctrl k" [ref=e190]:
+            - generic [ref=e156]: Search…
+            - generic [ref=e157]:
+              - generic [ref=e158]: Ctrl
+              - generic [ref=e159]: k
+          - button [ref=e161]
+        - main [ref=e163]:
+          - generic [ref=e165]:
+            - generic [ref=e167]:
+              - generic [ref=e168]: Legenda
+              - generic [ref=e171]: Szkieletowy (SZKIELETOWY)
+              - generic [ref=e174]: Dystrybucyjny (DYSTRYBUCYJNY)
+              - generic [ref=e175]:
+                - generic [ref=e178]: Aktywny
+                - generic [ref=e181]: Planowany
+                - generic [ref=e184]: Wycofany
+              - generic [ref=e185]:
+                - text: Kliknij — podgląd
+                - text: 2x kliknij — szczegóły
+            - generic [ref=e189]: "Węzły: 2 | Łącza: 1 | ● gotowe"
+    - button "Konsola" [ref=e193]:
+      - generic [ref=e195]: Konsola
+  - generic:
+    - img
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - button "Toggle Nuxt DevTools":
+            - img
+          - generic "Page load time":
+            - generic: "3.5"
+            - generic: s
+          - button "Toggle Component Inspector":
+            - img
+  - region "Notifications (F8)":
+    - list

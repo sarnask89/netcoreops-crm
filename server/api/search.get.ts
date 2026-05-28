@@ -7,6 +7,8 @@ import {
   customerDevices,
   customers,
   networkEquipment,
+  networkLines,
+  networkNodes,
   searchCatalog,
   subscriptions,
   tariffs
@@ -24,7 +26,7 @@ export default apiHandler(async (event) => {
 
   const pattern = `%${term}%`
 
-  const [catalogItems, customerRows, equipmentRows, customerDeviceRows, tariffRows, subscriptionRows, profileRows, scriptRows] = await Promise.all([
+  const [catalogItems, customerRows, equipmentRows, customerDeviceRows, nodeRows, lineRows, tariffRows, subscriptionRows, profileRows, scriptRows] = await Promise.all([
     // Search catalog entries from DB instead of hardcoded array
     db.query.searchCatalog.findMany({
       where: and(
@@ -49,6 +51,14 @@ export default apiHandler(async (event) => {
     }),
     db.query.customerDevices.findMany({
       where: or(ilike(customerDevices.hostname, pattern), ilike(customerDevices.ipAddress, pattern), ilike(customerDevices.macAddress, pattern)),
+      limit: 8
+    }),
+    db.query.networkNodes.findMany({
+      where: or(ilike(networkNodes.inventoryId, pattern), ilike(networkNodes.name, pattern), ilike(networkNodes.nodeType, pattern), ilike(networkNodes.status, pattern)),
+      limit: 8
+    }),
+    db.query.networkLines.findMany({
+      where: or(ilike(networkLines.inventoryId, pattern), ilike(networkLines.status, pattern)),
       limit: 8
     }),
     db.query.tariffs.findMany({
@@ -98,6 +108,18 @@ export default apiHandler(async (event) => {
         suffix: [device.ipAddress, device.macAddress].filter(Boolean).join(' / ') || 'Urządzenie klienta',
         icon: 'i-lucide-router',
         to: '/crm/customer-devices'
+      })),
+      ...nodeRows.map(node => ({
+        label: `@ ${node.name}`,
+        suffix: `${node.inventoryId} / ${node.nodeType}`,
+        icon: 'i-lucide-map-pin',
+        to: `/network/topology/${node.id}`
+      })),
+      ...lineRows.map(line => ({
+        label: `@ ${line.inventoryId}`,
+        suffix: `Łącze / ${line.status}`,
+        icon: 'i-lucide-route',
+        to: '/network/topology'
       })),
       ...tariffRows.map(tariff => ({
         label: `@ ${tariff.name}`,

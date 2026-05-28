@@ -1,0 +1,14 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e6]:
+      - heading "Portal klienta" [level=1] [ref=e7]
+      - paragraph [ref=e8]: Zaloguj się, aby sprawdzić swoje usługi
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e14]: Login
+        - textbox "Login" [ref=e17]
+      - generic [ref=e18]:
+        - generic [ref=e21]: Hasło
+        - textbox "Hasło" [ref=e24]
+      - button "Zaloguj" [ref=e25]:
+        - generic [ref=e27]: Zaloguj

@@ -1,0 +1,168 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - heading "500" [level=1] [ref=e3]
+    - heading "undefined" [level=2] [ref=e4]
+    - paragraph [ref=e5]: Cannot access 'renderer' before initialization
+  - status [ref=e6]
+  - iframe [ref=e7]:
+    - generic [ref=f3e2]:
+      - banner [ref=f3e3]:
+        - generic [ref=f3e5]:
+          - checkbox [ref=f3e6]
+          - generic "Light mode" [ref=f3e8] [cursor=pointer]:
+            - img [ref=f3e9]
+      - generic [ref=f3e13]:
+        - heading "Error" [level=4] [ref=f3e14]
+        - heading "An error has occurred" [level=1] [ref=f3e15]
+      - heading "Cannot access 'renderer' before initialization Copy error with stack trace to clipboard" [level=2] [ref=f3e19]:
+        - img [ref=f3e21]
+        - generic [ref=f3e23]: Cannot access 'renderer' before initialization
+        - button "Copy error with stack trace to clipboard" [ref=f3e24] [cursor=pointer]:
+          - img [ref=f3e25]
+      - generic [ref=f3e30]:
+        - heading "Stack Trace" [level=3] [ref=f3e33]
+        - generic [ref=f3e35]:
+          - generic [ref=f3e36]:
+            - generic [ref=f3e38]:
+              - checkbox "View All Frames" [ref=f3e39]
+              - generic [ref=f3e40]: View All Frames
+            - generic [ref=f3e42]:
+              - button "Pretty" [ref=f3e43]
+              - button "Raw" [ref=f3e44]
+          - list [ref=f3e47]:
+            - listitem [ref=f3e48]:
+              - generic [ref=f3e49]:
+                - button ".nuxt/dev/index.mjs at line 8635:65" [ref=f3e50]:
+                  - link ".nuxt/dev/index.mjs" [ref=f3e51] [cursor=pointer]:
+                    - /url: vscode://file//home/sarna/netcoreops/.nuxt/dev/index.mjs:8635
+                  - generic [ref=f3e52]:
+                    - text: at line
+                    - code [ref=f3e53]: 8635:65
+                - generic [ref=f3e54]:
+                  - generic [ref=f3e55]: In App
+                  - button [ref=f3e56]:
+                    - img [ref=f3e57]
+              - code [ref=f3e61]:
+                - generic [ref=f3e75]: "const _lazy_GAbyp4 = () => Promise.resolve().then(function () { return index_get$3; }); const _lazy_Fz7Z5r = () => Promise.resolve().then(function () { return _id__delete$1; }); const _lazy_w730A_ = () => Promise.resolve().then(function () { return _id__patch$1; }); const _lazy_iJWdq0 = () => Promise.resolve().then(function () { return index_get$1; }); const _lazy_o0FMLN = () => Promise.resolve().then(function () { return index_post$1; }); const _lazy_tqNz4I = () => Promise.resolve().then(function () { return renderer; }); const handlers = [ { route: '', handler: _jpiOuI, lazy: false, middleware: true, method: undefined }, { route: '', handler: _LlRz7B, lazy: false, middleware: true, method: undefined }, { route: '', handler: _mShIv0, lazy: false, middleware: true, method: undefined },"
+            - listitem [ref=f3e76]:
+              - generic [ref=f3e78]:
+                - link "async file://node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index.mjs" [ref=f3e79] [cursor=pointer]:
+                  - /url: vscode://file/async file:///home/sarna/netcoreops/node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index.mjs:2017
+                - generic [ref=f3e80]:
+                  - text: at line
+                  - code [ref=f3e81]: 2017:19
+            - listitem [ref=f3e82]:
+              - generic [ref=f3e83]:
+                - button "node_modules/.pnpm/unctx@2.5.0/node_modules/unctx/dist/index.mjs in async Object.callAsync at line 72:16" [ref=f3e84]:
+                  - link "node_modules/.pnpm/unctx@2.5.0/node_modules/unctx/dist/index.mjs" [ref=f3e85] [cursor=pointer]:
+                    - /url: vscode://file//home/sarna/netcoreops/node_modules/.pnpm/unctx@2.5.0/node_modules/unctx/dist/index.mjs:72
+                  - generic [ref=f3e86]:
+                    - text: in
+                    - code [ref=f3e87]: async Object.callAsync
+                  - generic [ref=f3e88]:
+                    - text: at line
+                    - code [ref=f3e89]: 72:16
+                - button [ref=f3e91]:
+                  - img [ref=f3e92]
+            - listitem [ref=f3e94]:
+              - generic [ref=f3e95]:
+                - button "node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index.mjs in async Server.toNodeHandle at line 2316:7" [ref=f3e96]:
+                  - link "node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index.mjs" [ref=f3e97] [cursor=pointer]:
+                    - /url: vscode://file//home/sarna/netcoreops/node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index.mjs:2316
+                  - generic [ref=f3e98]:
+                    - text: in
+                    - code [ref=f3e99]: async Server.toNodeHandle
+                  - generic [ref=f3e100]:
+                    - text: at line
+                    - code [ref=f3e101]: 2316:7
+                - button [ref=f3e103]:
+                  - img [ref=f3e104]
+      - generic [ref=f3e107]:
+        - heading "Error Cause" [level=3] [ref=f3e110]
+        - code [ref=f3e115]:
+          - generic [ref=f3e116]:
+            - text: "ReferenceError {"
+            - button "▼" [ref=f3e117]:
+              - generic [ref=f3e118]: ▼
+            - text: "}"
+      - generic [ref=f3e120]:
+        - heading "Request" [level=3] [ref=f3e122]
+        - generic [ref=f3e123]:
+          - generic [ref=f3e124]:
+            - heading "url" [level=4] [ref=f3e125]
+            - text: http://127.0.0.1:3000/helpdesk/categories
+          - generic [ref=f3e126]:
+            - heading "method" [level=4] [ref=f3e127]
+            - text: GET
+          - generic [ref=f3e128]:
+            - heading "headers" [level=4] [ref=f3e129]
+            - table [ref=f3e130]:
+              - rowgroup [ref=f3e131]:
+                - row "host 127.0.0.1:3000" [ref=f3e132]:
+                  - cell "host" [ref=f3e133]
+                  - cell "127.0.0.1:3000" [ref=f3e134]
+                - row "connection keep-alive" [ref=f3e135]:
+                  - cell "connection" [ref=f3e136]
+                  - cell "keep-alive" [ref=f3e137]
+                - row "sec-ch-ua \"Chromium\";v=\"148\", \"Google Chrome\";v=\"148\", \"Not/A)Brand\";v=\"99\"" [ref=f3e138]:
+                  - cell "sec-ch-ua" [ref=f3e139]
+                  - cell "\"Chromium\";v=\"148\", \"Google Chrome\";v=\"148\", \"Not/A)Brand\";v=\"99\"" [ref=f3e140]
+                - row "sec-ch-ua-mobile ?0" [ref=f3e141]:
+                  - cell "sec-ch-ua-mobile" [ref=f3e142]
+                  - cell "?0" [ref=f3e143]
+                - row "sec-ch-ua-platform \"Linux\"" [ref=f3e144]:
+                  - cell "sec-ch-ua-platform" [ref=f3e145]
+                  - cell "\"Linux\"" [ref=f3e146]
+                - row "upgrade-insecure-requests 1" [ref=f3e147]:
+                  - cell "upgrade-insecure-requests" [ref=f3e148]
+                  - cell "1" [ref=f3e149]
+                - row "user-agent Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36" [ref=f3e150]:
+                  - cell "user-agent" [ref=f3e151]
+                  - cell "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36" [ref=f3e152]
+                - row "accept text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7" [ref=f3e153]:
+                  - cell "accept" [ref=f3e154]
+                  - cell "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7" [ref=f3e155]
+                - row "sec-fetch-site none" [ref=f3e156]:
+                  - cell "sec-fetch-site" [ref=f3e157]
+                  - cell "none" [ref=f3e158]
+                - row "sec-fetch-mode navigate" [ref=f3e159]:
+                  - cell "sec-fetch-mode" [ref=f3e160]
+                  - cell "navigate" [ref=f3e161]
+                - row "sec-fetch-user ?1" [ref=f3e162]:
+                  - cell "sec-fetch-user" [ref=f3e163]
+                  - cell "?1" [ref=f3e164]
+                - row "sec-fetch-dest document" [ref=f3e165]:
+                  - cell "sec-fetch-dest" [ref=f3e166]
+                  - cell "document" [ref=f3e167]
+                - row "accept-encoding gzip, deflate, br, zstd" [ref=f3e168]:
+                  - cell "accept-encoding" [ref=f3e169]
+                  - cell "gzip, deflate, br, zstd" [ref=f3e170]
+                - row "accept-language en-US,en;q=0.9" [ref=f3e171]:
+                  - cell "accept-language" [ref=f3e172]
+                  - cell "en-US,en;q=0.9" [ref=f3e173]
+                - 'row "cookie Object { ▼ }" [ref=f3e174]':
+                  - cell "cookie" [ref=f3e175]
+                  - 'cell "Object { ▼ }" [ref=f3e176]':
+                    - code [ref=f3e179]:
+                      - generic [ref=f3e180]:
+                        - text: "Object {"
+                        - button "▼" [ref=f3e181]:
+                          - generic [ref=f3e182]: ▼
+                        - text: "}"
+                - row "x-forwarded-for 127.0.0.1" [ref=f3e183]:
+                  - cell "x-forwarded-for" [ref=f3e184]
+                  - cell "127.0.0.1" [ref=f3e185]
+                - row "x-forwarded-port 3000" [ref=f3e186]:
+                  - cell "x-forwarded-port" [ref=f3e187]
+                  - cell "3000" [ref=f3e188]
+                - row "x-forwarded-proto http" [ref=f3e189]:
+                  - cell "x-forwarded-proto" [ref=f3e190]
+                  - cell "http" [ref=f3e191]
+  - iframe [ref=e8]:
+    - generic [ref=f4e2]:
+      - heading "500" [level=1] [ref=f4e3]
+      - heading "undefined" [level=2] [ref=f4e4]
+      - paragraph [ref=f4e5]: Cannot access 'renderer' before initialization
+  - button "Toggle detailed error view Hide error page preview" [expanded] [ref=e9]:
+    - generic [ref=e10]: Toggle detailed error view
+    - button "Hide error page preview" [ref=e11] [cursor=pointer]: ×

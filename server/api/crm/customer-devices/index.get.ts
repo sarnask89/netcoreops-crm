@@ -11,8 +11,12 @@ export default apiHandler(async (event) => {
     where: includeArchived ? undefined : isNull(customerDevices.archivedAt),
     with: {
       customer: true,
-      equipment: true,
-      onuEquipment: true,
+      equipment: {
+        with: { node: true }
+      },
+      onuEquipment: {
+        with: { node: true }
+      },
       subscriptions: {
         with: {
           tariff: true

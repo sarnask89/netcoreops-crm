@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
+import { useThemeSkin } from '~/composables/useThemeSkin'
 
 interface SearchItem {
   label: string
@@ -116,6 +117,20 @@ const links = [[{
     onSelect: () => {
       open.value = false
     }
+  }, {
+    label: 'Topologia',
+    icon: 'i-lucide-network',
+    to: '/network/topology',
+    onSelect: () => {
+      open.value = false
+    }
+  }, {
+    label: 'Mapa klientów',
+    icon: 'i-lucide-map-pinned',
+    to: '/network/customer-map',
+    onSelect: () => {
+      open.value = false
+    }
   }]
 }, {
   label: 'CRM',
@@ -156,6 +171,81 @@ const links = [[{
     }
   }]
 }, {
+  label: 'Finanse',
+  icon: 'i-lucide-banknote',
+  type: 'trigger',
+  children: [{
+    label: 'Faktury',
+    icon: 'i-lucide-file-text',
+    to: '/finance/documents',
+    onSelect: () => {
+      open.value = false
+    }
+  }, {
+    label: 'Płatności',
+    icon: 'i-lucide-banknote',
+    to: '/finance/payments',
+    onSelect: () => {
+      open.value = false
+    }
+  }, {
+    label: 'Plany numeracji',
+    icon: 'i-lucide-sort-asc',
+    to: '/finance/number-plans',
+    onSelect: () => {
+      open.value = false
+    }
+  }]
+}, {
+  label: 'Helpdesk',
+  icon: 'i-lucide-life-buoy',
+  type: 'trigger',
+  children: [{
+    label: 'Zgłoszenia',
+    icon: 'i-lucide-ticket',
+    to: '/helpdesk/tickets',
+    onSelect: () => {
+      open.value = false
+    }
+  }, {
+    label: 'Kategorie',
+    icon: 'i-lucide-tags',
+    to: '/helpdesk/categories',
+    onSelect: () => {
+      open.value = false
+    }
+  }]
+}, {
+  label: 'Powiadomienia',
+  icon: 'i-lucide-bell',
+  type: 'trigger',
+  children: [{
+    label: 'Przegląd',
+    icon: 'i-lucide-layout-dashboard',
+    to: '/notifications',
+    onSelect: () => { open.value = false }
+  }, {
+    label: 'Konfiguracja SMTP',
+    icon: 'i-lucide-settings',
+    to: '/notifications/smtp',
+    onSelect: () => { open.value = false }
+  }, {
+    label: 'Szablony e-mail',
+    icon: 'i-lucide-file-text',
+    to: '/notifications/templates',
+    onSelect: () => { open.value = false }
+  }, {
+    label: 'Logi e-mail',
+    icon: 'i-lucide-list-checks',
+    to: '/notifications/logs',
+    onSelect: () => { open.value = false }
+  }, {
+    label: 'Reguły powiadomień',
+    icon: 'i-lucide-bell-plus',
+    to: '/notifications/rules',
+    onSelect: () => { open.value = false }
+  }]
+}, {
   label: 'Automatyzacja',
   icon: 'i-lucide-terminal-square',
   type: 'trigger',
@@ -185,6 +275,26 @@ const links = [[{
     onSelect: () => {
       open.value = false
     }
+  }, {
+    label: 'Dziennik audytu',
+    icon: 'i-lucide-shield',
+    to: '/tools/audit-log',
+    onSelect: () => { open.value = false }
+  }, {
+    label: 'Kopie zapasowe',
+    icon: 'i-lucide-database-backup',
+    to: '/tools/backups',
+    onSelect: () => { open.value = false }
+  }, {
+    label: 'Zaplanowane zadania',
+    icon: 'i-lucide-calendar-clock',
+    to: '/tools/scheduled-tasks',
+    onSelect: () => { open.value = false }
+  }, {
+    label: 'Syslog',
+    icon: 'i-lucide-log-in',
+    to: '/tools/syslog',
+    onSelect: () => { open.value = false }
   }]
 }, {
   label: 'Słowniki UKE',
@@ -274,6 +384,9 @@ watch(searchTerm, (value) => {
   debouncedSearch(value)
 })
 
+const { isDashboard } = useThemeSkin()
+const { isNotificationsSlideoverOpen } = useDashboard()
+
 function flattenNavigationItems(items: NavigationMenuItem[]): SearchItem[] {
   return items.flatMap((item) => {
     if (item.children?.length) {
@@ -306,7 +419,7 @@ function flattenNavigationItems(items: NavigationMenuItem[]): SearchItem[] {
       </template>
 
       <template #default="{ collapsed }">
-        <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-default" />
+        <UDashboardSearchButton v-if="!isDashboard" :collapsed="collapsed" class="bg-transparent ring-default" />
 
         <UNavigationMenu
           :collapsed="collapsed"
@@ -332,7 +445,26 @@ function flattenNavigationItems(items: NavigationMenuItem[]): SearchItem[] {
 
     <UDashboardSearch v-model:search-term="searchTerm" :groups="groups" />
 
-    <slot />
+    <div v-if="isDashboard" class="flex flex-col flex-1 min-w-0">
+      <div class="flex items-center gap-3 px-6 py-2.5 border-b border-default bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+        <UDashboardSearchButton class="bg-transparent ring-default flex-1 max-w-sm" />
+        <div class="flex items-center gap-1 ml-auto">
+          <UButton
+            icon="i-lucide-bell"
+            color="neutral"
+            variant="ghost"
+            square
+            @click="isNotificationsSlideoverOpen = true"
+          />
+        </div>
+      </div>
+      <main class="flex-1 overflow-auto">
+        <slot />
+      </main>
+    </div>
+    <template v-else>
+      <slot />
+    </template>
 
     <NotificationsSlideover />
   </UDashboardGroup>

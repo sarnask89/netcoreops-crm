@@ -1,0 +1,139 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - button "NetCoreOps" [ref=e4]:
+      - generic [ref=e6]: NetCoreOps
+    - generic [ref=e7]:
+      - button "Search… k" [ref=e8]:
+        - generic [ref=e10]: Search…
+        - generic [ref=e13]: k
+      - navigation [ref=e14]:
+        - list [ref=e15]:
+          - listitem [ref=e16]:
+            - link "Pulpit" [ref=e17] [cursor=pointer]:
+              - /url: /
+              - generic [ref=e19]: Pulpit
+          - listitem [ref=e20]:
+            - button "Sieć" [expanded] [ref=e21]:
+              - generic [ref=e23]: Sieć
+            - region "Sieć" [ref=e26]:
+              - list [ref=e27]:
+                - listitem [ref=e28]:
+                  - link "Węzły" [ref=e29] [cursor=pointer]:
+                    - /url: /network/nodes
+                    - generic [ref=e31]: Węzły
+                - listitem [ref=e32]:
+                  - link "Linie" [ref=e33] [cursor=pointer]:
+                    - /url: /network/lines
+                    - generic [ref=e35]: Linie
+                - listitem [ref=e36]:
+                  - link "Urządzenia" [ref=e37] [cursor=pointer]:
+                    - /url: /network/equipment
+                    - generic [ref=e39]: Urządzenia
+                - listitem [ref=e40]:
+                  - link "FTTH / GPON" [ref=e41] [cursor=pointer]:
+                    - /url: /network/ftth
+                    - generic [ref=e43]: FTTH / GPON
+                - listitem [ref=e44]:
+                  - link "FTTH OLT" [ref=e45] [cursor=pointer]:
+                    - /url: /network/ftth/olts
+                    - generic [ref=e47]: FTTH OLT
+                - listitem [ref=e48]:
+                  - link "FTTH PON" [ref=e49] [cursor=pointer]:
+                    - /url: /network/ftth/pons
+                    - generic [ref=e51]: FTTH PON
+                - listitem [ref=e52]:
+                  - link "FTTH ONU" [ref=e53] [cursor=pointer]:
+                    - /url: /network/ftth/onus
+                    - generic [ref=e55]: FTTH ONU
+                - listitem [ref=e56]:
+                  - link "FTTH MAC map" [ref=e57] [cursor=pointer]:
+                    - /url: /network/ftth/mac-map
+                    - generic [ref=e59]: FTTH MAC map
+                - listitem [ref=e60]:
+                  - link "FTTH importy" [ref=e61] [cursor=pointer]:
+                    - /url: /network/ftth/imports
+                    - generic [ref=e63]: FTTH importy
+                - listitem [ref=e64]:
+                  - link "FTTH diagnostyka" [ref=e65] [cursor=pointer]:
+                    - /url: /network/ftth/diagnostics
+                    - generic [ref=e67]: FTTH diagnostyka
+                - listitem [ref=e68]:
+                  - link "Importy" [ref=e69] [cursor=pointer]:
+                    - /url: /network/imports
+                    - generic [ref=e71]: Importy
+                - listitem [ref=e72]:
+                  - link "Profile dostępowe" [ref=e73] [cursor=pointer]:
+                    - /url: /network/access-profiles
+                    - generic [ref=e75]: Profile dostępowe
+                - listitem [ref=e76]:
+                  - link "Topologia" [ref=e77] [cursor=pointer]:
+                    - /url: /network/topology
+                    - generic [ref=e79]: Topologia
+                - listitem [ref=e80]:
+                  - link "Mapa klientów" [ref=e81] [cursor=pointer]:
+                    - /url: /network/customer-map
+                    - generic [ref=e83]: Mapa klientów
+          - listitem [ref=e84]:
+            - button "CRM" [ref=e85]:
+              - generic [ref=e87]: CRM
+          - listitem [ref=e90]:
+            - button "Billing" [ref=e91]:
+              - generic [ref=e93]: Billing
+          - listitem [ref=e96]:
+            - button "Finanse" [ref=e97]:
+              - generic [ref=e99]: Finanse
+          - listitem [ref=e102]:
+            - button "Helpdesk" [ref=e103]:
+              - generic [ref=e105]: Helpdesk
+          - listitem [ref=e108]:
+            - button "Powiadomienia" [ref=e109]:
+              - generic [ref=e111]: Powiadomienia
+          - listitem [ref=e114]:
+            - button "Automatyzacja" [ref=e115]:
+              - generic [ref=e117]: Automatyzacja
+          - listitem [ref=e120]:
+            - button "Narzędzia" [ref=e121]:
+              - generic [ref=e123]: Narzędzia
+          - listitem [ref=e126]:
+            - link "Słowniki UKE" [ref=e127] [cursor=pointer]:
+              - /url: /system/dictionaries
+              - generic [ref=e129]: Słowniki UKE
+          - listitem [ref=e130]:
+            - link "Walidacja PIT" [ref=e131] [cursor=pointer]:
+              - /url: /pit/validation
+              - generic [ref=e133]: Walidacja PIT
+          - listitem [ref=e134]:
+            - link "Katalog wyszukiwarki" [ref=e135] [cursor=pointer]:
+              - /url: /system/search-catalog
+              - generic [ref=e137]: Katalog wyszukiwarki
+      - navigation [ref=e138]:
+        - list [ref=e139]:
+          - listitem [ref=e140]:
+            - link "Eksport CSV" [ref=e141] [cursor=pointer]:
+              - /url: /api/pit/export
+              - generic [ref=e143]: Eksport CSV
+          - listitem [ref=e145]:
+            - link "BIP UKE art. 20" [ref=e146] [cursor=pointer]:
+              - /url: https://bip.uke.gov.pl/sprawozdania/obowiazek-sprawozdawczy-z-art-20-pke/
+              - generic [ref=e148]: BIP UKE art. 20
+    - button "a admin Administrator lokalny" [ref=e151]:
+      - generic [ref=e153]: a
+      - generic [ref=e154]:
+        - generic [ref=e155]: admin
+        - generic [ref=e156]: Administrator lokalny
+  - separator
+  - generic [ref=e158]:
+    - generic [ref=e159]:
+      - button "Search… k" [ref=e160]:
+        - generic [ref=e162]: Search…
+        - generic [ref=e165]: k
+      - button [ref=e167]
+    - main [ref=e169]:
+      - generic [ref=e171]:
+        - generic [ref=e173]:
+          - generic [ref=e174]: Legenda
+          - generic [ref=e177]: SZKIELETOWY
+          - generic [ref=e180]: DYSTRYBUCYJNY
+        - generic [ref=e181]:
+          - generic [ref=e182]: "Węzły: 2 | Łącza: 1 | ● gotowe"
+          - generic [ref=e183]: Kliknij węzeł — podgląd | Kliknij 2x — szczegóły

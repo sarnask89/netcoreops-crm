@@ -197,6 +197,23 @@ function clearSelectedNetworks() {
   selectedNetworks.value = []
 }
 
+async function runImportAllLeases() {
+  if (!equipmentId.value) return
+  loading.value = 'mikrotik/leases-all'
+  try {
+    const response = await $fetch(endpoint('mikrotik/leases'), {
+      method: 'POST',
+      body: { mode: mode.value }
+    })
+    result.value = response
+    if (mode.value === 'apply') await refreshOptions()
+  } catch (error) {
+    toast.add({ title: 'Import nie powiódł się', description: error instanceof Error ? error.message : String(error), color: 'error' })
+  } finally {
+    loading.value = ''
+  }
+}
+
 async function runImport(kind: 'mikrotik/leases' | 'mikrotik/networks' | 'mikrotik/config' | 'dasan/onus' | 'dasan/ip-hosts' | 'dasan/mac-map') {
   if (!equipmentId.value) return
   if (kind === 'mikrotik/leases' && importedNetworks.value.length && !selectedNetworks.value.length) {
@@ -352,11 +369,11 @@ async function runOnuIpHost() {
             />
             <UButton
               block
-              label="Importuj DHCP leases"
+              label="Importuj wszystkie DHCP leases"
               icon="i-lucide-database-zap"
               variant="subtle"
-              :loading="loading === 'mikrotik/leases'"
-              @click="runImport('mikrotik/leases')"
+              :loading="loading === 'mikrotik/leases-all'"
+              @click="runImportAllLeases()"
             />
             <UButton
               block
@@ -413,6 +430,17 @@ async function runOnuIpHost() {
                   </span>
                 </label>
               </div>
+              <UButton
+                block
+                label="Importuj DHCP leases z wybranych sieci"
+                icon="i-lucide-database-zap"
+                color="primary"
+                variant="solid"
+                size="lg"
+                :loading="loading === 'mikrotik/leases'"
+                :disabled="!selectedNetworks.length"
+                @click="runImport('mikrotik/leases')"
+              />
             </div>
             <div class="grid gap-2">
               <UInput v-model="macAddress" placeholder="MAC do DHCP/MAC check" />

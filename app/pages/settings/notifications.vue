@@ -3,7 +3,8 @@ const state = reactive<Record<string, boolean>>({
   gponRxAlerts: true,
   diagnostics: true,
   imports: true,
-  browser: false
+  browser: false,
+  systemConsole: false
 })
 
 const sections = [{
@@ -25,17 +26,25 @@ const sections = [{
     name: 'browser',
     label: 'Powiadomienia systemowe',
     description: 'Rezerwacja pod lokalne powiadomienia przeglądarki.'
+  }, {
+    name: 'systemConsole',
+    label: 'Konsola systemowa',
+    description: 'Pokaż globalny slideover z błędami backendu i zmianami w bazie danych.'
   }]
 }]
 
 function onChange() {
   localStorage.setItem('netcoreops-notification-settings', JSON.stringify(state))
+  localStorage.setItem('netcoreops-console-enabled', String(Boolean(state.systemConsole)))
+  window.dispatchEvent(new Event('netcoreops-console-setting-changed'))
 }
 
 onMounted(() => {
   const stored = localStorage.getItem('netcoreops-notification-settings')
   if (!stored) return
   Object.assign(state, JSON.parse(stored))
+  const consoleSetting = localStorage.getItem('netcoreops-console-enabled')
+  if (consoleSetting != null) state.systemConsole = consoleSetting === 'true'
 })
 </script>
 

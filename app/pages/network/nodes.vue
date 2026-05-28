@@ -140,6 +140,7 @@ function rowContextItems(row: NodeRow): ContextMenuItem[][] {
   return [[
     { label: 'Edytuj węzeł', icon: 'i-lucide-pencil', onSelect: () => openEdit(row) },
     { label: 'Szczegóły', icon: 'i-lucide-panel-right-open', onSelect: () => showDetails(row) },
+    { label: 'Pokaż w topologii', icon: 'i-lucide-network', onSelect: () => navigateTo(`/network/topology/${row.id}`) },
     { label: 'Usuń węzeł', icon: 'i-lucide-trash-2', color: 'error', onSelect: () => deleteNode(row) },
     { label: 'Odśwież', icon: 'i-lucide-refresh-cw', onSelect: () => refresh() }
   ]]

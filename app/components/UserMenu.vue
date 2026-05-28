@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
+import type { ThemeSkin } from '~/composables/useThemeSkin'
+import { SKINS, useThemeSkin } from '~/composables/useThemeSkin'
 
 defineProps<{
   collapsed?: boolean
@@ -15,6 +17,7 @@ interface LocalAccount {
 
 const colorMode = useColorMode()
 const appConfig = useAppConfig()
+const { currentSkin, selectSkin } = useThemeSkin()
 
 const colors = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose']
 const neutrals = ['slate', 'gray', 'zinc', 'neutral', 'stone']
@@ -66,7 +69,29 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
   icon: 'i-lucide-shield-check',
   to: '/settings/security'
 }], [{
-  label: 'Motyw',
+  label: 'Skórka',
+  icon: currentSkin.value.icon,
+  chip: currentSkin.value.label,
+  slot: 'chip',
+  content: {
+    align: 'end',
+    collisionPadding: 16
+  },
+  children: (SKINS as ThemeSkin[]).map(skin => ({
+    label: skin.label,
+    icon: skin.icon,
+    slot: 'chip',
+    chip: skin.primary,
+    description: skin.description,
+    type: 'checkbox' as const,
+    checked: currentSkin.value.id === skin.id,
+    onSelect: (e: Event) => {
+      e.preventDefault()
+      selectSkin(skin.id)
+    }
+  }))
+}, {
+  label: 'Kolor główny',
   icon: 'i-lucide-palette',
   children: [{
     label: 'Kolor główny',

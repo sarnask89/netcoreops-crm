@@ -1,0 +1,171 @@
+- generic [active]:
+  - generic:
+    - generic [ref=e1]:
+      - generic [ref=e2]:
+        - button "NetCoreOps" [ref=e4]:
+          - generic [ref=e6]: NetCoreOps
+        - generic [ref=e7]:
+          - navigation [ref=e8]:
+            - list [ref=e9]:
+              - listitem [ref=e10]:
+                - link "Pulpit" [ref=e11] [cursor=pointer]:
+                  - /url: /
+                  - generic [ref=e13]: Pulpit
+              - listitem [ref=e14]:
+                - button "Sieć" [expanded] [ref=e15]:
+                  - generic [ref=e17]: Sieć
+                - region "Sieć" [ref=e20]:
+                  - list [ref=e21]:
+                    - listitem [ref=e22]:
+                      - link "Węzły" [ref=e23] [cursor=pointer]:
+                        - /url: /network/nodes
+                        - generic [ref=e25]: Węzły
+                    - listitem [ref=e26]:
+                      - link "Linie" [ref=e27] [cursor=pointer]:
+                        - /url: /network/lines
+                        - generic [ref=e29]: Linie
+                    - listitem [ref=e30]:
+                      - link "Urządzenia" [ref=e31] [cursor=pointer]:
+                        - /url: /network/equipment
+                        - generic [ref=e33]: Urządzenia
+                    - listitem [ref=e34]:
+                      - link "FTTH / GPON" [ref=e35] [cursor=pointer]:
+                        - /url: /network/ftth
+                        - generic [ref=e37]: FTTH / GPON
+                    - listitem [ref=e38]:
+                      - link "FTTH OLT" [ref=e39] [cursor=pointer]:
+                        - /url: /network/ftth/olts
+                        - generic [ref=e41]: FTTH OLT
+                    - listitem [ref=e42]:
+                      - link "FTTH PON" [ref=e43] [cursor=pointer]:
+                        - /url: /network/ftth/pons
+                        - generic [ref=e45]: FTTH PON
+                    - listitem [ref=e46]:
+                      - link "FTTH ONU" [ref=e47] [cursor=pointer]:
+                        - /url: /network/ftth/onus
+                        - generic [ref=e49]: FTTH ONU
+                    - listitem [ref=e50]:
+                      - link "FTTH MAC map" [ref=e51] [cursor=pointer]:
+                        - /url: /network/ftth/mac-map
+                        - generic [ref=e53]: FTTH MAC map
+                    - listitem [ref=e54]:
+                      - link "FTTH importy" [ref=e55] [cursor=pointer]:
+                        - /url: /network/ftth/imports
+                        - generic [ref=e57]: FTTH importy
+                    - listitem [ref=e58]:
+                      - link "FTTH diagnostyka" [ref=e59] [cursor=pointer]:
+                        - /url: /network/ftth/diagnostics
+                        - generic [ref=e61]: FTTH diagnostyka
+                    - listitem [ref=e62]:
+                      - link "Importy" [ref=e63] [cursor=pointer]:
+                        - /url: /network/imports
+                        - generic [ref=e65]: Importy
+                    - listitem [ref=e66]:
+                      - link "Profile dostępowe" [ref=e67] [cursor=pointer]:
+                        - /url: /network/access-profiles
+                        - generic [ref=e69]: Profile dostępowe
+                    - listitem [ref=e70]:
+                      - link "Topologia" [ref=e71] [cursor=pointer]:
+                        - /url: /network/topology
+                        - generic [ref=e73]: Topologia
+                    - listitem [ref=e74]:
+                      - link "Mapa klientów" [ref=e75] [cursor=pointer]:
+                        - /url: /network/customer-map
+                        - generic [ref=e77]: Mapa klientów
+              - listitem [ref=e78]:
+                - button "CRM" [ref=e79]:
+                  - generic [ref=e81]: CRM
+              - listitem [ref=e84]:
+                - button "Billing" [ref=e85]:
+                  - generic [ref=e87]: Billing
+              - listitem [ref=e90]:
+                - button "Finanse" [ref=e91]:
+                  - generic [ref=e93]: Finanse
+              - listitem [ref=e96]:
+                - button "Helpdesk" [ref=e97]:
+                  - generic [ref=e99]: Helpdesk
+              - listitem [ref=e102]:
+                - button "Powiadomienia" [ref=e103]:
+                  - generic [ref=e105]: Powiadomienia
+              - listitem [ref=e108]:
+                - button "Automatyzacja" [ref=e109]:
+                  - generic [ref=e111]: Automatyzacja
+              - listitem [ref=e114]:
+                - button "Narzędzia" [ref=e115]:
+                  - generic [ref=e117]: Narzędzia
+              - listitem [ref=e120]:
+                - link "Słowniki UKE" [ref=e121] [cursor=pointer]:
+                  - /url: /system/dictionaries
+                  - generic [ref=e123]: Słowniki UKE
+              - listitem [ref=e124]:
+                - link "Walidacja PIT" [ref=e125] [cursor=pointer]:
+                  - /url: /pit/validation
+                  - generic [ref=e127]: Walidacja PIT
+              - listitem [ref=e128]:
+                - link "Katalog wyszukiwarki" [ref=e129] [cursor=pointer]:
+                  - /url: /system/search-catalog
+                  - generic [ref=e131]: Katalog wyszukiwarki
+          - navigation [ref=e132]:
+            - list [ref=e133]:
+              - listitem [ref=e134]:
+                - link "Eksport CSV" [ref=e135] [cursor=pointer]:
+                  - /url: /api/pit/export
+                  - generic [ref=e137]: Eksport CSV
+              - listitem [ref=e139]:
+                - link "BIP UKE art. 20" [ref=e140] [cursor=pointer]:
+                  - /url: https://bip.uke.gov.pl/sprawozdania/obowiazek-sprawozdawczy-z-art-20-pke/
+                  - generic [ref=e142]: BIP UKE art. 20
+        - button "a admin Administrator lokalny" [ref=e145]:
+          - generic [ref=e147]: a
+          - generic [ref=e148]:
+            - generic [ref=e149]: admin
+            - generic [ref=e150]: Administrator lokalny
+      - separator
+      - generic [ref=e152]:
+        - generic [ref=e153]:
+          - button "Search… Ctrl k" [ref=e192]:
+            - generic [ref=e156]: Search…
+            - generic [ref=e157]:
+              - generic [ref=e158]: Ctrl
+              - generic [ref=e159]: k
+          - button [ref=e161]
+        - main [ref=e163]:
+          - generic [ref=e165]:
+            - generic [ref=e168]: Ładowanie mapy 3D...
+            - generic [ref=e193]:
+              - region "Map" [ref=e195]
+              - group [ref=e198]:
+                - generic "Toggle attribution" [ref=e199]
+                - generic [ref=e200]:
+                  - text: ©
+                  - link "OpenStreetMap" [ref=e201] [cursor=pointer]:
+                    - /url: https://www.openstreetmap.org/copyright
+            - generic [ref=e169]:
+              - generic [ref=e170]: Legenda
+              - generic [ref=e173]: Szkieletowy (SZKIELETOWY)
+              - generic [ref=e176]: Dystrybucyjny (DYSTRYBUCYJNY)
+              - generic [ref=e177]:
+                - generic [ref=e180]: Aktywny
+                - generic [ref=e183]: Planowany
+                - generic [ref=e186]: Wycofany
+              - generic [ref=e187]:
+                - text: Kliknij — podgląd
+                - text: 2x kliknij — szczegóły
+            - generic [ref=e191]: "Węzły: 2 | Łącza: 1 | ● gotowe"
+    - button "Konsola" [ref=e203]:
+      - generic [ref=e205]: Konsola
+  - generic:
+    - img
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - button "Toggle Nuxt DevTools":
+            - img
+          - generic "Page load time":
+            - generic: "3.3"
+            - generic: s
+          - button "Toggle Component Inspector":
+            - img
+  - region "Notifications (F8)":
+    - list

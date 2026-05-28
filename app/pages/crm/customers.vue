@@ -3,6 +3,8 @@ import * as z from 'zod'
 import type { ContextMenuItem, FormSubmitEvent, TableColumn } from '@nuxt/ui'
 import { customerFormSchema, type CustomerFormSchema } from '#shared/schemas/customers'
 
+const router = useRouter()
+
 interface PortalAccessData {
   login: string
   password: string
@@ -382,6 +384,37 @@ function rowContextItems(row: CustomerRow): ContextMenuItem[][] {
       onSelect: () => generatePortalAccess(row)
     }
   ]]
+
+  items.push([
+    {
+      label: 'Generuj fakturę',
+      icon: 'i-lucide-file-plus',
+      onSelect: () => router.push(`/finance/documents?customerId=${row.id}`)
+    },
+    {
+      label: 'Płatności',
+      icon: 'i-lucide-banknote',
+      onSelect: () => router.push(`/finance/payments?customerId=${row.id}`)
+    },
+    {
+      label: 'Saldo klienta',
+      icon: 'i-lucide-wallet',
+      onSelect: () => router.push(`/finance?customerId=${row.id}`)
+    }
+  ])
+
+  items.push([
+    {
+      label: 'Zgłoszenia',
+      icon: 'i-lucide-life-buoy',
+      onSelect: () => router.push(`/helpdesk/tickets?customerId=${row.id}`)
+    },
+    {
+      label: 'Nowe zgłoszenie',
+      icon: 'i-lucide-ticket-plus',
+      onSelect: () => router.push(`/helpdesk/tickets?newCustomerId=${row.id}`)
+    }
+  ])
 
   items.push([
     { label: 'Archiwizuj', icon: 'i-lucide-archive', color: 'error', onSelect: () => openArchiveCustomer(row) },

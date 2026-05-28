@@ -1,0 +1,11 @@
+import { apiHandler } from '../../../utils/api-handler'
+import { db } from '../../../utils/db'
+import { eq } from 'drizzle-orm'
+import { getRouterParam } from 'h3'
+import { smtpConfigs } from '../../../db/schema'
+
+export default apiHandler(async (event) => {
+  const id = Number(getRouterParam(event, 'id'))
+  await db.delete(smtpConfigs).where(eq(smtpConfigs.id, id))
+  return { success: true }
+})

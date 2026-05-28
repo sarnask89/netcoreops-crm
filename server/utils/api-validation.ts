@@ -343,3 +343,203 @@ export const createSearchCatalogSchema = z.object({
 })
 
 export const updateSearchCatalogSchema = createSearchCatalogSchema.partial()
+
+export const createNumberPlanSchema = z.object({
+  name: z.string().min(1).max(128),
+  template: z.string().min(1).max(255),
+  period: z.enum(['yearly', 'monthly', 'daily', 'continuous']).default('yearly'),
+  doctype: z.enum(['invoice', 'proforma', 'credit_note', 'receipt']),
+  isDefault: z.boolean().default(false),
+  nextNumber: z.number().int().positive().default(1),
+  isActive: z.boolean().default(true)
+})
+
+export const updateNumberPlanSchema = createNumberPlanSchema.partial()
+
+export const createDocumentItemSchema = z.object({
+  ordinal: z.number().int().nonnegative(),
+  description: z.string().min(1),
+  quantity: z.coerce.number().positive().default(1),
+  unitNetPrice: z.coerce.number().nonnegative(),
+  vatRate: z.coerce.number().nonnegative().max(100),
+  netAmount: z.coerce.number().nonnegative(),
+  vatAmount: z.coerce.number().nonnegative(),
+  grossAmount: z.coerce.number().nonnegative(),
+  subscriptionId: z.string().uuid().nullable().optional(),
+  tariffId: z.number().int().positive().nullable().optional()
+})
+
+export const createDocumentSchema = z.object({
+  type: z.enum(['invoice', 'proforma', 'credit_note', 'receipt']),
+  numberPlanId: z.number().int().positive().nullable().optional(),
+  customerId: z.string().uuid(),
+  issueDate: z.string().date(),
+  saleDate: z.string().date(),
+  dueDate: z.string().date().nullable().optional(),
+  paymentMethod: z.string().max(50).default('transfer'),
+  totalNet: z.coerce.number().nonnegative(),
+  totalVat: z.coerce.number().nonnegative(),
+  totalGross: z.coerce.number().nonnegative(),
+  notes: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  items: z.array(createDocumentItemSchema).min(1)
+})
+
+export const updateDocumentSchema = z.object({
+  paymentMethod: z.string().max(50).optional(),
+  paymentStatus: z.enum(['unpaid', 'partial', 'paid']).optional(),
+  dueDate: z.string().date().nullable().optional(),
+  notes: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  isCancelled: z.boolean().optional()
+})
+
+export const createPaymentSchema = z.object({
+  customerId: z.string().uuid(),
+  documentId: z.string().uuid().nullable().optional(),
+  amount: z.coerce.number().positive(),
+  paymentDate: z.string().date(),
+  paymentMethod: z.string().max(50).nullable().optional(),
+  reference: z.preprocess(emptyToNull, z.string().max(255).nullable().optional()),
+  notes: z.preprocess(emptyToNull, z.string().nullable().optional())
+})
+
+export const updatePaymentSchema = z.object({
+  amount: z.coerce.number().positive().optional(),
+  paymentDate: z.string().date().optional(),
+  paymentMethod: z.string().max(50).nullable().optional(),
+  reference: z.preprocess(emptyToNull, z.string().max(255).nullable().optional()),
+  notes: z.preprocess(emptyToNull, z.string().nullable().optional())
+})
+
+export const generateInvoiceSchema = z.object({
+  customerId: z.string().uuid(),
+  subscriptionIds: z.array(z.string().uuid()).min(1),
+  issueDate: z.string().date(),
+  saleDate: z.string().date(),
+  dueDate: z.string().date().nullable().optional(),
+  numberPlanId: z.number().int().positive().nullable().optional()
+})
+
+// ── Helpdesk / Tickets ──
+
+export const createTicketCategorySchema = z.object({
+  name: z.string().min(1).max(128),
+  description: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  color: z.preprocess(emptyToNull, z.string().max(20).nullable().optional()),
+  sortOrder: z.number().int().nonnegative().default(0),
+  isActive: z.boolean().default(true)
+})
+
+export const updateTicketCategorySchema = z.object({
+  name: z.string().min(1).max(128).optional(),
+  description: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  color: z.preprocess(emptyToNull, z.string().max(20).nullable().optional()),
+  sortOrder: z.number().int().nonnegative().optional(),
+  isActive: z.boolean().optional()
+})
+
+export const createTicketSchema = z.object({
+  subject: z.string().min(1).max(255),
+  status: z.enum(['open', 'in_progress', 'waiting', 'resolved', 'closed']).default('open'),
+  priority: z.enum(['low', 'normal', 'high', 'urgent']).default('normal'),
+  customerId: z.string().uuid(),
+  categoryId: z.number().int().positive().nullable().optional(),
+  assignedTo: z.preprocess(emptyToNull, z.string().max(255).nullable().optional()),
+  source: z.enum(['admin', 'portal', 'email']).default('admin'),
+  message: z.string().min(1).describe('First message content')
+})
+
+export const updateTicketSchema = z.object({
+  subject: z.string().min(1).max(255).optional(),
+  status: z.enum(['open', 'in_progress', 'waiting', 'resolved', 'closed']).optional(),
+  priority: z.enum(['low', 'normal', 'high', 'urgent']).optional(),
+  categoryId: z.number().int().positive().nullable().optional(),
+  assignedTo: z.preprocess(emptyToNull, z.string().max(255).nullable().optional())
+})
+
+export const addTicketMessageSchema = z.object({
+  author: z.string().min(1).max(255),
+  content: z.string().min(1),
+  isInternal: z.boolean().default(false),
+  attachments: z.array(z.object({
+    filename: z.string(),
+    url: z.string()
+  })).default([]).optional()
+})
+
+// ── Email & Notifications ──
+
+export const createSmtpConfigSchema = z.object({
+  name: z.string().min(1).max(128),
+  host: z.string().min(1).max(255),
+  port: z.number().int().positive().default(587),
+  username: z.string().min(1).max(255),
+  password: z.string().min(1).max(512),
+  fromName: z.preprocess(emptyToNull, z.string().max(255).nullable().optional()),
+  fromEmail: z.string().email().max(255),
+  encryption: z.enum(['tls', 'ssl', 'none']).default('tls'),
+  isDefault: z.boolean().default(false),
+  isActive: z.boolean().default(true)
+})
+
+export const updateSmtpConfigSchema = z.object({
+  name: z.string().min(1).max(128).optional(),
+  host: z.string().min(1).max(255).optional(),
+  port: z.number().int().positive().optional(),
+  username: z.string().min(1).max(255).optional(),
+  password: z.string().min(1).max(512).optional(),
+  fromName: z.preprocess(emptyToNull, z.string().max(255).nullable().optional()),
+  fromEmail: z.string().email().max(255).optional(),
+  encryption: z.enum(['tls', 'ssl', 'none']).optional(),
+  isDefault: z.boolean().optional(),
+  isActive: z.boolean().optional()
+})
+
+export const createEmailTemplateSchema = z.object({
+  name: z.string().min(1).max(128),
+  code: z.string().min(1).max(64),
+  subject: z.string().min(1).max(255),
+  bodyHtml: z.string().min(1),
+  variables: z.array(z.object({
+    name: z.string(),
+    label: z.string()
+  })).default([]).optional(),
+  smtpConfigId: z.number().int().positive().nullable().optional(),
+  isActive: z.boolean().default(true)
+})
+
+export const updateEmailTemplateSchema = z.object({
+  name: z.string().min(1).max(128).optional(),
+  code: z.string().min(1).max(64).optional(),
+  subject: z.string().min(1).max(255).optional(),
+  bodyHtml: z.string().min(1).optional(),
+  variables: z.array(z.object({
+    name: z.string(),
+    label: z.string()
+  })).optional(),
+  smtpConfigId: z.number().int().positive().nullable().optional(),
+  isActive: z.boolean().optional()
+})
+
+export const createNotificationRuleSchema = z.object({
+  name: z.string().min(1).max(128),
+  eventType: z.enum(['ticket_created', 'ticket_reply', 'invoice_issued', 'payment_received', 'payment_overdue', 'subscription_expiring']),
+  templateId: z.number().int().positive().nullable().optional(),
+  recipients: z.array(z.object({
+    type: z.enum(['customer', 'admin', 'email']),
+    value: z.string().optional()
+  })).min(1),
+  conditions: z.object({}).passthrough().default({}).optional(),
+  enabled: z.boolean().default(true)
+})
+
+export const updateNotificationRuleSchema = z.object({
+  name: z.string().min(1).max(128).optional(),
+  eventType: z.enum(['ticket_created', 'ticket_reply', 'invoice_issued', 'payment_received', 'payment_overdue', 'subscription_expiring']).optional(),
+  templateId: z.number().int().positive().nullable().optional(),
+  recipients: z.array(z.object({
+    type: z.enum(['customer', 'admin', 'email']),
+    value: z.string().optional()
+  })).min(1).optional(),
+  conditions: z.object({}).passthrough().optional(),
+  enabled: z.boolean().optional()
+})

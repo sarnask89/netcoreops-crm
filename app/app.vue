@@ -1,5 +1,12 @@
 <script setup lang="ts">
+import { useThemeSkin } from '~/composables/useThemeSkin'
+
 const colorMode = useColorMode()
+const { currentSkin, style, initSkin } = useThemeSkin()
+
+onMounted(() => {
+  initSkin()
+})
 
 const color = computed(() => colorMode.value === 'dark' ? '#1b1718' : 'white')
 
@@ -13,7 +20,9 @@ useHead({
     { rel: 'icon', href: '/favicon.ico' }
   ],
   htmlAttrs: {
-    lang: 'en'
+    'lang': 'en',
+    'data-skin': computed(() => currentSkin.value.id),
+    'data-skin-style': style
   }
 })
 
@@ -36,5 +45,7 @@ useSeoMeta({
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+
+    <SystemConsoleWidget />
   </UApp>
 </template>

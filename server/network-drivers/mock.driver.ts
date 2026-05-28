@@ -129,6 +129,10 @@ export class MockNetworkDriver implements NetworkManagementDriver {
     }
   }
 
+  async restart(): Promise<DriverCheckResult> {
+    return { name: 'restart', status: 'ok', data: { action: 'reboot' }, message: 'Mock: restart symulowany' }
+  }
+
   async getCommandTree(): Promise<DriverCheckResult> {
     return {
       name: 'command-tree',

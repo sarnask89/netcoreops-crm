@@ -61,6 +61,49 @@ const activeServices = computed(() =>
         <div class="flex items-center gap-3">
           <span class="text-sm text-muted">{{ data.data.fullName }}</span>
           <UButton
+            label="Faktury"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            to="/portal/invoices"
+          />
+          <UButton
+            label="Wpłaty"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            to="/portal/payments"
+          />
+          <UButton
+            label="Oferty"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            to="/portal/offers"
+          />
+          <UButton
+            label="Zgłoszenia"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            to="/portal/tickets"
+          />
+          <UButton
+            label="Kontakt"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            to="/portal/contact"
+          />
+          <UButton
+            label="Hasło"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            icon="i-lucide-key"
+            to="/portal/password"
+          />
+          <UButton
             label="Wyloguj"
             color="neutral"
             variant="ghost"

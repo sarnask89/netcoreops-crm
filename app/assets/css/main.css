@@ -27,3 +27,38 @@
   width: 0;
   height: 0;
 }
+
+/* Skin-specific overrides */
+
+/* Sidebar compact: narrower sidebar with condensed spacing */
+html[data-skin-style="sidebar-compact"] [id="default"] {
+  --reka-drawer-size: 14rem !important;
+}
+
+html[data-skin-style="sidebar-compact"] [id="default"] .UNavigationMenu a,
+html[data-skin-style="sidebar-compact"] [id="default"] .UNavigationMenu button {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  font-size: 0.8125rem !important;
+}
+
+/* Dashboard style: subtle top bar styling */
+html[data-skin-style="dashboard"] .dashboard-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Skin chip dots in menus */
+[data-skin="nuxt-dashboard"] { --skin-chip: var(--color-blue-500); }
+[data-skin="classic"] { --skin-chip: var(--color-indigo-500); }
+[data-skin="ocean"] { --skin-chip: var(--color-cyan-500); }
+[data-skin="sunset"] { --skin-chip: var(--color-orange-500); }
+[data-skin="midnight"] { --skin-chip: var(--color-purple-500); }
+[data-skin="lavender"] { --skin-chip: var(--color-violet-500); }
+[data-skin="forest"] { --skin-chip: var(--color-emerald-500); }
+[data-skin="amber"] { --skin-chip: var(--color-amber-500); }
+[data-skin="ruby"] { --skin-chip: var(--color-rose-500); }
+[data-skin="mint"] { --skin-chip: var(--color-teal-500); }
+[data-skin="warmth"] { --skin-chip: var(--color-yellow-500); }
+[data-skin="netcore-dark"] { --skin-chip: var(--color-blue-500); }
